@@ -1,0 +1,43 @@
+import type { Room } from '../../../entities/room/model/types';
+
+export const mockRooms: Room[] = [
+  {
+    id: 1,
+    title: '학식 맛있게 먹는 모임',
+    badge: '혼성',
+    ageRange: '20-23대',
+    currentCount: 2,
+    maxCount: 4,
+    recruitingText: '2명 모집중',
+    location: '학생식당',
+    time: '12:00',
+    progress: 50,
+    accentClassName: 'bg-indigo-500',
+  },
+  {
+    id: 2,
+    title: '여자 친구들 점심',
+    badge: '여성만',
+    ageRange: '21-24대',
+    currentCount: 1,
+    maxCount: 3,
+    recruitingText: '2명 모집중',
+    location: '학생식당',
+    time: '12:30',
+    progress: 33,
+    accentClassName: 'bg-pink-500',
+  },
+  {
+    id: 3,
+    title: '남자들 밥 먹으러',
+    badge: '남성만',
+    ageRange: '20-25대',
+    currentCount: 3,
+    maxCount: 4,
+    recruitingText: '1명 모집중',
+    location: '학생식당',
+    time: '12:15',
+    progress: 75,
+    accentClassName: 'bg-blue-500',
+  },
+];
