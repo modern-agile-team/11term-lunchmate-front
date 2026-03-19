@@ -1,5 +1,6 @@
-import type { Room } from '../../../entities/room/model/types';
-import RoomCard from '../../../shared/ui/room-card/RoomCard';
+import type { Room } from '@/entities/room/model/types';
+
+import RoomCard from './RoomCard';
 
 interface RoomListProps {
   rooms: Room[];

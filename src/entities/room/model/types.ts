@@ -8,6 +8,5 @@ export interface Room {
   recruitingText: string;
   location: string;
   time: string;
-  progress: number;
-  accentClassName: string;
+  accentColor: 'blue' | 'indigo' | 'pink';
 }

@@ -1,9 +1,9 @@
 import { mockRooms } from '../model/mockRooms';
-import MainHeader from '../../../widgets/main-header/ui/MainHeader';
-import MainIntro from '../../../widgets/main-intro/ui/MainIntro';
-import MainTabs from '../../../widgets/main-tabs/ui/MainTabs';
-import RoomList from '../../../widgets/room-list/ui/RoomList';
-import RoomStatus from '../../../widgets/room-status/ui/RoomStatus';
+import MainHeader from './MainHeader';
+import MainIntro from './MainIntro';
+import MainTabs from './MainTabs';
+import RoomList from './RoomList';
+import RoomStatus from './RoomStatus';
 
 const MainPage = () => {
   return (

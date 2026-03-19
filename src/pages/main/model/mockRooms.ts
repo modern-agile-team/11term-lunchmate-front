@@ -1,4 +1,4 @@
-import type { Room } from '../../../entities/room/model/types';
+import type { Room } from '@/entities/room/model/types';
 
 export const mockRooms: Room[] = [
   {
@@ -11,8 +11,7 @@ export const mockRooms: Room[] = [
     recruitingText: '2명 모집중',
     location: '학생식당',
     time: '12:00',
-    progress: 50,
-    accentClassName: 'bg-indigo-500',
+    accentColor: 'indigo',
   },
   {
     id: 2,
@@ -24,8 +23,7 @@ export const mockRooms: Room[] = [
     recruitingText: '2명 모집중',
     location: '학생식당',
     time: '12:30',
-    progress: 33,
-    accentClassName: 'bg-pink-500',
+    accentColor: 'pink',
   },
   {
     id: 3,
@@ -37,7 +35,6 @@ export const mockRooms: Room[] = [
     recruitingText: '1명 모집중',
     location: '학생식당',
     time: '12:15',
-    progress: 75,
-    accentClassName: 'bg-blue-500',
+    accentColor: 'blue',
   },
 ];
