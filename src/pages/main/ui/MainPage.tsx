@@ -1,4 +1,4 @@
-import { mockRooms } from '../model/mockRooms';
+import { mockRooms } from '../mocks/mockRooms';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
 import MainTabs from './MainTabs';

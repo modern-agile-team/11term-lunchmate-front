@@ -1,6 +1,6 @@
 import { Clock3, MapPin, Users } from 'lucide-react';
 
-import type { MainRoom } from '../model/mockRooms';
+import type { MainRoom } from '../model/types';
 
 interface RoomCardProps {
   room: MainRoom;
