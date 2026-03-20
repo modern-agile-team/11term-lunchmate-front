@@ -1,0 +1,58 @@
+export interface MainRoom {
+  id: number;
+  title: string;
+  roomType: 'MIXED' | 'FEMALE' | 'MALE';
+  minAge: number;
+  maxAge: number;
+  currentCount: number;
+  capacity: number;
+  place: string;
+  lunchAt: string;
+}
+
+export const mockRooms: MainRoom[] = [
+  {
+    id: 1,
+    title: '학식 맛있게 먹는 모임',
+    roomType: 'MIXED',
+    minAge: 20,
+    maxAge: 23,
+    currentCount: 2,
+    capacity: 4,
+    place: '학생식당',
+    lunchAt: '12:00',
+  },
+  {
+    id: 2,
+    title: '여자 친구들 점심',
+    roomType: 'FEMALE',
+    minAge: 21,
+    maxAge: 24,
+    currentCount: 1,
+    capacity: 3,
+    place: '학생식당',
+    lunchAt: '12:30',
+  },
+  {
+    id: 3,
+    title: '남자들 밥 먹으러',
+    roomType: 'MALE',
+    minAge: 20,
+    maxAge: 25,
+    currentCount: 3,
+    capacity: 4,
+    place: '학생식당',
+    lunchAt: '12:15',
+  },
+  {
+    id: 4,
+    title: '편한 분위기 점심팟',
+    roomType: 'MIXED',
+    minAge: 19,
+    maxAge: 23,
+    currentCount: 2,
+    capacity: 5,
+    place: '학생식당',
+    lunchAt: '12:45',
+  },
+];
