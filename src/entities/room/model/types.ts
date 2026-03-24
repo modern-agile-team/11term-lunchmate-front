@@ -1,7 +1,9 @@
+export type RoomType = 'MIXED' | 'FEMALE' | 'MALE';
+
 export interface Room {
   id: number;
   title: string;
-  roomType: 'MIXED' | 'FEMALE' | 'MALE';
+  roomType: RoomType;
   minAge: number;
   maxAge: number;
   currentCount: number;
@@ -13,7 +15,7 @@ export interface Room {
 export interface RoomListParams {
   cursor?: number;
   size?: number;
-  roomType?: Room['roomType'];
+  roomType?: RoomType;
   code?: string;
   minAge?: number;
   maxAge?: number;

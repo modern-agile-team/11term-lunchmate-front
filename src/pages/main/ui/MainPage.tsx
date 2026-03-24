@@ -1,16 +1,58 @@
+import { useDeferredValue, useState } from 'react';
 import { AlertTriangle, Inbox, LoaderCircle, Wifi } from 'lucide-react';
 
+import type { RoomListParams, RoomType } from '@/entities/room/model/types';
 import { useRoomListQuery } from '../model/useRoomListQuery';
+import MainFilters from './MainFilters';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
 import MainTabs from './MainTabs';
 import RoomCard from './RoomCard';
 import RoomSummary from './RoomSummary';
 
+const initialRoomListParams: RoomListParams = {};
+
 const MainPage = () => {
-  const { data, isLoading, isError } = useRoomListQuery();
+  const [roomListParams, setRoomListParams] = useState<RoomListParams>(initialRoomListParams);
+  const deferredRoomListParams = useDeferredValue(roomListParams);
+  const { data, isLoading, isError } = useRoomListQuery(deferredRoomListParams);
 
   const rooms = data?.items ?? [];
+
+  const updateRoomListParams = (nextRoomListParams: Partial<RoomListParams>) => {
+    setRoomListParams((prevRoomListParams) => ({
+      ...prevRoomListParams,
+      ...nextRoomListParams,
+    }));
+  };
+
+  const handleChangeRoomType = (roomType: RoomType | undefined) => {
+    updateRoomListParams({ roomType });
+  };
+
+  const handleChangeCode = (code: string) => {
+    updateRoomListParams({ code: code || undefined });
+  };
+
+  const handleChangeMinAge = (minAge: number | undefined) => {
+    updateRoomListParams({ minAge });
+  };
+
+  const handleChangeMaxAge = (maxAge: number | undefined) => {
+    updateRoomListParams({ maxAge });
+  };
+
+  const handleChangeTimeFrom = (timeFrom: string) => {
+    updateRoomListParams({ timeFrom: timeFrom || undefined });
+  };
+
+  const handleChangeTimeTo = (timeTo: string) => {
+    updateRoomListParams({ timeTo: timeTo || undefined });
+  };
+
+  const handleReset = () => {
+    setRoomListParams(initialRoomListParams);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -19,6 +61,16 @@ const MainPage = () => {
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 py-6 md:px-8">
         <MainHero />
         <MainTabs />
+        <MainFilters
+          roomListParams={roomListParams}
+          onChangeRoomType={handleChangeRoomType}
+          onChangeCode={handleChangeCode}
+          onChangeMinAge={handleChangeMinAge}
+          onChangeMaxAge={handleChangeMaxAge}
+          onChangeTimeFrom={handleChangeTimeFrom}
+          onChangeTimeTo={handleChangeTimeTo}
+          onReset={handleReset}
+        />
         <RoomSummary roomCount={rooms.length} />
 
         <section className="flex items-center gap-2 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
