@@ -22,6 +22,8 @@ interface RoomListApiResponse {
   nextCursor?: number | null;
 }
 
+const DEFAULT_ROOM_LIST_SIZE = 10;
+
 const getRoomListItemCurrentCount = (roomListItemApiResponse: RoomListItemApiResponse) => {
   return (
     roomListItemApiResponse.currentCount ??
@@ -46,8 +48,13 @@ const mapRoomListItem = (roomListItemApiResponse: RoomListItemApiResponse): Room
 };
 
 export const getRoomList = async (roomListParams?: RoomListParams): Promise<RoomListResponse> => {
+  const requestRoomListParams = {
+    size: DEFAULT_ROOM_LIST_SIZE,
+    ...roomListParams,
+  };
+
   const { data } = await apiClient.get<RoomListApiResponse>('/api/v1/rooms', {
-    params: roomListParams,
+    params: requestRoomListParams,
   });
 
   return {
