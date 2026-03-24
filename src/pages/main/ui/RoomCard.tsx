@@ -1,9 +1,9 @@
 import { Clock3, MapPin, Users } from 'lucide-react';
 
-import type { MainRoom } from '../model/types';
+import type { Room } from '@/entities/room/model/types';
 
 interface RoomCardProps {
-  room: MainRoom;
+  room: Room;
 }
 
 const roomTypeStyleMap = {
