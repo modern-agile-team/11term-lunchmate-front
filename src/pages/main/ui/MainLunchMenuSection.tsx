@@ -2,6 +2,8 @@ import { Flame, ThumbsDown, ThumbsUp } from 'lucide-react';
 
 import { mockLunchMenus } from '../mocks/mockLunchMenus';
 
+const KRW_NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
+
 const MainLunchMenuSection = () => {
   return (
     <section className="space-y-4 md:space-y-5">
@@ -25,10 +27,12 @@ const MainLunchMenuSection = () => {
 
             <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-right">
               <div className="text-xs font-semibold text-emerald-600">한 끼 정보</div>
-              <div className="mt-2 text-lg font-bold text-slate-900">{mockLunchMenu.price}</div>
+              <div className="mt-2 text-lg font-bold text-slate-900">
+                {KRW_NUMBER_FORMAT.format(mockLunchMenu.price)}원
+              </div>
               <div className="mt-1 inline-flex items-center gap-1 text-sm text-slate-500">
                 <Flame className="h-4 w-4 text-orange-400" />
-                {mockLunchMenu.calorie}
+                {mockLunchMenu.calorie}kcal
               </div>
             </div>
           </div>

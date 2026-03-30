@@ -9,6 +9,26 @@ const categoryStyleMap = {
   TALK: 'bg-violet-50 text-violet-700',
 } as const;
 
+const formatRelativeCreatedAt = (createdAt: string) => {
+  const currentTime = Date.now();
+  const createdTime = new Date(createdAt).getTime();
+  const diffMinutes = Math.max(1, Math.floor((currentTime - createdTime) / (1000 * 60)));
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes}분 전`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours}시간 전`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  return `${diffDays}일 전`;
+};
+
 const MainBoardSection = () => {
   return (
     <section className="space-y-4 md:space-y-5">
@@ -26,7 +46,9 @@ const MainBoardSection = () => {
             >
               {mockBoardPost.category}
             </span>
-            <span className="text-sm text-slate-400">{mockBoardPost.createdAt}</span>
+            <span className="text-sm text-slate-400">
+              {formatRelativeCreatedAt(mockBoardPost.createdAt)}
+            </span>
           </div>
 
           <h2 className="mt-4 text-[19px] font-bold tracking-[-0.03em] text-slate-900">
