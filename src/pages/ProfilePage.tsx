@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import MainHeader from '@/pages/main/ui/MainHeader';
-import { getMyProfile, updateMyProfile } from '@/shared/api/profile';
+import { updateMyProfile } from '@/shared/api/profile';
+import { myProfileQueryOptions } from '@/shared/api/profileQueries';
 import { MBTI_OPTIONS, type MbtiType, type UserProfile } from '@/shared/types/profile';
 
 const EMPTY_PROFILE: UserProfile = {
@@ -38,10 +39,7 @@ export default function ProfilePage() {
     isError,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ['myProfile'],
-    queryFn: getMyProfile,
-  });
+  } = useQuery(myProfileQueryOptions());
 
   const updateProfileMutation = useMutation({
     mutationFn: updateMyProfile,
@@ -53,7 +51,7 @@ export default function ProfilePage() {
       setImageError(false);
       setSaveMessage('프로필이 저장되었어요.');
       setSaveMessageTone('success');
-      queryClient.invalidateQueries({ queryKey: ['myProfile'] });
+      queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
     },
     onError: () => {
       setSaveMessage('프로필 저장에 실패했어요. 잠시 후 다시 시도해 주세요.');
