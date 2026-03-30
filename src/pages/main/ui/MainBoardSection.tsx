@@ -1,5 +1,6 @@
 import { Heart, MessageSquareText, Pencil, SendHorizonal, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { cn } from '@/shared/lib/utils';
 
 import { mockBoardComments } from '../mocks/mockBoardComments';
 import { mockBoardPosts } from '../mocks/mockBoardPosts';
@@ -32,7 +33,10 @@ const formatRelativeCreatedAt = (createdAt: string) => {
 };
 
 const MainBoardSection = () => {
-  const [selectedBoardPostId, setSelectedBoardPostId] = useState(mockBoardPosts[0]?.id ?? 0);
+  const initialSelectedBoardPostId = mockBoardPosts[0]?.id ?? null;
+  const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(
+    initialSelectedBoardPostId,
+  );
   const selectedBoardPost = mockBoardPosts.find(
     (mockBoardPost) => mockBoardPost.id === selectedBoardPostId,
   );
@@ -45,20 +49,20 @@ const MainBoardSection = () => {
       {mockBoardPosts.map((mockBoardPost) => (
         <article
           key={mockBoardPost.id}
-          className={[
+          className={cn(
             'cursor-pointer rounded-[28px] border bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition',
             selectedBoardPostId === mockBoardPost.id
               ? 'border-indigo-200 ring-4 ring-indigo-100/60'
               : 'border-slate-200/80 hover:border-slate-300',
-          ].join(' ')}
+          )}
           onClick={() => setSelectedBoardPostId(mockBoardPost.id)}
         >
           <div className="flex items-center justify-between gap-3">
             <span
-              className={[
+              className={cn(
                 'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
                 categoryStyleMap[mockBoardPost.category],
-              ].join(' ')}
+              )}
             >
               {mockBoardPost.category}
             </span>
@@ -94,10 +98,10 @@ const MainBoardSection = () => {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span
-                className={[
+                className={cn(
                   'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
                   categoryStyleMap[selectedBoardPost.category],
-                ].join(' ')}
+                )}
               >
                 {selectedBoardPost.category}
               </span>
