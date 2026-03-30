@@ -8,8 +8,13 @@ const MainHeader = () => {
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-[0_10px_24px_rgba(99,102,241,0.25)]">
             <UsersRound className="h-5 w-5" />
           </div>
-          <div className="text-[22px] font-extrabold tracking-[-0.03em] text-slate-900">
-            점심메이트<span className="text-indigo-500">추가</span>
+          <div className="flex flex-col">
+            <span className="text-[22px] font-extrabold tracking-[-0.03em] text-slate-900">
+              점메추
+            </span>
+            <span className="text-xs font-medium tracking-[0.02em] text-slate-400">
+              점심메이트 추천
+            </span>
           </div>
         </div>
 
