@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { ArrowLeft, Eye, UsersRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,15 +13,39 @@ interface LoginFormValues {
   password: string;
 }
 
+interface SignupFormValues {
+  name: string;
+  nickname: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+}
+
 const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [screenMode, setScreenMode] = useState<'login' | 'signup'>('login');
   const emailId = useId();
   const passwordId = useId();
+  const signupNameId = useId();
+  const signupNicknameId = useId();
+  const signupEmailId = useId();
+  const signupPasswordId = useId();
+  const signupPasswordConfirmId = useId();
 
-  const { register, handleSubmit, reset } = useForm<LoginFormValues>({
+  const loginForm = useForm<LoginFormValues>({
     defaultValues: {
       email: '',
       password: '',
+    },
+  });
+
+  const signupForm = useForm<SignupFormValues>({
+    defaultValues: {
+      name: '',
+      nickname: '',
+      email: '',
+      password: '',
+      passwordConfirm: '',
     },
   });
 
@@ -60,11 +85,17 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   }, [onClose]);
 
   const handleClose = () => {
-    reset();
+    loginForm.reset();
+    signupForm.reset();
+    setScreenMode('login');
     onClose();
   };
 
-  const handleFormSubmit = handleSubmit(() => {
+  const handleLoginSubmit = loginForm.handleSubmit(() => {
+    handleClose();
+  });
+
+  const handleSignupSubmit = signupForm.handleSubmit(() => {
     handleClose();
   });
 
@@ -99,65 +130,184 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         <div className="flex flex-1 items-center justify-center px-5 py-12 md:px-8">
           <div className="w-full max-w-[412px]">
             <div className="mb-10 text-center">
-              <h2 className="text-[34px] font-extrabold tracking-[-0.04em] text-slate-900">
-                다시 만나서 반가워요!
-              </h2>
-              <p className="mt-3 text-[17px] text-slate-500">
-                로그인하고 점심 메이트를 찾아보세요
-              </p>
+              {screenMode === 'login' ? (
+                <>
+                  <h2 className="text-[34px] font-extrabold tracking-[-0.04em] text-slate-900">
+                    다시 만나서 반가워요!
+                  </h2>
+                  <p className="mt-3 text-[17px] text-slate-500">
+                    로그인하고 점심 메이트를 찾아보세요
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-[34px] font-extrabold tracking-[-0.04em] text-slate-900">
+                    함께할 준비 되셨나요?
+                  </h2>
+                  <p className="mt-3 text-[17px] text-slate-500">
+                    간단한 정보만 입력하고 점메추를 시작해보세요
+                  </p>
+                </>
+              )}
             </div>
 
-            <form
-              onSubmit={handleFormSubmit}
-              className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] md:p-7"
-            >
-              <div className="space-y-5">
-                <div className="space-y-2.5">
-                  <label htmlFor={emailId} className="text-sm font-semibold text-slate-900">
-                    이메일
-                  </label>
-                  <input
-                    id={emailId}
-                    type="email"
-                    placeholder="example@university.ac.kr"
-                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                    {...register('email')}
-                  />
-                </div>
-
-                <div className="space-y-2.5">
-                  <label htmlFor={passwordId} className="text-sm font-semibold text-slate-900">
-                    비밀번호
-                  </label>
-                  <div className="relative">
+            {screenMode === 'login' ? (
+              <form
+                onSubmit={handleLoginSubmit}
+                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] md:p-7"
+              >
+                <div className="space-y-5">
+                  <div className="space-y-2.5">
+                    <label htmlFor={emailId} className="text-sm font-semibold text-slate-900">
+                      이메일
+                    </label>
                     <input
-                      id={passwordId}
-                      type="password"
-                      placeholder="비밀번호를 입력하세요"
-                      className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                      {...register('password')}
+                      id={emailId}
+                      type="email"
+                      placeholder="example@university.ac.kr"
+                      className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                      {...loginForm.register('email')}
                     />
-                    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                      <Eye className="h-5 w-5" />
-                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label htmlFor={passwordId} className="text-sm font-semibold text-slate-900">
+                      비밀번호
+                    </label>
+                    <div className="relative">
+                      <input
+                        id={passwordId}
+                        type="password"
+                        placeholder="비밀번호를 입력하세요"
+                        className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                        {...loginForm.register('password')}
+                      />
+                      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <Eye className="h-5 w-5" />
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                className="mt-6 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-indigo-500 text-base font-semibold text-white transition hover:bg-indigo-600"
+                <button
+                  type="submit"
+                  className="mt-6 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-indigo-500 text-base font-semibold text-white transition hover:bg-indigo-600"
+                >
+                  로그인
+                </button>
+
+                <p className="mt-5 text-center text-sm text-slate-500">
+                  아직 계정이 없으신가요?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setScreenMode('signup')}
+                    className="font-semibold text-indigo-500 hover:text-indigo-600"
+                  >
+                    회원가입
+                  </button>
+                </p>
+              </form>
+            ) : (
+              <form
+                onSubmit={handleSignupSubmit}
+                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] md:p-7"
               >
-                로그인
-              </button>
+                <div className="space-y-4">
+                  <div className="space-y-2.5">
+                    <label htmlFor={signupNameId} className="text-sm font-semibold text-slate-900">
+                      이름
+                    </label>
+                    <input
+                      id={signupNameId}
+                      type="text"
+                      placeholder="이름을 입력하세요"
+                      className="h-13 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                      {...signupForm.register('name')}
+                    />
+                  </div>
 
-              <p className="mt-5 text-center text-sm text-slate-500">
-                아직 계정이 없으신가요?{' '}
-                <button type="button" className="font-semibold text-indigo-500 hover:text-indigo-600">
+                  <div className="space-y-2.5">
+                    <label htmlFor={signupNicknameId} className="text-sm font-semibold text-slate-900">
+                      닉네임
+                    </label>
+                    <input
+                      id={signupNicknameId}
+                      type="text"
+                      placeholder="닉네임을 입력하세요"
+                      className="h-13 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                      {...signupForm.register('nickname')}
+                    />
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label htmlFor={signupEmailId} className="text-sm font-semibold text-slate-900">
+                      이메일
+                    </label>
+                    <input
+                      id={signupEmailId}
+                      type="email"
+                      placeholder="example@university.ac.kr"
+                      className="h-13 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                      {...signupForm.register('email')}
+                    />
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label htmlFor={signupPasswordId} className="text-sm font-semibold text-slate-900">
+                      비밀번호
+                    </label>
+                    <div className="relative">
+                      <input
+                        id={signupPasswordId}
+                        type="password"
+                        placeholder="비밀번호를 입력하세요"
+                        className="h-13 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                        {...signupForm.register('password')}
+                      />
+                      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <Eye className="h-5 w-5" />
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label htmlFor={signupPasswordConfirmId} className="text-sm font-semibold text-slate-900">
+                      비밀번호 확인
+                    </label>
+                    <div className="relative">
+                      <input
+                        id={signupPasswordConfirmId}
+                        type="password"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        className="h-13 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                        {...signupForm.register('passwordConfirm')}
+                      />
+                      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <Eye className="h-5 w-5" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="mt-6 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-indigo-500 text-base font-semibold text-white transition hover:bg-indigo-600"
+                >
                   회원가입
                 </button>
-              </p>
-            </form>
+
+                <p className="mt-5 text-center text-sm text-slate-500">
+                  이미 계정이 있으신가요?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setScreenMode('login')}
+                    className="font-semibold text-indigo-500 hover:text-indigo-600"
+                  >
+                    로그인
+                  </button>
+                </p>
+              </form>
+            )}
           </div>
         </div>
       </div>
