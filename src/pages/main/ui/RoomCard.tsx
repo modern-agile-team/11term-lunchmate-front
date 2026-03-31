@@ -1,4 +1,5 @@
 import { Clock3, MapPin, Users } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
 
 import type { MainRoom } from '../model/types';
 
@@ -41,17 +42,17 @@ const RoomCard = ({ room }: RoomCardProps) => {
 
   return (
     <article
-      className={[
+      className={cn(
         'overflow-hidden rounded-[28px] border shadow-[0_12px_30px_rgba(15,23,42,0.05)]',
         cardClassName,
-      ].join(' ')}
+      )}
     >
       <div className="p-5 md:p-6">
         <div className="min-w-0">
           <h2 className="text-[19px] font-bold tracking-[-0.03em] text-slate-900">{room.title}</h2>
 
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-            <span className={['rounded-md px-2 py-1 font-medium', badgeClassName].join(' ')}>
+            <span className={cn('rounded-md px-2 py-1 font-medium', badgeClassName)}>
               {badgeLabel}
             </span>
             <span className="rounded-md bg-slate-100 px-2 py-1 font-medium text-slate-600">
@@ -81,17 +82,17 @@ const RoomCard = ({ room }: RoomCardProps) => {
 
           <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              className={['h-full rounded-full', progressClassName].join(' ')}
+              className={cn('h-full rounded-full', progressClassName)}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           <button
             type="button"
-            className={[
+            className={cn(
               'mt-4 w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition',
               buttonClassName,
-            ].join(' ')}
+            )}
           >
             참여하기
           </button>
