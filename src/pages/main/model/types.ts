@@ -40,7 +40,18 @@ export interface MainBoardPost {
   title: string;
   author: string;
   summary: string;
+  content: string;
   likedCount: number;
   commentCount: number;
   createdAt: string;
+}
+
+export interface MainBoardComment {
+  id: number;
+  postId: number;
+  author: string;
+  content: string;
+  likedCount: number;
+  createdAt: string;
+  isMine: boolean;
 }
