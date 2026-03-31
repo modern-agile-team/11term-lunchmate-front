@@ -1,12 +1,16 @@
 import { Flame, MapPin, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
+import { cn } from '@/shared/lib/utils';
 
 import { mockLunchMenus } from '../mocks/mockLunchMenus';
 
 const KRW_NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
 
 const MainLunchMenuSection = () => {
-  const [selectedLunchMenuId, setSelectedLunchMenuId] = useState(mockLunchMenus[0]?.id ?? 0);
+  const initialSelectedLunchMenuId = mockLunchMenus[0]?.id ?? null;
+  const [selectedLunchMenuId, setSelectedLunchMenuId] = useState<number | null>(
+    initialSelectedLunchMenuId,
+  );
   const selectedLunchMenu = mockLunchMenus.find(
     (mockLunchMenu) => mockLunchMenu.id === selectedLunchMenuId,
   );
@@ -17,12 +21,12 @@ const MainLunchMenuSection = () => {
         <article
           key={mockLunchMenu.id}
           onClick={() => setSelectedLunchMenuId(mockLunchMenu.id)}
-          className={[
+          className={cn(
             'cursor-pointer rounded-[28px] border bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition md:p-6',
             selectedLunchMenuId === mockLunchMenu.id
               ? 'border-emerald-200 ring-4 ring-emerald-100/70'
               : 'border-emerald-100 hover:border-emerald-200',
-          ].join(' ')}
+          )}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
