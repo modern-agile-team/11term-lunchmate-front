@@ -1,4 +1,5 @@
 import { List, Soup, TrendingUp, UsersRound } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
 
 import type { MainTab } from '../model/types';
 
@@ -25,13 +26,12 @@ const MainTabs = ({ activeTab, onTabChange }: MainTabsProps) => {
             <button
               key={tabItem.label}
               type="button"
-              onClick={() => onTabChange(tabItem.key)}
-              className={[
+              className={cn(
                 'inline-flex items-center justify-center gap-2 rounded-[18px] px-4 py-[14px] text-[15px] font-semibold transition',
                 activeTab === tabItem.key
                   ? 'bg-indigo-500 text-white shadow-[0_10px_24px_rgba(99,102,241,0.24)]'
                   : 'text-slate-500 hover:bg-slate-50',
-              ].join(' ')}
+              )}
             >
               <Icon className="h-4 w-4" />
               {tabItem.label}
