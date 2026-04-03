@@ -26,6 +26,7 @@ const MainTabs = ({ activeTab, onTabChange }: MainTabsProps) => {
             <button
               key={tabItem.label}
               type="button"
+              onClick={() => onTabChange(tabItem.key)}
               className={cn(
                 'inline-flex items-center justify-center gap-2 rounded-[18px] px-4 py-[14px] text-[15px] font-semibold transition',
                 activeTab === tabItem.key

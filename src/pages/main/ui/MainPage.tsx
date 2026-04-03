@@ -4,9 +4,14 @@ import MainHeader from './MainHeader';
 import MainHero from './MainHero';
 import LoginModal from './LoginModal';
 import MainTabs from './MainTabs';
+import type { MainTab } from '../model/types';
+import MainTabSection from './MainTabSection';
+import CreateRoomModal from './CreateRoomModal';
 
 const MainPage = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<MainTab>('ROOM');
+  const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -22,6 +27,10 @@ const MainPage = () => {
       </main>
 
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+      <CreateRoomModal
+        isOpen={isCreateRoomModalOpen}
+        onClose={() => setIsCreateRoomModalOpen(false)}
+      />
     </div>
   );
 };

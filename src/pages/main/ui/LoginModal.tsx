@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 import { ArrowLeft, Eye, UsersRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
@@ -192,7 +192,10 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   </div>
 
                   <div className="space-y-2.5">
-                    <label htmlFor={signupNicknameId} className="text-sm font-semibold text-slate-900">
+                    <label
+                      htmlFor={signupNicknameId}
+                      className="text-sm font-semibold text-slate-900"
+                    >
                       닉네임
                     </label>
                     <input
@@ -218,7 +221,10 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   </div>
 
                   <div className="space-y-2.5">
-                    <label htmlFor={signupPasswordId} className="text-sm font-semibold text-slate-900">
+                    <label
+                      htmlFor={signupPasswordId}
+                      className="text-sm font-semibold text-slate-900"
+                    >
                       비밀번호
                     </label>
                     <div className="relative">
@@ -236,7 +242,10 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   </div>
 
                   <div className="space-y-2.5">
-                    <label htmlFor={signupPasswordConfirmId} className="text-sm font-semibold text-slate-900">
+                    <label
+                      htmlFor={signupPasswordConfirmId}
+                      className="text-sm font-semibold text-slate-900"
+                    >
                       비밀번호 확인
                     </label>
                     <div className="relative">
