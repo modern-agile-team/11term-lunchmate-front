@@ -1,19 +1,16 @@
 import { useState } from 'react';
-
-import type { MainTab } from '../model/types';
-import CreateRoomModal from './CreateRoomModal';
+import { mockRooms } from '../mocks/mockRooms';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
-import MainTabSection from './MainTabSection';
+import LoginModal from './LoginModal';
 import MainTabs from './MainTabs';
 
 const MainPage = () => {
-  const [activeTab, setActiveTab] = useState<MainTab>('ROOM');
-  const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <MainHeader />
+      <MainHeader onLoginClick={() => setIsLoginModalOpen(true)} />
 
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 py-6 md:gap-5 md:px-8 md:py-8">
         <MainHero />
@@ -24,10 +21,7 @@ const MainPage = () => {
         />
       </main>
 
-      <CreateRoomModal
-        isOpen={isCreateRoomModalOpen}
-        onClose={() => setIsCreateRoomModalOpen(false)}
-      />
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 };

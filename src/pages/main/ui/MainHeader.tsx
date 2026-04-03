@@ -1,6 +1,10 @@
 import { LogIn, UsersRound } from 'lucide-react';
 
-const MainHeader = () => {
+interface MainHeaderProps {
+  onLoginClick: () => void;
+}
+
+const MainHeader = ({ onLoginClick }: MainHeaderProps) => {
   return (
     <header className="border-b border-slate-200/80 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-[78px] w-full max-w-5xl items-center justify-between px-5 md:px-8">
@@ -20,6 +24,7 @@ const MainHeader = () => {
 
         <button
           type="button"
+          onClick={onLoginClick}
           className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-500 transition hover:bg-indigo-50"
         >
           <LogIn className="h-4 w-4" />
