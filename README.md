@@ -13,14 +13,14 @@
 <table>
   <tr>
     <td align="center" width="250px">
-      <a href="https://github.com/junho04-max">
-        <img src="https://github.com/junho04-max.png" width="150px" alt="서준호"/>
+      <a href="https://github.com/hawon6691">
+        <img src="https://github.com/hawon6691.png" width="150px" alt="서하원"/>
         <br />
         <br />
-        <b>서준호</b>
+        <b>서하원</b>
       </a>
       <br />
-      <sub><b>junho04-max</b></sub>
+      <sub><b>hawon6691</b></sub>
     </td>
     <td align="center" width="250px">
       <a href="https://github.com/one3883">
