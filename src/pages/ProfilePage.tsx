@@ -24,8 +24,6 @@ const normalizeProfile = (profile: Partial<UserProfile> | null | undefined): Use
   profileImageUrl: typeof profile?.profileImageUrl === 'string' ? profile.profileImageUrl : '',
 });
 
-const NO_OP = () => {};
-
 export default function ProfilePage() {
   const queryClient = useQueryClient();
   const [profileDraft, setProfileDraft] = useState<UserProfile | null>(null);
@@ -114,7 +112,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <MainHeader onLoginClick={NO_OP} />
+        <MainHeader />
         <main className="px-6 py-10 md:px-8">
           <section className="mx-auto flex w-full max-w-4xl items-center justify-center rounded-[32px] bg-white px-6 py-16 text-slate-500 shadow-sm sm:px-8 md:px-10">
             프로필을 불러오는 중...
@@ -127,7 +125,7 @@ export default function ProfilePage() {
   if (isError) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <MainHeader onLoginClick={NO_OP} />
+        <MainHeader />
         <main className="px-6 py-10 md:px-8">
           <section className="mx-auto w-full max-w-4xl rounded-[32px] bg-white px-6 py-16 text-center shadow-sm sm:px-8 md:px-10">
             <p className="text-base text-rose-500">
@@ -149,7 +147,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <MainHeader onLoginClick={NO_OP} />
+      <MainHeader />
 
       <main className="px-6 py-10 md:px-8">
         <section className="mx-auto w-full max-w-4xl rounded-[32px] bg-white px-6 py-8 shadow-sm sm:px-8 md:px-10 md:py-10">
