@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { ArrowLeft, Eye, UsersRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
@@ -48,6 +48,23 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       passwordConfirm: '',
     },
   });
+
+  useEffect(() => {
+    const dialogElement = dialogRef.current;
+
+    if (!dialogElement) {
+      return;
+    }
+
+    if (isOpen && !dialogElement.open) {
+      dialogElement.showModal();
+      return;
+    }
+
+    if (!isOpen && dialogElement.open) {
+      dialogElement.close();
+    }
+  }, [isOpen]);
 
   const handleClose = () => {
     loginForm.reset();

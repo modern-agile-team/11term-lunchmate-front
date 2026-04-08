@@ -1,12 +1,12 @@
-//import MainPage from '@/pages/main/ui/MainPage';
-import MainPage from '@/pages/main/ui/MainPage';
+import { RouterProvider } from 'react-router';
+
 import QueryProvider from './queryProvider';
-import ProfilePage from '@/pages/ProfilePage';
+import router from './router';
 
 function App() {
   return (
     <QueryProvider>
-      <MainPage />
+      <RouterProvider router={router} />
     </QueryProvider>
   );
 }
