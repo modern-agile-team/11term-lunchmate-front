@@ -1,7 +1,6 @@
 import { List, Soup, TrendingUp, UsersRound } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-
-import type { MainTab } from '../model/types';
+import type { MainTab } from '../../model/types';
 
 interface MainTabsProps {
   activeTab: MainTab;
