@@ -1,4 +1,4 @@
-import type { MainRankingItem } from '../model/types';
+import type { MainRankingItem } from './types';
 
 export const mockRankings: MainRankingItem[] = [
   {
