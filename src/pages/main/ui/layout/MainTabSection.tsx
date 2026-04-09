@@ -1,11 +1,11 @@
 import { Plus } from 'lucide-react';
 import type { MainTab } from '../../model/types';
-import { mockRooms } from '../../mocks/mockRooms';
 import MainBoardSection from '../MainBoardSection';
 import MainLunchMenuSection from '../MainLunchMenuSection';
 import MainRankingSection from '../MainRankingSection';
-import RoomCard from '../RoomCard';
-import RoomSummary from '../RoomSummary';
+import { mockRooms } from '../room/mockRooms';
+import RoomCard from '../room/RoomCard';
+import RoomSummary from '../room/RoomSummary';
 
 interface MainTabSectionProps {
   activeTab: MainTab;

@@ -1,4 +1,4 @@
-import type { MainRoom } from '../model/types';
+import type { MainRoom } from './types';
 
 export const mockRooms: MainRoom[] = [
   {

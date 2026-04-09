@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import LoginModal from '../LoginModal';
-import CreateRoomModal from '../CreateRoomModal';
+import CreateRoomModal from '../room/CreateRoomModal';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
 import MainTabs from './MainTabs';
