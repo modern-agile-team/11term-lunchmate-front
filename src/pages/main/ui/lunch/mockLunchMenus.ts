@@ -1,4 +1,4 @@
-import type { MainLunchMenu } from '../model/types';
+import type { MainLunchMenu } from './types';
 
 export const mockLunchMenus: MainLunchMenu[] = [
   {

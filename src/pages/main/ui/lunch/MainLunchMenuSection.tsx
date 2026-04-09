@@ -2,7 +2,7 @@ import { Flame, MapPin, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 
-import { mockLunchMenus } from '../mocks/mockLunchMenus';
+import { mockLunchMenus } from './mockLunchMenus';
 
 const KRW_NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
 
