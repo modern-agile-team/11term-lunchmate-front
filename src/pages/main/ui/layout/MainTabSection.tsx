@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import type { MainTab } from '../../model/types';
-import MainBoardSection from '../MainBoardSection';
+import MainBoardSection from '../board/MainBoardSection';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import { mockRooms } from '../room/mockRooms';

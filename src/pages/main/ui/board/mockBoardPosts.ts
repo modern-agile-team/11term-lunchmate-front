@@ -1,4 +1,4 @@
-import type { MainBoardPost } from '../model/types';
+import type { MainBoardPost } from './types';
 
 export const mockBoardPosts: MainBoardPost[] = [
   {

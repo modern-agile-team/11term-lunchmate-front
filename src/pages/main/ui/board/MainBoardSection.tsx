@@ -2,8 +2,8 @@ import { Heart, MessageSquareText, Pencil, SendHorizonal, Trash2 } from 'lucide-
 import { useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 
-import { mockBoardComments } from '../mocks/mockBoardComments';
-import { mockBoardPosts } from '../mocks/mockBoardPosts';
+import { mockBoardComments } from './mockBoardComments';
+import { mockBoardPosts } from './mockBoardPosts';
 
 const categoryStyleMap = {
   FREE: 'bg-slate-100 text-slate-600',
@@ -177,11 +177,17 @@ const MainBoardSection = () => {
 
                       {selectedBoardComment.isMine ? (
                         <>
-                          <button type="button" className="inline-flex items-center gap-1 hover:text-slate-600">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 hover:text-slate-600"
+                          >
                             <Pencil className="h-3.5 w-3.5" />
                             수정
                           </button>
-                          <button type="button" className="inline-flex items-center gap-1 hover:text-slate-600">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 hover:text-slate-600"
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
                             삭제
                           </button>
