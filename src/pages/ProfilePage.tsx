@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import MainHeader from '@/pages/main/ui/MainHeader';
-import { updateMyProfile } from '@/shared/api/profile';
-import { myProfileQueryOptions } from '@/shared/api/profileQueries';
+import { updateMyProfile } from '@/shared/api/users/profile';
+import { myProfileQueryOptions } from '@/shared/api/users/profileQueries';
 import { MBTI_OPTIONS, type MbtiType, type UserProfile } from '@/shared/types/profile';
 
 const EMPTY_PROFILE: UserProfile = {
