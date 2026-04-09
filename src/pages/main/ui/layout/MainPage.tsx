@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import LoginModal from '../LoginModal';
+import CreateRoomModal from '../CreateRoomModal';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
-import LoginModal from './LoginModal';
 import MainTabs from './MainTabs';
-import type { MainTab } from '../model/types';
+import type { MainTab } from '../../model/types';
 import MainTabSection from './MainTabSection';
-import CreateRoomModal from './CreateRoomModal';
 
 const MainPage = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
