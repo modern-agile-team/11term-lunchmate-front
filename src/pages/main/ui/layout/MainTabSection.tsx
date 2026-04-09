@@ -7,8 +7,7 @@ import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
 import type { MainRoom } from '../room/types';
-import type { RoomListItemResponse } from '@/shared/api/rooms/rooms';
-import { roomsListQueryOptions } from '@/shared/api/rooms/roomsQueries';
+import { roomsListQueryOptions, type RoomListItemResponse } from '@/shared/api/rooms';
 
 interface MainTabSectionProps {
   activeTab: MainTab;

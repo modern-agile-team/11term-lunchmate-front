@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { getRooms } from '@/shared/api/rooms/rooms';
+import { getRooms } from './rooms';
 
 export const roomsListQueryOptions = () =>
   queryOptions({
