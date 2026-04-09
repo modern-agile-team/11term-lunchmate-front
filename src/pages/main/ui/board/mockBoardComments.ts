@@ -1,4 +1,4 @@
-import type { MainBoardComment } from '../model/types';
+import type { MainBoardComment } from './types';
 
 export const mockBoardComments: MainBoardComment[] = [
   {
