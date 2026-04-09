@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import LoginModal from '../LoginModal';
+import LoginModal from '../auth/LoginModal';
 import CreateRoomModal from '../room/CreateRoomModal';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
