@@ -1,6 +1,6 @@
 import { Medal, TrendingUp } from 'lucide-react';
 
-import { mockRankings } from '../mocks/mockRankings';
+import { mockRankings } from './mockRankings';
 
 const rankStyleMap = {
   1: 'from-amber-400 to-orange-400',
@@ -20,7 +20,8 @@ const MainRankingSection = () => {
             <div
               className={[
                 'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_10px_24px_rgba(15,23,42,0.12)]',
-                rankStyleMap[mockRanking.rank as keyof typeof rankStyleMap] ?? 'from-indigo-400 to-indigo-500',
+                rankStyleMap[mockRanking.rank as keyof typeof rankStyleMap] ??
+                  'from-indigo-400 to-indigo-500',
               ].join(' ')}
             >
               <Medal className="h-6 w-6" />
