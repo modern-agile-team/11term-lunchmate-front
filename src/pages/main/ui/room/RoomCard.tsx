@@ -1,7 +1,7 @@
 import { Clock3, MapPin, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
-import type { MainRoom } from '../model/types';
+import type { MainRoom } from './types';
 
 interface RoomCardProps {
   room: MainRoom;
