@@ -7,7 +7,13 @@ import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
+<<<<<<< Updated upstream
 import { roomDetailQueryOptions, roomsListQueryOptions } from '@/shared/api/rooms/roomsQueries';
+=======
+import type { MainRoom } from '../room/types';
+import type { RoomListFilters, RoomListItemResponse } from '@/shared/api/rooms/rooms';
+import { roomQueries } from '@/shared/api/rooms/roomsQueries';
+>>>>>>> Stashed changes
 import { cn } from '@/shared/lib/utils';
 import {
   detailRoomStatusStyleMap,
@@ -43,7 +49,7 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const roomFilters = toRoomListFilters(roomFilterState);
   const { data, isLoading, isError, error } = useQuery({
-    ...roomsListQueryOptions(roomFilters),
+    ...roomQueries.list(roomFilters),
     enabled: isRoomTab,
   });
   const {
