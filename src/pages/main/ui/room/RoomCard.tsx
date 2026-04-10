@@ -1,3 +1,4 @@
+import { type MouseEvent } from 'react';
 import { Clock3, MapPin, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
@@ -7,6 +8,10 @@ interface RoomCardProps {
   room: MainRoom;
   isSelected: boolean;
   onClick: () => void;
+  onJoinClick: (roomId: number) => void;
+  isJoinPending?: boolean;
+  joinDisabled?: boolean;
+  joinLabel?: string;
 }
 
 const roomTypeStyleMap = {
@@ -36,11 +41,23 @@ const roomTypeStyleMap = {
   },
 } as const;
 
-const RoomCard = ({ room, isSelected, onClick }: RoomCardProps) => {
+const RoomCard = ({
+  room,
+  isSelected,
+  onClick,
+  onJoinClick,
+  isJoinPending = false,
+  joinDisabled = false,
+  joinLabel = '참여하기',
+}: RoomCardProps) => {
   const { badgeClassName, badgeLabel, buttonClassName, cardClassName, progressClassName } =
     roomTypeStyleMap[room.roomType];
   const progressPercent = (room.currentCount / room.capacity) * 100;
   const remainingCount = room.capacity - room.currentCount;
+  const handleJoinButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onJoinClick(room.id);
+  };
 
   return (
     <article
@@ -93,12 +110,15 @@ const RoomCard = ({ room, isSelected, onClick }: RoomCardProps) => {
 
           <button
             type="button"
+            onClick={handleJoinButtonClick}
+            disabled={joinDisabled || isJoinPending}
             className={cn(
               'mt-4 w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition',
+              joinDisabled || isJoinPending ? 'cursor-not-allowed opacity-70' : '',
               buttonClassName,
             )}
           >
-            참여하기
+            {isJoinPending ? '참여 중...' : joinLabel}
           </button>
         </div>
       </div>
