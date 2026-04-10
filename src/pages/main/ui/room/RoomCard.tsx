@@ -8,10 +8,10 @@ interface RoomCardProps {
   room: MainRoom;
   isSelected: boolean;
   onClick: () => void;
-  onJoinClick: (roomId: number) => void;
-  isJoinPending?: boolean;
-  joinDisabled?: boolean;
-  joinLabel?: string;
+  onActionClick: (roomId: number) => void;
+  isActionPending?: boolean;
+  actionDisabled?: boolean;
+  actionLabel?: string;
 }
 
 const roomTypeStyleMap = {
@@ -45,18 +45,18 @@ const RoomCard = ({
   room,
   isSelected,
   onClick,
-  onJoinClick,
-  isJoinPending = false,
-  joinDisabled = false,
-  joinLabel = '참여하기',
+  onActionClick,
+  isActionPending = false,
+  actionDisabled = false,
+  actionLabel = '참여하기',
 }: RoomCardProps) => {
   const { badgeClassName, badgeLabel, buttonClassName, cardClassName, progressClassName } =
     roomTypeStyleMap[room.roomType];
   const progressPercent = (room.currentCount / room.capacity) * 100;
   const remainingCount = room.capacity - room.currentCount;
-  const handleJoinButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
+  const handleActionButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    onJoinClick(room.id);
+    onActionClick(room.id);
   };
 
   return (
@@ -110,15 +110,15 @@ const RoomCard = ({
 
           <button
             type="button"
-            onClick={handleJoinButtonClick}
-            disabled={joinDisabled || isJoinPending}
+            onClick={handleActionButtonClick}
+            disabled={actionDisabled || isActionPending}
             className={cn(
               'mt-4 w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition',
-              joinDisabled || isJoinPending ? 'cursor-not-allowed opacity-70' : '',
+              actionDisabled || isActionPending ? 'cursor-not-allowed opacity-70' : '',
               buttonClassName,
             )}
           >
-            {isJoinPending ? '참여 중...' : joinLabel}
+            {isActionPending ? '처리 중...' : actionLabel}
           </button>
         </div>
       </div>

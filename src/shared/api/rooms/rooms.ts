@@ -85,3 +85,7 @@ export async function joinRoom(roomId: number): Promise<RoomJoinResponse> {
 
   return response.data;
 }
+
+export async function leaveRoom(roomId: number): Promise<void> {
+  await client.post(`/api/v1/rooms/${roomId}/leave`);
+}
