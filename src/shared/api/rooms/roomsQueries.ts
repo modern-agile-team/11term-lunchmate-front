@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { getRoomDetail, getRooms, type RoomListFilters } from '@/shared/api/rooms/rooms';
+import { getRoomDetail, getRoomMembers, getRooms, type RoomListFilters } from '@/shared/api/rooms/rooms';
 
 export const roomQueries = {
   all: () => ['rooms'] as const,
@@ -14,5 +14,11 @@ export const roomQueries = {
     queryOptions({
       queryKey: [...roomQueries.details(), roomId],
       queryFn: () => getRoomDetail(roomId),
+    }),
+  membersAll: () => [...roomQueries.all(), 'members'] as const,
+  members: (roomId: number) =>
+    queryOptions({
+      queryKey: [...roomQueries.membersAll(), roomId],
+      queryFn: () => getRoomMembers(roomId),
     }),
 };

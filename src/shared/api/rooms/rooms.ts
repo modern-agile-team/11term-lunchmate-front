@@ -55,6 +55,15 @@ export interface RoomJoinResponse {
   createdAt: string;
 }
 
+export interface RoomMemberResponse {
+  userId: number;
+  nickname: string;
+}
+
+export interface GetRoomMembersResponse {
+  items: RoomMemberResponse[];
+}
+
 export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsResponse> {
   const response = await client.get<GetRoomsResponse>('/api/v1/rooms', {
     params: {
@@ -70,6 +79,12 @@ export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsR
 
 export async function getRoomDetail(roomId: number): Promise<RoomDetailResponse> {
   const response = await client.get<RoomDetailResponse>(`/api/v1/rooms/${roomId}`);
+
+  return response.data;
+}
+
+export async function getRoomMembers(roomId: number): Promise<GetRoomMembersResponse> {
+  const response = await client.get<GetRoomMembersResponse>(`/api/v1/rooms/${roomId}/members`);
 
   return response.data;
 }

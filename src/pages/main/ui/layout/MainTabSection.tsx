@@ -82,6 +82,24 @@ const getRoomActionErrorMessage = (error: unknown, action: 'join' | 'leave') => 
     : '방 참여에 실패했어요. 잠시 후 다시 시도해 주세요.';
 };
 
+const getRoomMembersErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    if (error.response?.status === 401) {
+      return '로그인 후 멤버를 확인할 수 있어요.';
+    }
+
+    if (error.response?.status === 403) {
+      return '멤버를 확인할 수 없어요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '방을 찾을 수 없어요.';
+    }
+  }
+
+  return '멤버 목록을 불러오지 못했어요.';
+};
+
 const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
@@ -110,6 +128,15 @@ const MainTabSection = ({
     ...roomQueries.detail(selectedRoomId ?? 0),
     enabled: isRoomTab && selectedRoomId !== null,
   });
+  const {
+    data: roomMembersData,
+    isLoading: isRoomMembersLoading,
+    isError: isRoomMembersError,
+    error: roomMembersError,
+  } = useQuery({
+    ...roomQueries.members(selectedRoomId ?? 0),
+    enabled: isRoomTab && selectedRoomId !== null && roomDetail !== undefined,
+  });
   const joinRoomMutation = useMutation({
     mutationFn: joinRoom,
     onSuccess: async ({ roomId }) => {
@@ -120,6 +147,7 @@ const MainTabSection = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
         queryClient.invalidateQueries({ queryKey: roomQueries.detail(roomId).queryKey }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.members(roomId).queryKey }),
       ]);
     },
     onError: (error) => {
@@ -144,6 +172,7 @@ const MainTabSection = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
         queryClient.invalidateQueries({ queryKey: roomQueries.detail(roomId).queryKey }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.members(roomId).queryKey }),
       ]);
     },
     onError: (error) => {
@@ -202,6 +231,7 @@ const MainTabSection = ({
   };
 
   const hasJoinedActiveRoom = joinedRoomId !== null;
+  const roomMembers = roomMembersData?.items ?? [];
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -476,6 +506,59 @@ const MainTabSection = ({
                   </div>
                 </section>
               </div>
+
+              <section className="mt-6 rounded-[24px] bg-slate-50 px-5 py-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-700">멤버 목록</h4>
+                    <p className="mt-1 text-xs text-slate-500">현재 참여 중인 멤버를 확인할 수 있어요.</p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                    <Users className="h-3.5 w-3.5 text-slate-500" />
+                    {getDetailRoomCurrentCount(roomDetail)}명
+                  </div>
+                </div>
+
+                {isRoomMembersLoading ? (
+                  <div className="mt-4 rounded-2xl bg-white px-4 py-4 text-sm text-slate-500">
+                    멤버 목록을 불러오는 중...
+                  </div>
+                ) : null}
+
+                {isRoomMembersError ? (
+                  <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-600">
+                    {getRoomMembersErrorMessage(roomMembersError)}
+                  </div>
+                ) : null}
+
+                {!isRoomMembersLoading && !isRoomMembersError && roomMembers.length === 0 ? (
+                  <div className="mt-4 rounded-2xl bg-white px-4 py-4 text-sm text-slate-500">
+                    아직 참여한 멤버가 없어요.
+                  </div>
+                ) : null}
+
+                {!isRoomMembersLoading && !isRoomMembersError && roomMembers.length > 0 ? (
+                  <ul className="mt-4 space-y-3">
+                    {roomMembers.map((member) => {
+                      const isHost = roomDetail.hostUserId === member.userId;
+
+                      return (
+                        <li
+                          key={member.userId}
+                          className="flex items-center justify-between rounded-2xl bg-white px-4 py-3"
+                        >
+                          <span className="text-sm font-medium text-slate-700">{member.nickname}</span>
+                          {isHost ? (
+                            <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                              방장
+                            </span>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+              </section>
             </article>
           ) : null}
         </>
