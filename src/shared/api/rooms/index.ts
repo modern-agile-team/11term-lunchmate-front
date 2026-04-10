@@ -7,6 +7,7 @@ export type {
   RoomJoinResponse,
   RoomListItemResponse,
   RoomMemberResponse,
+  UpdateRoomRequest,
 } from './rooms';
 export {
   createRoom,
@@ -16,5 +17,6 @@ export {
   joinRoom,
   kickRoomMember,
   leaveRoom,
+  updateRoom,
 } from './rooms';
 export { roomQueries } from './roomsQueries';

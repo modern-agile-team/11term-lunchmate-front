@@ -49,6 +49,17 @@ export interface CreateRoomRequest {
   maxAge: number;
 }
 
+export interface UpdateRoomRequest {
+  title?: string;
+  description?: string;
+  roomType?: 'MALE' | 'FEMALE' | 'ANY';
+  maxMembersCount?: number;
+  place?: string;
+  lunchAt?: string;
+  minAge?: number;
+  maxAge?: number;
+}
+
 export interface RoomJoinResponse {
   roomId: number;
   userId: number;
@@ -96,6 +107,15 @@ export async function getRoomMembers(roomId: number): Promise<GetRoomMembersResp
 
 export async function createRoom(payload: CreateRoomRequest): Promise<RoomDetailResponse> {
   const response = await client.post<RoomDetailResponse>('/api/v1/rooms', payload);
+
+  return response.data;
+}
+
+export async function updateRoom(
+  roomId: number,
+  payload: UpdateRoomRequest,
+): Promise<RoomDetailResponse> {
+  const response = await client.patch<RoomDetailResponse>(`/api/v1/rooms/${roomId}`, payload);
 
   return response.data;
 }

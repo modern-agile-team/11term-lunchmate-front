@@ -3,12 +3,18 @@ import { isAxiosError } from 'axios';
 import { useForm } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import { createRoom } from '@/shared/api/rooms/rooms';
+import { createRoom, updateRoom, type RoomDetailResponse } from '@/shared/api/rooms/rooms';
 import { roomQueries } from '@/shared/api/rooms/roomsQueries';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'create' | 'edit';
+  roomId?: number;
+  initialValues?: CreateRoomFormState;
+  onSuccess?: () => void;
+  onError?: (message: string) => void;
+  onRequireLogin?: () => void;
 }
 
 interface CreateRoomFormState {
@@ -36,6 +42,17 @@ const INITIAL_CREATE_ROOM_FORM_STATE: CreateRoomFormState = {
   minAge: '20',
   maxAge: '24',
 };
+
+const toCreateRoomFormState = (room: RoomDetailResponse): CreateRoomFormState => ({
+  title: room.title,
+  description: room.description ?? '',
+  roomType: room.roomType === 'MALE' || room.roomType === 'FEMALE' ? room.roomType : 'MIXED',
+  capacity: String(room.maxMembersCount),
+  place: room.place,
+  lunchAt: formatLunchAtForForm(room.lunchAt),
+  minAge: String(room.minAge),
+  maxAge: String(room.maxAge),
+});
 
 const parseRequiredNumber = (value: string) => {
   const trimmedValue = value.trim();
@@ -85,7 +102,17 @@ const toFutureLunchAt = (timeValue: string) => {
   return lunchAt.toISOString();
 };
 
-const getCreateRoomErrorMessage = (error: unknown) => {
+function formatLunchAtForForm(lunchAt: string) {
+  const timeMatch = lunchAt.match(/(?:T|\s)?(\d{2}:\d{2})/);
+
+  if (timeMatch) {
+    return timeMatch[1];
+  }
+
+  return '12:00';
+}
+
+const getRoomSubmitErrorMessage = (error: unknown, mode: 'create' | 'edit') => {
   if (isAxiosError<ApiErrorPayload>(error)) {
     const responseMessage = error.response?.data?.message;
 
@@ -96,20 +123,52 @@ const getCreateRoomErrorMessage = (error: unknown) => {
     if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
       return responseMessage;
     }
+
+    if (error.response?.status === 401) {
+      return mode === 'edit'
+        ? '로그인 후 방을 수정할 수 있어요.'
+        : '로그인 후 방을 만들 수 있어요.';
+    }
+
+    if (mode === 'edit') {
+      if (error.response?.status === 403) {
+        return '방을 수정할 권한이 없어요.';
+      }
+
+      if (error.response?.status === 404) {
+        return '방을 찾을 수 없어요.';
+      }
+
+      if (error.response?.status === 409) {
+        return '수정할 수 없는 상태예요.';
+      }
+    }
   }
 
   if (error instanceof Error && error.message.trim() !== '') {
     return error.message;
   }
 
-  return '방 만들기에 실패했어요. 잠시 후 다시 시도해 주세요.';
+  return mode === 'edit'
+    ? '방 수정에 실패했어요. 잠시 후 다시 시도해 주세요.'
+    : '방 만들기에 실패했어요. 잠시 후 다시 시도해 주세요.';
 };
 
-const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
+const CreateRoomModal = ({
+  isOpen,
+  onClose,
+  mode = 'create',
+  roomId,
+  initialValues,
+  onSuccess,
+  onError,
+  onRequireLogin,
+}: CreateRoomModalProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const queryClient = useQueryClient();
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitMessageTone, setSubmitMessageTone] = useState<'error' | 'success'>('success');
+  const isEditMode = mode === 'edit';
 
   const createRoomMutation = useMutation({
     mutationFn: createRoom,
@@ -119,11 +178,42 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
         queryClient.invalidateQueries({ queryKey: roomQueries.details() }),
       ]);
 
+      onSuccess?.();
       handleClose();
     },
     onError: (error) => {
-      setSubmitMessage(getCreateRoomErrorMessage(error));
+      if (isAxiosError(error) && error.response?.status === 401) {
+        onRequireLogin?.();
+      }
+
+      const message = getRoomSubmitErrorMessage(error, 'create');
+      setSubmitMessage(message);
       setSubmitMessageTone('error');
+      onError?.(message);
+    },
+  });
+  const updateRoomMutation = useMutation({
+    mutationFn: ({ targetRoomId, payload }: { targetRoomId: number; payload: Parameters<typeof updateRoom>[1] }) =>
+      updateRoom(targetRoomId, payload),
+    onSuccess: async (_, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.detail(variables.targetRoomId).queryKey }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.members(variables.targetRoomId).queryKey }),
+      ]);
+
+      onSuccess?.();
+      handleClose();
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        onRequireLogin?.();
+      }
+
+      const message = getRoomSubmitErrorMessage(error, 'edit');
+      setSubmitMessage(message);
+      setSubmitMessageTone('error');
+      onError?.(message);
     },
   });
 
@@ -175,17 +265,37 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
       }
 
       setSubmitMessage('');
+      const roomType: 'MALE' | 'FEMALE' | 'ANY' =
+        value.roomType === 'MIXED' ? 'ANY' : value.roomType;
 
-      await createRoomMutation.mutateAsync({
+      const payload = {
         title,
         description: description || undefined,
-        roomType: value.roomType === 'MIXED' ? 'ANY' : value.roomType,
+        roomType,
         maxMembersCount,
         place,
         lunchAt,
         minAge,
         maxAge,
-      });
+      };
+
+      if (isEditMode) {
+        if (!roomId) {
+          setSubmitMessage('수정할 방 정보를 찾을 수 없어요.');
+          setSubmitMessageTone('error');
+          onError?.('수정할 방 정보를 찾을 수 없어요.');
+          return;
+        }
+
+        await updateRoomMutation.mutateAsync({
+          targetRoomId: roomId,
+          payload,
+        });
+
+        return;
+      }
+
+      await createRoomMutation.mutateAsync(payload);
     },
   });
 
@@ -206,9 +316,20 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    createRoomForm.reset(initialValues ?? INITIAL_CREATE_ROOM_FORM_STATE);
+    setSubmitMessage('');
+    setSubmitMessageTone('success');
+  }, [createRoomForm, initialValues, isOpen]);
+
   const handleClose = () => {
-    createRoomForm.reset();
+    createRoomForm.reset(initialValues ?? INITIAL_CREATE_ROOM_FORM_STATE);
     createRoomMutation.reset();
+    updateRoomMutation.reset();
     setSubmitMessage('');
     setSubmitMessageTone('success');
     onClose();
@@ -230,9 +351,11 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
       <div className="p-6 md:p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-indigo-500">점심 방 만들기</p>
+            <p className="text-sm font-semibold text-indigo-500">
+              {isEditMode ? '점심 방 수정하기' : '점심 방 만들기'}
+            </p>
             <h2 className="mt-1 text-[24px] font-bold tracking-[-0.03em] text-slate-900">
-              함께 점심할 친구를 모집해보세요
+              {isEditMode ? '현재 방 정보를 수정해보세요' : '함께 점심할 친구를 모집해보세요'}
             </h2>
           </div>
 
@@ -424,10 +547,16 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
             </button>
             <button
               type="submit"
-              disabled={createRoomMutation.isPending}
+              disabled={createRoomMutation.isPending || updateRoomMutation.isPending}
               className="rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.28)] transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
             >
-              {createRoomMutation.isPending ? '방 만드는 중...' : '방 만들기'}
+              {createRoomMutation.isPending || updateRoomMutation.isPending
+                ? isEditMode
+                  ? '방 수정 중...'
+                  : '방 만드는 중...'
+                : isEditMode
+                  ? '방 수정하기'
+                  : '방 만들기'}
             </button>
           </div>
         </form>
@@ -437,3 +566,4 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
 };
 
 export default CreateRoomModal;
+export { toCreateRoomFormState };

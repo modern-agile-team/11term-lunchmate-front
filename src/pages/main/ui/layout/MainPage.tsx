@@ -30,6 +30,7 @@ const MainPage = () => {
       <CreateRoomModal
         isOpen={isCreateRoomModalOpen}
         onClose={() => setIsCreateRoomModalOpen(false)}
+        onRequireLogin={() => setIsLoginModalOpen(true)}
       />
     </div>
   );
