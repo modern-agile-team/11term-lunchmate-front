@@ -7,13 +7,7 @@ import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
-<<<<<<< Updated upstream
-import { roomDetailQueryOptions, roomsListQueryOptions } from '@/shared/api/rooms/roomsQueries';
-=======
-import type { MainRoom } from '../room/types';
-import type { RoomListFilters, RoomListItemResponse } from '@/shared/api/rooms/rooms';
 import { roomQueries } from '@/shared/api/rooms/roomsQueries';
->>>>>>> Stashed changes
 import { cn } from '@/shared/lib/utils';
 import {
   detailRoomStatusStyleMap,
@@ -25,6 +19,7 @@ import {
 } from '../room/roomTab.constants';
 import {
   formatLunchAt,
+  getDetailRoomCurrentCount,
   toDetailRoomStatus,
   toDetailRoomType,
   toMainRoom,
@@ -58,7 +53,7 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
     isError: isRoomDetailError,
     error: roomDetailError,
   } = useQuery({
-    ...roomDetailQueryOptions(selectedRoomId ?? 0),
+    ...roomQueries.detail(selectedRoomId ?? 0),
     enabled: isRoomTab && selectedRoomId !== null,
   });
   const rooms = data?.items.map(toMainRoom) ?? [];
@@ -73,7 +68,8 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
       return;
     }
 
-    const hasSelectedRoom = selectedRoomId !== null && rooms.some((room) => room.id === selectedRoomId);
+    const hasSelectedRoom =
+      selectedRoomId !== null && rooms.some((room) => room.id === selectedRoomId);
 
     if (!hasSelectedRoom) {
       setSelectedRoomId(rooms[0].id);
@@ -85,7 +81,13 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
       <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:flex-row md:items-center md:justify-between md:px-6">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.03em] text-slate-900">
-            {isRoomTab ? '점심 방 둘러보기' : activeTab === 'LUNCH' ? '오늘의 학식 메뉴' : activeTab === 'RANKING' ? '지금 인기 있는 메뉴' : '자유게시판'}
+            {isRoomTab
+              ? '점심 방 둘러보기'
+              : activeTab === 'LUNCH'
+                ? '오늘의 학식 메뉴'
+                : activeTab === 'RANKING'
+                  ? '지금 인기 있는 메뉴'
+                  : '자유게시판'}
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">{tabDescriptionMap[activeTab]}</p>
         </div>
@@ -263,7 +265,8 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
                     <span
                       className={cn(
                         'rounded-full px-3 py-1 text-xs font-semibold',
-                        detailRoomStatusStyleMap[toDetailRoomStatus(roomDetail.status)].badgeClassName,
+                        detailRoomStatusStyleMap[toDetailRoomStatus(roomDetail.status)]
+                          .badgeClassName,
                       )}
                     >
                       {detailRoomStatusStyleMap[toDetailRoomStatus(roomDetail.status)].badgeLabel}
@@ -282,7 +285,7 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
                   <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
                     <Users className="h-4 w-4 text-slate-500" />
                     <span className="font-semibold text-slate-900">
-                      {roomDetail.currentCount}/{roomDetail.maxMembersCount}명
+                      {getDetailRoomCurrentCount(roomDetail)}/{roomDetail.maxMembersCount}명
                     </span>
                   </div>
                   <div className="mt-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">

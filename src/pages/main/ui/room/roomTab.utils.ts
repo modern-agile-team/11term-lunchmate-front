@@ -50,6 +50,8 @@ export const toDetailRoomStatus = (
   return 'OPEN';
 };
 
+export const getDetailRoomCurrentCount = (room: RoomDetailResponse) => room.currentMembersCount;
+
 export const parseAgeFilter = (value: string): number | undefined => {
   if (value.trim() === '') {
     return undefined;

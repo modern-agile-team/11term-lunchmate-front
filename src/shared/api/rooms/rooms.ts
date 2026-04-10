@@ -35,7 +35,18 @@ export interface RoomDetailResponse {
   lunchAt: string;
   status: 'OPEN' | 'FULL' | 'CLOSE' | string;
   description: string | null;
-  currentCount: number;
+  currentMembersCount: number;
+}
+
+export interface CreateRoomRequest {
+  title: string;
+  description?: string;
+  roomType: 'MALE' | 'FEMALE' | 'ANY';
+  maxMembersCount: number;
+  place: string;
+  lunchAt: string;
+  minAge: number;
+  maxAge: number;
 }
 
 export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsResponse> {
@@ -53,6 +64,12 @@ export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsR
 
 export async function getRoomDetail(roomId: number): Promise<RoomDetailResponse> {
   const response = await client.get<RoomDetailResponse>(`/api/v1/rooms/${roomId}`);
+
+  return response.data;
+}
+
+export async function createRoom(payload: CreateRoomRequest): Promise<RoomDetailResponse> {
+  const response = await client.post<RoomDetailResponse>('/api/v1/rooms', payload);
 
   return response.data;
 }
