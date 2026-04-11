@@ -4,23 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { postQueries, type PostListItemResponse } from '@/shared/api/posts';
 import { cn } from '@/shared/lib/utils';
 import type { MainBoardPost } from './types';
+import {
+  boardCategoryFilterOptions,
+  boardCategoryIdLabelMap,
+  boardCategoryIdMap,
+  boardCategoryStyleMap,
+  type MainBoardCategoryFilter,
+} from './board.constants';
 
 const BOARD_LIST_DEFAULT_PAGE = 1;
 const BOARD_LIST_DEFAULT_SIZE = 10;
-
-const categoryStyleMap = {
-  FREE: 'bg-slate-100 text-slate-600',
-  REVIEW: 'bg-amber-50 text-amber-700',
-  INFO: 'bg-sky-50 text-sky-700',
-  TALK: 'bg-violet-50 text-violet-700',
-} as const;
-
-const postCategoryIdLabelMap: Record<number, MainBoardPost['category']> = {
-  1: 'FREE',
-  2: 'REVIEW',
-  3: 'INFO',
-  4: 'TALK',
-};
 
 const formatRelativeCreatedAt = (createdAt: string) => {
   const currentTime = Date.now();
@@ -53,7 +46,7 @@ const toBoardCategory = (post: PostListItemResponse): MainBoardPost['category'] 
   }
 
   if (post.categoryId !== undefined && post.categoryId !== null) {
-    return postCategoryIdLabelMap[post.categoryId] ?? 'FREE';
+    return boardCategoryIdLabelMap[post.categoryId] ?? 'FREE';
   }
 
   return 'FREE';
@@ -96,6 +89,9 @@ const toMainBoardPost = (post: PostListItemResponse): MainBoardPost => ({
 
 const MainBoardSection = () => {
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<MainBoardCategoryFilter>('ALL');
+  const categoryId =
+    selectedCategory === 'ALL' ? undefined : boardCategoryIdMap[selectedCategory];
   const {
     data,
     isLoading,
@@ -105,6 +101,7 @@ const MainBoardSection = () => {
     postQueries.list({
       page: BOARD_LIST_DEFAULT_PAGE,
       size: BOARD_LIST_DEFAULT_SIZE,
+      categoryId,
     }),
   );
   const boardPosts = data?.items.map(toMainBoardPost) ?? [];
@@ -126,6 +123,29 @@ const MainBoardSection = () => {
 
   return (
     <section className="space-y-4 md:space-y-5">
+      <section className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:px-6">
+        <div>
+          <p className="text-sm font-semibold text-slate-700">카테고리</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {boardCategoryFilterOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSelectedCategory(option.value)}
+                className={cn(
+                  'rounded-2xl px-4 py-2.5 text-sm font-semibold transition',
+                  selectedCategory === option.value
+                    ? 'bg-slate-900 text-white'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {isLoading ? (
         <section className="rounded-[28px] border border-slate-200/80 bg-white px-6 py-10 text-center text-sm text-slate-500 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
           게시글을 불러오는 중...
@@ -161,7 +181,7 @@ const MainBoardSection = () => {
                 <span
                   className={cn(
                     'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                    categoryStyleMap[boardPost.category],
+                    boardCategoryStyleMap[boardPost.category],
                   )}
                 >
                   {boardPost.category}
@@ -201,7 +221,7 @@ const MainBoardSection = () => {
               <span
                 className={cn(
                   'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                  categoryStyleMap[selectedBoardPost.category],
+                  boardCategoryStyleMap[selectedBoardPost.category],
                 )}
               >
                 {selectedBoardPost.category}
