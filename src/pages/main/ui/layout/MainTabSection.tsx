@@ -7,6 +7,7 @@ import type { MainTab } from '../../model/types';
 import MainBoardSection from '../board/MainBoardSection';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
+import CreateRoomModal, { toCreateRoomFormState } from '../room/CreateRoomModal';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
 import { joinRoom, kickRoomMember, leaveRoom } from '@/shared/api/rooms/rooms';
@@ -143,6 +144,7 @@ const MainTabSection = ({
   const [roomFilterState, setRoomFilterState] = useState<RoomFilterState>(INITIAL_ROOM_FILTER_STATE);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [joinedRoomId, setJoinedRoomId] = useState<number | null>(null);
+  const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
   const [roomActionMessage, setRoomActionMessage] = useState('');
   const [roomActionMessageTone, setRoomActionMessageTone] = useState<'success' | 'error'>(
     'success',
@@ -550,6 +552,18 @@ const MainTabSection = ({
                   <div className="mt-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
                     {roomDetail.minAge}-{roomDetail.maxAge}대
                   </div>
+                  {isHostUser ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRoomActionMessage('');
+                        setIsEditRoomModalOpen(true);
+                      }}
+                      className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      방 수정
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -654,6 +668,25 @@ const MainTabSection = ({
             </article>
           ) : null}
         </>
+      ) : null}
+
+      {roomDetail ? (
+        <CreateRoomModal
+          isOpen={isEditRoomModalOpen}
+          onClose={() => setIsEditRoomModalOpen(false)}
+          mode="edit"
+          roomId={roomDetail.id}
+          initialValues={toCreateRoomFormState(roomDetail)}
+          onRequireLogin={onJoinRequireLogin}
+          onSuccess={() => {
+            setRoomActionMessage('방 정보를 수정했어요.');
+            setRoomActionMessageTone('success');
+          }}
+          onError={(message) => {
+            setRoomActionMessage(message);
+            setRoomActionMessageTone('error');
+          }}
+        />
       ) : null}
 
       {activeTab === 'LUNCH' ? <MainLunchMenuSection /> : null}
