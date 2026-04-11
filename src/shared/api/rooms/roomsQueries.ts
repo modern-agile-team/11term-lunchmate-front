@@ -1,8 +1,8 @@
 import { queryOptions } from '@tanstack/react-query';
-import { getRooms } from './rooms';
+import { getRooms, type RoomListFilters } from '@/shared/api/rooms/rooms';
 
-export const roomsListQueryOptions = () =>
+export const roomsListQueryOptions = (filters: RoomListFilters = {}) =>
   queryOptions({
-    queryKey: ['rooms', 'list'],
-    queryFn: getRooms,
+    queryKey: ['rooms', 'list', filters],
+    queryFn: () => getRooms(filters),
   });
