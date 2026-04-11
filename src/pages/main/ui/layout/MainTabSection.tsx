@@ -9,8 +9,9 @@ import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
-import { joinRoom, leaveRoom } from '@/shared/api/rooms/rooms';
+import { joinRoom, kickRoomMember, leaveRoom } from '@/shared/api/rooms/rooms';
 import { roomQueries } from '@/shared/api/rooms/roomsQueries';
+import { myUserQueryOptions } from '@/shared/api/users/meQueries';
 import { cn } from '@/shared/lib/utils';
 import {
   detailRoomStatusStyleMap,
@@ -100,6 +101,38 @@ const getRoomMembersErrorMessage = (error: unknown) => {
   return '멤버 목록을 불러오지 못했어요.';
 };
 
+const getKickMemberErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 403) {
+      return '강퇴할 권한이 없어요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '방 또는 멤버를 찾을 수 없어요.';
+    }
+
+    if (error.response?.status === 409) {
+      return '강퇴할 수 없는 상태예요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '멤버 강퇴에 실패했어요. 잠시 후 다시 시도해 주세요.';
+};
+
 const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
@@ -115,9 +148,14 @@ const MainTabSection = ({
     'success',
   );
   const roomFilters = toRoomListFilters(roomFilterState);
+  const isLoggedIn = isAuthenticated();
   const { data, isLoading, isError, error } = useQuery({
     ...roomQueries.list(roomFilters),
     enabled: isRoomTab,
+  });
+  const { data: currentUser } = useQuery({
+    ...myUserQueryOptions(),
+    enabled: isRoomTab && isLoggedIn,
   });
   const {
     data: roomDetail,
@@ -187,6 +225,30 @@ const MainTabSection = ({
       setRoomActionMessageTone('error');
     },
   });
+  const kickRoomMemberMutation = useMutation({
+    mutationFn: kickRoomMember,
+    onSuccess: async (_, variables) => {
+      setRoomActionMessage('멤버를 강퇴했어요.');
+      setRoomActionMessageTone('success');
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.detail(variables.roomId).queryKey }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.members(variables.roomId).queryKey }),
+      ]);
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setRoomActionMessage('로그인 후 강퇴할 수 있어요.');
+        setRoomActionMessageTone('error');
+        onJoinRequireLogin();
+        return;
+      }
+
+      setRoomActionMessage(getKickMemberErrorMessage(error));
+      setRoomActionMessageTone('error');
+    },
+  });
   const rooms = data?.items.map(toMainRoom) ?? [];
 
   useEffect(() => {
@@ -232,6 +294,8 @@ const MainTabSection = ({
 
   const hasJoinedActiveRoom = joinedRoomId !== null;
   const roomMembers = roomMembersData?.items ?? [];
+  const currentUserId = currentUser?.id ?? null;
+  const isHostUser = roomDetail !== undefined && currentUserId === roomDetail.hostUserId;
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -541,6 +605,11 @@ const MainTabSection = ({
                   <ul className="mt-4 space-y-3">
                     {roomMembers.map((member) => {
                       const isHost = roomDetail.hostUserId === member.userId;
+                      const isKickPending =
+                        kickRoomMemberMutation.isPending &&
+                        kickRoomMemberMutation.variables?.roomId === roomDetail.id &&
+                        kickRoomMemberMutation.variables?.userId === member.userId;
+                      const canKickMember = isHostUser && !isHost;
 
                       return (
                         <li
@@ -548,11 +617,34 @@ const MainTabSection = ({
                           className="flex items-center justify-between rounded-2xl bg-white px-4 py-3"
                         >
                           <span className="text-sm font-medium text-slate-700">{member.nickname}</span>
-                          {isHost ? (
-                            <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
-                              방장
-                            </span>
-                          ) : null}
+                          <div className="flex items-center gap-2">
+                            {isHost ? (
+                              <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                방장
+                              </span>
+                            ) : null}
+                            {canKickMember ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRoomActionMessage('');
+                                  kickRoomMemberMutation.mutate({
+                                    roomId: roomDetail.id,
+                                    userId: member.userId,
+                                  });
+                                }}
+                                disabled={isKickPending}
+                                className={cn(
+                                  'rounded-full px-3 py-1 text-xs font-semibold transition',
+                                  isKickPending
+                                    ? 'cursor-not-allowed bg-slate-200 text-slate-500'
+                                    : 'bg-rose-100 text-rose-600 hover:bg-rose-200',
+                                )}
+                              >
+                                {isKickPending ? '강퇴 중...' : '강퇴'}
+                              </button>
+                            ) : null}
+                          </div>
                         </li>
                       );
                     })}

@@ -64,6 +64,11 @@ export interface GetRoomMembersResponse {
   items: RoomMemberResponse[];
 }
 
+export interface KickRoomMemberRequest {
+  roomId: number;
+  userId: number;
+}
+
 export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsResponse> {
   const response = await client.get<GetRoomsResponse>('/api/v1/rooms', {
     params: {
@@ -103,4 +108,8 @@ export async function joinRoom(roomId: number): Promise<RoomJoinResponse> {
 
 export async function leaveRoom(roomId: number): Promise<void> {
   await client.post(`/api/v1/rooms/${roomId}/leave`);
+}
+
+export async function kickRoomMember({ roomId, userId }: KickRoomMemberRequest): Promise<void> {
+  await client.delete(`/api/v1/rooms/${roomId}/members/${userId}`);
 }
