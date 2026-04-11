@@ -1,4 +1,6 @@
 export type {
+  CreatePostRequest,
+  CreatePostResponse,
   GetPostsParams,
   GetPostsResponse,
   PostDetailResponse,
@@ -6,5 +8,5 @@ export type {
   PostListPaginationResponse,
   PostListUserResponse,
 } from './posts';
-export { getPostDetail, getPosts } from './posts';
+export { createPost, getPostDetail, getPosts } from './posts';
 export { postQueries } from './postsQueries';

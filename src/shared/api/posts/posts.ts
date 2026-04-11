@@ -42,6 +42,22 @@ export interface GetPostsResponse {
   pagination?: PostListPaginationResponse;
 }
 
+export interface CreatePostRequest {
+  categoryId: number;
+  title: string;
+  content: string;
+}
+
+export interface CreatePostResponse {
+  id: number;
+  userId?: number;
+  categoryId?: number | null;
+  category?: string | null;
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface PostDetailResponse {
   id: number;
   userId: number;
@@ -63,6 +79,12 @@ export async function getPosts(params: GetPostsParams = {}): Promise<GetPostsRes
       size: params.size,
     },
   });
+
+  return response.data;
+}
+
+export async function createPost(payload: CreatePostRequest): Promise<CreatePostResponse> {
+  const response = await client.post<CreatePostResponse>('/api/v1/posts', payload);
 
   return response.data;
 }
