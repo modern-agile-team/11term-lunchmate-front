@@ -5,5 +5,5 @@ export type {
   RoomJoinResponse,
   RoomListItemResponse,
 } from './rooms';
-export { createRoom, getRoomDetail, getRooms, joinRoom } from './rooms';
+export { createRoom, getRoomDetail, getRooms, joinRoom, leaveRoom } from './rooms';
 export { roomQueries } from './roomsQueries';
