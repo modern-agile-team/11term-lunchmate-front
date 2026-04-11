@@ -11,6 +11,7 @@ export type {
 } from './rooms';
 export {
   createRoom,
+  deleteRoom,
   getRoomDetail,
   getRoomMembers,
   getRooms,
