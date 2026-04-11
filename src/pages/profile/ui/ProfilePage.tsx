@@ -8,7 +8,7 @@ import { MBTI_OPTIONS, type MbtiType, type UserProfile } from '@/shared/types/pr
 const EMPTY_PROFILE: UserProfile = {
   name: '',
   nickname: '',
-  bio: '',
+  introduce: '',
   mbti: '',
   profileImageUrl: '',
 };
@@ -19,7 +19,7 @@ const isMbtiType = (value: unknown): value is MbtiType =>
 const normalizeProfile = (profile: Partial<UserProfile> | null | undefined): UserProfile => ({
   name: typeof profile?.name === 'string' ? profile.name : '',
   nickname: typeof profile?.nickname === 'string' ? profile.nickname : '',
-  bio: typeof profile?.bio === 'string' ? profile.bio : '',
+  introduce: typeof profile?.introduce === 'string' ? profile.introduce : '',
   mbti: isMbtiType(profile?.mbti) ? profile.mbti : '',
   profileImageUrl: typeof profile?.profileImageUrl === 'string' ? profile.profileImageUrl : '',
 });
@@ -103,7 +103,7 @@ export default function ProfilePage() {
     updateProfileMutation.mutate({
       name: profile.name.trim(),
       nickname: profile.nickname.trim(),
-      bio: profile.bio.trim(),
+      introduce: profile.introduce.trim(),
       mbti: profile.mbti as MbtiType,
       profileImageUrl: profile.profileImageUrl.trim(),
     });
@@ -226,7 +226,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
-              <p className="mt-2 text-lg text-slate-400">{profile.bio}</p>
+              <p className="mt-2 text-lg text-slate-400">{profile.introduce}</p>
             </div>
           </div>
 
@@ -251,12 +251,12 @@ export default function ProfilePage() {
             <label className="block">
               <span className="mb-3 block text-[18px] font-medium text-slate-800">한줄소개</span>
               <textarea
-                value={profile.bio}
+                value={profile.introduce}
                 onChange={(event) =>
                   setProfileDraft((current) => ({
                     ...profile,
                     ...current,
-                    bio: event.target.value,
+                    introduce: event.target.value,
                   }))
                 }
                 placeholder="소개를 입력하세요"
