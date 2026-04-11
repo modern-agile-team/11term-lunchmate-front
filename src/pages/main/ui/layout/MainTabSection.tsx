@@ -7,24 +7,33 @@ import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
-import type { MainRoom } from '../room/types';
-import type { RoomDetailResponse, RoomListFilters, RoomListItemResponse } from '@/shared/api/rooms/rooms';
+<<<<<<< Updated upstream
 import { roomDetailQueryOptions, roomsListQueryOptions } from '@/shared/api/rooms/roomsQueries';
+=======
+import type { MainRoom } from '../room/types';
+import type { RoomListFilters, RoomListItemResponse } from '@/shared/api/rooms/rooms';
+import { roomQueries } from '@/shared/api/rooms/roomsQueries';
+>>>>>>> Stashed changes
 import { cn } from '@/shared/lib/utils';
+import {
+  detailRoomStatusStyleMap,
+  detailRoomTypeStyleMap,
+  INITIAL_ROOM_FILTER_STATE,
+  roomStatusFilterOptions,
+  roomTypeFilterOptions,
+  type RoomFilterState,
+} from '../room/roomTab.constants';
+import {
+  formatLunchAt,
+  toDetailRoomStatus,
+  toDetailRoomType,
+  toMainRoom,
+  toRoomListFilters,
+} from '../room/roomTab.utils';
 
 interface MainTabSectionProps {
   activeTab: MainTab;
   onCreateRoomClick: () => void;
-}
-
-type RoomTypeFilter = 'ALL' | 'ANY' | 'MALE' | 'FEMALE';
-type RoomStatusFilter = 'ALL' | 'OPEN' | 'FULL' | 'CLOSE';
-
-interface RoomFilterState {
-  roomType: RoomTypeFilter;
-  status: RoomStatusFilter;
-  minAge: string;
-  maxAge: string;
 }
 
 const tabDescriptionMap: Record<MainTab, string> = {
@@ -34,133 +43,13 @@ const tabDescriptionMap: Record<MainTab, string> = {
   BOARD: '자유게시판에서 점심메이트와 가볍게 소통해보세요.',
 };
 
-const INITIAL_ROOM_FILTER_STATE: RoomFilterState = {
-  roomType: 'ALL',
-  status: 'ALL',
-  minAge: '',
-  maxAge: '',
-};
-
-const roomTypeFilterOptions: Array<{ label: string; value: RoomTypeFilter }> = [
-  { label: '전체', value: 'ALL' },
-  { label: '혼성', value: 'ANY' },
-  { label: '남성', value: 'MALE' },
-  { label: '여성', value: 'FEMALE' },
-];
-
-const roomStatusFilterOptions: Array<{ label: string; value: RoomStatusFilter }> = [
-  { label: '전체', value: 'ALL' },
-  { label: '모집중', value: 'OPEN' },
-  { label: '마감임박/정원도달', value: 'FULL' },
-  { label: '종료', value: 'CLOSE' },
-];
-
-const detailRoomTypeStyleMap = {
-  MALE: {
-    badgeClassName: 'bg-sky-100 text-sky-700',
-    badgeLabel: '남성만',
-  },
-  FEMALE: {
-    badgeClassName: 'bg-rose-100 text-rose-700',
-    badgeLabel: '여성만',
-  },
-  MIXED: {
-    badgeClassName: 'bg-indigo-100 text-indigo-700',
-    badgeLabel: '혼성',
-  },
-} as const;
-
-const detailRoomStatusStyleMap = {
-  OPEN: {
-    badgeClassName: 'bg-emerald-100 text-emerald-700',
-    badgeLabel: '모집중',
-  },
-  FULL: {
-    badgeClassName: 'bg-amber-100 text-amber-700',
-    badgeLabel: '정원도달',
-  },
-  CLOSE: {
-    badgeClassName: 'bg-slate-200 text-slate-700',
-    badgeLabel: '종료',
-  },
-} as const;
-
-const toMainRoomType = (roomType: RoomListItemResponse['roomType']): MainRoom['roomType'] => {
-  if (roomType === 'MALE' || roomType === 'FEMALE') {
-    return roomType;
-  }
-
-  return 'MIXED';
-};
-
-const formatLunchAt = (lunchAt: string): string => {
-  const timeMatch = lunchAt.match(/(?:T|\s)?(\d{2}:\d{2})/);
-
-  if (timeMatch) {
-    return timeMatch[1];
-  }
-
-  return lunchAt;
-};
-
-const toMainRoom = (room: RoomListItemResponse): MainRoom => ({
-  id: room.id,
-  title: room.title,
-  roomType: toMainRoomType(room.roomType),
-  minAge: room.minAge,
-  maxAge: room.maxAge,
-  currentCount: room.currentCount,
-  capacity: room.maxMembersCount,
-  place: room.place,
-  lunchAt: formatLunchAt(room.lunchAt),
-});
-
-const toDetailRoomType = (roomType: RoomDetailResponse['roomType']): MainRoom['roomType'] => {
-  if (roomType === 'MALE' || roomType === 'FEMALE') {
-    return roomType;
-  }
-
-  return 'MIXED';
-};
-
-const toDetailRoomStatus = (
-  status: RoomDetailResponse['status'],
-): keyof typeof detailRoomStatusStyleMap => {
-  if (status === 'OPEN' || status === 'FULL' || status === 'CLOSE') {
-    return status;
-  }
-
-  return 'OPEN';
-};
-
-const parseAgeFilter = (value: string): number | undefined => {
-  if (value.trim() === '') {
-    return undefined;
-  }
-
-  const parsedValue = Number(value);
-
-  if (!Number.isFinite(parsedValue)) {
-    return undefined;
-  }
-
-  return parsedValue;
-};
-
-const toRoomListFilters = (roomFilterState: RoomFilterState): RoomListFilters => ({
-  roomType: roomFilterState.roomType === 'ALL' ? undefined : roomFilterState.roomType,
-  status: roomFilterState.status === 'ALL' ? undefined : roomFilterState.status,
-  minAge: parseAgeFilter(roomFilterState.minAge),
-  maxAge: parseAgeFilter(roomFilterState.maxAge),
-});
-
 const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) => {
   const isRoomTab = activeTab === 'ROOM';
   const [roomFilterState, setRoomFilterState] = useState<RoomFilterState>(INITIAL_ROOM_FILTER_STATE);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const roomFilters = toRoomListFilters(roomFilterState);
   const { data, isLoading, isError, error } = useQuery({
-    ...roomsListQueryOptions(roomFilters),
+    ...roomQueries.list(roomFilters),
     enabled: isRoomTab,
   });
   const {
