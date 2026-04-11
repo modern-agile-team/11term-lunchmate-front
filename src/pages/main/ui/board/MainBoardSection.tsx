@@ -1,7 +1,9 @@
-import { Heart, MessageSquareText, PencilLine } from 'lucide-react';
+import { Heart, MessageSquareText, PencilLine, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  deletePost,
+  type GetPostsResponse,
   postQueries,
   type PostDetailResponse,
   type PostListItemResponse,
@@ -17,6 +19,7 @@ import {
   type MainBoardCategoryFilter,
 } from './board.constants';
 import CreatePostModal, { type CreatePostFormValues } from './CreatePostModal';
+import DeletePostConfirmModal from './DeletePostConfirmModal';
 
 const BOARD_LIST_DEFAULT_PAGE = 1;
 const BOARD_LIST_DEFAULT_SIZE = 10;
@@ -118,6 +121,20 @@ const toEditPostFormValues = (post: MainBoardPost): CreatePostFormValues => ({
   content: post.content,
 });
 
+const isPostListData = (value: unknown): value is GetPostsResponse =>
+  typeof value === 'object' &&
+  value !== null &&
+  'items' in value &&
+  Array.isArray((value as { items?: unknown }).items);
+
+const isInfinitePostListData = (
+  value: unknown,
+): value is { pages: GetPostsResponse[]; pageParams: unknown[] } =>
+  typeof value === 'object' &&
+  value !== null &&
+  'pages' in value &&
+  Array.isArray((value as { pages?: unknown }).pages);
+
 interface MainBoardSectionProps {
   postSyncRequest: MainBoardPostSyncRequest | null;
   onPostSyncHandled: () => void;
@@ -129,10 +146,13 @@ const MainBoardSection = ({
   onPostSyncHandled,
   onRequireLogin,
 }: MainBoardSectionProps) => {
+  const queryClient = useQueryClient();
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MainBoardCategoryFilter>('ALL');
   const [pendingSyncedPostId, setPendingSyncedPostId] = useState<number | null>(null);
   const [isEditPostModalOpen, setIsEditPostModalOpen] = useState(false);
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const categoryId =
     selectedCategory === 'ALL' ? undefined : boardCategoryIdMap[selectedCategory];
@@ -175,6 +195,9 @@ const MainBoardSection = ({
   const canEditSelectedPost =
     selectedBoardPostDetailData !== undefined && myUserData?.id === selectedBoardPostDetailData.userId;
   const hasLoadedPosts = data !== undefined;
+  const deletePostMutation = useMutation({
+    mutationFn: deletePost,
+  });
 
   useEffect(() => {
     if (!postSyncRequest) {
@@ -248,6 +271,89 @@ const MainBoardSection = ({
       observer.disconnect();
     };
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading]);
+
+  const handleDeleteConfirmClose = () => {
+    if (deletePostMutation.isPending) {
+      return;
+    }
+
+    setDeleteErrorMessage('');
+    setIsDeleteConfirmModalOpen(false);
+  };
+
+  const handleDeletePost = async () => {
+    if (!selectedBoardPostDetail) {
+      return;
+    }
+
+    setDeleteErrorMessage('');
+
+    try {
+      await deletePostMutation.mutateAsync(selectedBoardPostDetail.id);
+
+      const nextBoardPost = boardPosts.find(
+        (boardPost) => boardPost.id !== selectedBoardPostDetail.id,
+      );
+
+      queryClient.setQueriesData({ queryKey: postQueries.lists() }, (currentData) => {
+        if (isPostListData(currentData)) {
+          return {
+            ...currentData,
+            items: currentData.items.filter((item) => item.id !== selectedBoardPostDetail.id),
+          };
+        }
+
+        if (isInfinitePostListData(currentData)) {
+          return {
+            ...currentData,
+            pages: currentData.pages.map((page) => ({
+              ...page,
+              items: page.items.filter((item) => item.id !== selectedBoardPostDetail.id),
+            })),
+          };
+        }
+
+        return currentData;
+      });
+
+      setIsDeleteConfirmModalOpen(false);
+      setIsEditPostModalOpen(false);
+      setDeleteErrorMessage('');
+      setPendingSyncedPostId(nextBoardPost?.id ?? null);
+      setSelectedBoardPostId(nextBoardPost?.id ?? null);
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: postQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: postQueries.details() }),
+      ]);
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            status?: number;
+          };
+        };
+
+        if (axiosError.response?.status === 401) {
+          setDeleteErrorMessage('로그인 후 게시글을 삭제할 수 있어요.');
+          onRequireLogin();
+          return;
+        }
+
+        if (axiosError.response?.status === 403) {
+          setDeleteErrorMessage('게시글을 삭제할 권한이 없어요.');
+          return;
+        }
+
+        if (axiosError.response?.status === 404) {
+          setDeleteErrorMessage('게시글을 찾을 수 없어요.');
+          return;
+        }
+      }
+
+      setDeleteErrorMessage('게시글을 삭제하지 못했어요. 잠시 후 다시 시도해주세요.');
+    }
+  };
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -411,14 +517,24 @@ const MainBoardSection = ({
                   </div>
 
                   {canEditSelectedPost ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditPostModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-                    >
-                      <PencilLine className="h-4 w-4" />
-                      게시글 수정
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditPostModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                      >
+                        <PencilLine className="h-4 w-4" />
+                        게시글 수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDeleteConfirmModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        게시글 삭제
+                      </button>
+                    </>
                   ) : null}
                 </div>
               </div>
@@ -464,6 +580,16 @@ const MainBoardSection = ({
           }}
         />
       ) : null}
+
+      <DeletePostConfirmModal
+        isOpen={isDeleteConfirmModalOpen}
+        isPending={deletePostMutation.isPending}
+        errorMessage={deleteErrorMessage}
+        onClose={handleDeleteConfirmClose}
+        onConfirm={() => {
+          void handleDeletePost();
+        }}
+      />
     </section>
   );
 };

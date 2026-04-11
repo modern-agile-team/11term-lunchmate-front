@@ -9,5 +9,5 @@ export type {
   PostListUserResponse,
   UpdatePostRequest,
 } from './posts';
-export { createPost, getPostDetail, getPosts, updatePost } from './posts';
+export { createPost, deletePost, getPostDetail, getPosts, updatePost } from './posts';
 export { postQueries } from './postsQueries';

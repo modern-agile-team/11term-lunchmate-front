@@ -104,6 +104,10 @@ export async function updatePost(
   return response.data;
 }
 
+export async function deletePost(postId: number): Promise<void> {
+  await client.delete(`/api/v1/posts/${postId}`);
+}
+
 export async function getPostDetail(postId: number): Promise<PostDetailResponse> {
   const response = await client.get<PostDetailResponse>(`/api/v1/posts/${postId}`);
 
