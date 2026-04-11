@@ -20,6 +20,7 @@ export interface PostListItemResponse {
   summary?: string | null;
   content?: string | null;
   likeCount?: number | null;
+  dislikeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
   author?: string | null;
@@ -73,7 +74,9 @@ export interface PostDetailResponse {
   content: string;
   viewCount?: number | null;
   liked?: boolean | null;
+  disliked?: boolean | null;
   likeCount?: number | null;
+  dislikeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
 }
@@ -81,6 +84,11 @@ export interface PostDetailResponse {
 export interface LikePostResponse {
   liked: boolean;
   likeCount: number;
+}
+
+export interface DislikePostResponse {
+  disliked: boolean;
+  dislikeCount: number;
 }
 
 export async function getPosts(params: GetPostsParams = {}): Promise<GetPostsResponse> {
@@ -103,6 +111,12 @@ export async function createPost(payload: CreatePostRequest): Promise<CreatePost
 
 export async function likePost(postId: number): Promise<LikePostResponse> {
   const response = await client.post<LikePostResponse>(`/api/v1/posts/${postId}/like`);
+
+  return response.data;
+}
+
+export async function dislikePost(postId: number): Promise<DislikePostResponse> {
+  const response = await client.post<DislikePostResponse>(`/api/v1/posts/${postId}/dislike`);
 
   return response.data;
 }

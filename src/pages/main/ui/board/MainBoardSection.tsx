@@ -1,8 +1,9 @@
-import { Heart, MessageSquareText, PencilLine, Trash2 } from 'lucide-react';
+import { Heart, MessageSquareText, PencilLine, ThumbsDown, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   deletePost,
+  dislikePost,
   type GetPostsResponse,
   likePost,
   postQueries,
@@ -154,7 +155,7 @@ const MainBoardSection = ({
   const [isEditPostModalOpen, setIsEditPostModalOpen] = useState(false);
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
-  const [likeErrorMessage, setLikeErrorMessage] = useState('');
+  const [reactionErrorMessage, setReactionErrorMessage] = useState('');
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const categoryId =
     selectedCategory === 'ALL' ? undefined : boardCategoryIdMap[selectedCategory];
@@ -195,11 +196,15 @@ const MainBoardSection = ({
       ? toMainBoardPostDetail(selectedBoardPostDetailData, selectedBoardPost.author)
       : null;
   const isSelectedBoardPostLiked = selectedBoardPostDetailData?.liked ?? false;
+  const isSelectedBoardPostDisliked = selectedBoardPostDetailData?.disliked ?? false;
   const canEditSelectedPost =
     selectedBoardPostDetailData !== undefined && myUserData?.id === selectedBoardPostDetailData.userId;
   const hasLoadedPosts = data !== undefined;
   const likePostMutation = useMutation({
     mutationFn: likePost,
+  });
+  const dislikePostMutation = useMutation({
+    mutationFn: dislikePost,
   });
   const deletePostMutation = useMutation({
     mutationFn: deletePost,
@@ -255,7 +260,7 @@ const MainBoardSection = ({
   }, [boardPosts, isFetching, pendingSyncedPostId, selectedBoardPostId]);
 
   useEffect(() => {
-    setLikeErrorMessage('');
+    setReactionErrorMessage('');
   }, [selectedBoardPostId]);
 
   useEffect(() => {
@@ -296,10 +301,15 @@ const MainBoardSection = ({
       return;
     }
 
-    setLikeErrorMessage('');
+    setReactionErrorMessage('');
+
+    const wasDisliked = selectedBoardPostDetailData.disliked ?? false;
+    const currentDislikeCount = selectedBoardPostDetailData.dislikeCount ?? 0;
 
     try {
       const response = await likePostMutation.mutateAsync(selectedBoardPostDetailData.id);
+      const nextDislikeCount =
+        response.liked && wasDisliked ? Math.max(0, currentDislikeCount - 1) : currentDislikeCount;
 
       queryClient.setQueryData<PostDetailResponse>(
         postQueries.detail(selectedBoardPostDetailData.id).queryKey,
@@ -311,7 +321,9 @@ const MainBoardSection = ({
           return {
             ...currentData,
             liked: response.liked,
+            disliked: response.liked && wasDisliked ? false : currentData.disliked,
             likeCount: response.likeCount,
+            dislikeCount: nextDislikeCount,
           };
         },
       );
@@ -325,6 +337,7 @@ const MainBoardSection = ({
                 ? {
                     ...item,
                     likeCount: response.likeCount,
+                    dislikeCount: nextDislikeCount,
                   }
                 : item,
             ),
@@ -341,6 +354,7 @@ const MainBoardSection = ({
                   ? {
                       ...item,
                       likeCount: response.likeCount,
+                      dislikeCount: nextDislikeCount,
                     }
                   : item,
               ),
@@ -359,18 +373,110 @@ const MainBoardSection = ({
         };
 
         if (axiosError.response?.status === 401) {
-          setLikeErrorMessage('로그인 후 게시글을 좋아요할 수 있어요.');
+          setReactionErrorMessage('로그인 후 게시글을 좋아요할 수 있어요.');
           onRequireLogin();
           return;
         }
 
         if (axiosError.response?.status === 404) {
-          setLikeErrorMessage('게시글을 찾을 수 없어요.');
+          setReactionErrorMessage('게시글을 찾을 수 없어요.');
           return;
         }
       }
 
-      setLikeErrorMessage('좋아요를 반영하지 못했어요. 잠시 후 다시 시도해주세요.');
+      setReactionErrorMessage('좋아요를 반영하지 못했어요. 잠시 후 다시 시도해주세요.');
+    }
+  };
+
+  const handleDislikePost = async () => {
+    if (!selectedBoardPostDetailData) {
+      return;
+    }
+
+    setReactionErrorMessage('');
+
+    const wasLiked = selectedBoardPostDetailData.liked ?? false;
+    const currentLikeCount = selectedBoardPostDetailData.likeCount ?? 0;
+
+    try {
+      const response = await dislikePostMutation.mutateAsync(selectedBoardPostDetailData.id);
+      const nextLikeCount =
+        response.disliked && wasLiked ? Math.max(0, currentLikeCount - 1) : currentLikeCount;
+
+      queryClient.setQueryData<PostDetailResponse>(
+        postQueries.detail(selectedBoardPostDetailData.id).queryKey,
+        (currentData) => {
+          if (!currentData) {
+            return currentData;
+          }
+
+          return {
+            ...currentData,
+            liked: response.disliked && wasLiked ? false : currentData.liked,
+            disliked: response.disliked,
+            likeCount: nextLikeCount,
+            dislikeCount: response.dislikeCount,
+          };
+        },
+      );
+
+      queryClient.setQueriesData({ queryKey: postQueries.lists() }, (currentData) => {
+        if (isPostListData(currentData)) {
+          return {
+            ...currentData,
+            items: currentData.items.map((item) =>
+              item.id === selectedBoardPostDetailData.id
+                ? {
+                    ...item,
+                    likeCount: nextLikeCount,
+                    dislikeCount: response.dislikeCount,
+                  }
+                : item,
+            ),
+          };
+        }
+
+        if (isInfinitePostListData(currentData)) {
+          return {
+            ...currentData,
+            pages: currentData.pages.map((page) => ({
+              ...page,
+              items: page.items.map((item) =>
+                item.id === selectedBoardPostDetailData.id
+                  ? {
+                      ...item,
+                      likeCount: nextLikeCount,
+                      dislikeCount: response.dislikeCount,
+                    }
+                  : item,
+              ),
+            })),
+          };
+        }
+
+        return currentData;
+      });
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            status?: number;
+          };
+        };
+
+        if (axiosError.response?.status === 401) {
+          setReactionErrorMessage('로그인 후 게시글을 싫어요할 수 있어요.');
+          onRequireLogin();
+          return;
+        }
+
+        if (axiosError.response?.status === 404) {
+          setReactionErrorMessage('게시글을 찾을 수 없어요.');
+          return;
+        }
+      }
+
+      setReactionErrorMessage('싫어요를 반영하지 못했어요. 잠시 후 다시 시도해주세요.');
     }
   };
 
@@ -604,17 +710,36 @@ const MainBoardSection = ({
                       onClick={() => {
                         void handleLikePost();
                       }}
-                      disabled={likePostMutation.isPending}
+                      disabled={likePostMutation.isPending || dislikePostMutation.isPending}
                       className={cn(
                         'inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-semibold transition',
                         isSelectedBoardPostLiked
                           ? 'bg-rose-50 text-rose-600'
                           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
-                        likePostMutation.isPending && 'cursor-not-allowed opacity-60',
+                        (likePostMutation.isPending || dislikePostMutation.isPending) &&
+                          'cursor-not-allowed opacity-60',
                       )}
                     >
                       <Heart className="h-4 w-4 text-rose-400" />
                       {selectedBoardPostDetail.likedCount}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleDislikePost();
+                      }}
+                      disabled={likePostMutation.isPending || dislikePostMutation.isPending}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-semibold transition',
+                        isSelectedBoardPostDisliked
+                          ? 'bg-slate-200 text-slate-700'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+                        (likePostMutation.isPending || dislikePostMutation.isPending) &&
+                          'cursor-not-allowed opacity-60',
+                      )}
+                    >
+                      <ThumbsDown className="h-4 w-4 text-slate-500" />
+                      {selectedBoardPostDetailData?.dislikeCount ?? 0}
                     </button>
                     <span className="inline-flex items-center gap-1.5">
                       <MessageSquareText className="h-4 w-4 text-indigo-500" />
@@ -656,8 +781,8 @@ const MainBoardSection = ({
                 조회 {selectedBoardPostDetailData?.viewCount ?? 0}
               </div>
 
-              {likeErrorMessage ? (
-                <p className="mt-4 text-sm font-medium text-rose-500">{likeErrorMessage}</p>
+              {reactionErrorMessage ? (
+                <p className="mt-4 text-sm font-medium text-rose-500">{reactionErrorMessage}</p>
               ) : null}
 
               <div className="mt-6 whitespace-pre-line rounded-[24px] bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
