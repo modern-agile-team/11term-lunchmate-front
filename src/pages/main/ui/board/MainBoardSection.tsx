@@ -1,7 +1,11 @@
 import { Heart, MessageSquareText } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { postQueries, type PostListItemResponse } from '@/shared/api/posts';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+  postQueries,
+  type PostDetailResponse,
+  type PostListItemResponse,
+} from '@/shared/api/posts';
 import { cn } from '@/shared/lib/utils';
 import type { MainBoardPost } from './types';
 import {
@@ -87,6 +91,21 @@ const toMainBoardPost = (post: PostListItemResponse): MainBoardPost => ({
   createdAt: post.createdAt,
 });
 
+const toMainBoardPostDetail = (
+  post: PostDetailResponse,
+  author: string,
+): MainBoardPost => ({
+  id: post.id,
+  category: toBoardCategory(post),
+  title: post.title,
+  author,
+  summary: post.content,
+  content: post.content,
+  likedCount: post.likeCount ?? 0,
+  commentCount: post.commentCount ?? 0,
+  createdAt: post.createdAt,
+});
+
 const MainBoardSection = () => {
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MainBoardCategoryFilter>('ALL');
@@ -114,6 +133,19 @@ const MainBoardSection = () => {
     [data],
   );
   const selectedBoardPost = boardPosts.find((boardPost) => boardPost.id === selectedBoardPostId);
+  const {
+    data: selectedBoardPostDetailData,
+    isLoading: isBoardDetailLoading,
+    isError: isBoardDetailError,
+    error: boardDetailError,
+  } = useQuery({
+    ...postQueries.detail(selectedBoardPostId ?? 0),
+    enabled: selectedBoardPostId !== null,
+  });
+  const selectedBoardPostDetail =
+    selectedBoardPostDetailData && selectedBoardPost
+      ? toMainBoardPostDetail(selectedBoardPostDetailData, selectedBoardPost.author)
+      : null;
   const hasLoadedPosts = data !== undefined;
 
   useEffect(() => {
@@ -273,35 +305,68 @@ const MainBoardSection = () => {
 
       {selectedBoardPost && !isLoading && !isError ? (
         <article className="rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span
-                className={cn(
-                  'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                  boardCategoryStyleMap[selectedBoardPost.category],
-                )}
-              >
-                {selectedBoardPost.category}
-              </span>
-              <span className="text-sm text-slate-400">
-                {formatRelativeCreatedAt(selectedBoardPost.createdAt)}
-              </span>
+          {isBoardDetailLoading ? (
+            <div className="rounded-[24px] bg-slate-50 px-5 py-10 text-center text-sm text-slate-500">
+              게시글 상세를 불러오는 중...
             </div>
+          ) : null}
 
-            <div className="inline-flex items-center gap-1.5 text-sm text-slate-500">
-              <Heart className="h-4 w-4 text-rose-400" />
-              {selectedBoardPost.likedCount}
+          {isBoardDetailError ? (
+            <div className="rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-10 text-center text-sm text-rose-600">
+              게시글 상세를 불러오지 못했어요.
+              {boardDetailError instanceof Error ? ` ${boardDetailError.message}` : ''}
             </div>
-          </div>
+          ) : null}
 
-          <h3 className="mt-5 text-[24px] font-bold tracking-[-0.03em] text-slate-900">
-            {selectedBoardPost.title}
-          </h3>
-          <p className="mt-2 text-sm font-medium text-slate-500">{selectedBoardPost.author}</p>
+          {selectedBoardPostDetail && !isBoardDetailLoading && !isBoardDetailError ? (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
+                      boardCategoryStyleMap[selectedBoardPostDetail.category],
+                    )}
+                  >
+                    {selectedBoardPostDetail.category}
+                  </span>
+                  <span className="text-sm text-slate-400">
+                    {formatRelativeCreatedAt(selectedBoardPostDetail.createdAt)}
+                  </span>
+                </div>
 
-          <div className="mt-6 rounded-[24px] bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
-            게시글 상세와 댓글은 다음 이슈에서 연결 예정이에요.
-          </div>
+                <div className="flex items-center gap-3 text-sm text-slate-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Heart className="h-4 w-4 text-rose-400" />
+                    {selectedBoardPostDetail.likedCount}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MessageSquareText className="h-4 w-4 text-indigo-500" />
+                    {selectedBoardPostDetail.commentCount}
+                  </span>
+                </div>
+              </div>
+
+              <h3 className="mt-5 text-[24px] font-bold tracking-[-0.03em] text-slate-900">
+                {selectedBoardPostDetail.title}
+              </h3>
+              <p className="mt-2 text-sm font-medium text-slate-500">
+                {selectedBoardPostDetail.author}
+              </p>
+
+                <div className="mt-4 text-xs font-medium text-slate-400">
+                  조회 {selectedBoardPostDetailData?.viewCount ?? 0}
+                </div>
+
+              <div className="mt-6 whitespace-pre-line rounded-[24px] bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
+                {selectedBoardPostDetail.content}
+              </div>
+
+              <div className="mt-6 rounded-[24px] bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
+                댓글과 게시글 액션은 다음 이슈에서 연결 예정이에요.
+              </div>
+            </>
+          ) : null}
         </article>
       ) : null}
     </section>

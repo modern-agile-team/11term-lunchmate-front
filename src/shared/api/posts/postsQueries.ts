@@ -1,5 +1,5 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
-import { getPosts, type GetPostsParams } from '@/shared/api/posts/posts';
+import { getPostDetail, getPosts, type GetPostsParams } from '@/shared/api/posts/posts';
 
 export const postQueries = {
   all: () => ['posts'] as const,
@@ -33,5 +33,11 @@ export const postQueries = {
 
         return undefined;
       },
+    }),
+  details: () => [...postQueries.all(), 'detail'] as const,
+  detail: (postId: number) =>
+    queryOptions({
+      queryKey: [...postQueries.details(), postId],
+      queryFn: () => getPostDetail(postId),
     }),
 };
