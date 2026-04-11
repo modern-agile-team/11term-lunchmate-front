@@ -14,6 +14,7 @@ export interface RoomListItemResponse {
 
 export interface GetRoomsResponse {
   items: RoomListItemResponse[];
+  nextCursor?: string | null;
 }
 
 export interface RoomListFilters {
@@ -21,6 +22,11 @@ export interface RoomListFilters {
   status?: 'OPEN' | 'FULL' | 'CLOSE';
   minAge?: number;
   maxAge?: number;
+}
+
+export interface GetRoomsParams extends RoomListFilters {
+  cursor?: string;
+  size?: number;
 }
 
 export interface RoomDetailResponse {
@@ -80,13 +86,15 @@ export interface KickRoomMemberRequest {
   userId: number;
 }
 
-export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsResponse> {
+export async function getRooms(params: GetRoomsParams = {}): Promise<GetRoomsResponse> {
   const response = await client.get<GetRoomsResponse>('/api/v1/rooms', {
     params: {
-      roomType: filters.roomType,
-      status: filters.status,
-      minAge: filters.minAge,
-      maxAge: filters.maxAge,
+      roomType: params.roomType,
+      status: params.status,
+      minAge: params.minAge,
+      maxAge: params.maxAge,
+      cursor: params.cursor,
+      size: params.size,
     },
   });
 
