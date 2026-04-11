@@ -10,7 +10,7 @@ import MainRankingSection from '../ranking/MainRankingSection';
 import CreateRoomModal, { toCreateRoomFormState } from '../room/CreateRoomModal';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
-import { joinRoom, kickRoomMember, leaveRoom } from '@/shared/api/rooms/rooms';
+import { deleteRoom, joinRoom, kickRoomMember, leaveRoom, type GetRoomsResponse } from '@/shared/api/rooms/rooms';
 import { roomQueries } from '@/shared/api/rooms/roomsQueries';
 import { myUserQueryOptions } from '@/shared/api/users/meQueries';
 import { cn } from '@/shared/lib/utils';
@@ -134,6 +134,34 @@ const getKickMemberErrorMessage = (error: unknown) => {
   return '멤버 강퇴에 실패했어요. 잠시 후 다시 시도해 주세요.';
 };
 
+const getDeleteRoomErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 403) {
+      return '방을 삭제할 권한이 없어요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '방을 찾을 수 없어요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '방 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.';
+};
+
 const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
@@ -145,6 +173,7 @@ const MainTabSection = ({
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [joinedRoomId, setJoinedRoomId] = useState<number | null>(null);
   const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
+  const [isDeleteRoomModalOpen, setIsDeleteRoomModalOpen] = useState(false);
   const [roomActionMessage, setRoomActionMessage] = useState('');
   const [roomActionMessageTone, setRoomActionMessageTone] = useState<'success' | 'error'>(
     'success',
@@ -248,6 +277,44 @@ const MainTabSection = ({
       }
 
       setRoomActionMessage(getKickMemberErrorMessage(error));
+      setRoomActionMessageTone('error');
+    },
+  });
+  const deleteRoomMutation = useMutation({
+    mutationFn: deleteRoom,
+    onSuccess: async (_, roomId) => {
+      setRoomActionMessage('방을 삭제했어요.');
+      setRoomActionMessageTone('success');
+      setIsDeleteRoomModalOpen(false);
+      setIsEditRoomModalOpen(false);
+      setJoinedRoomId((currentRoomId) => (currentRoomId === roomId ? null : currentRoomId));
+      setSelectedRoomId((currentRoomId) => (currentRoomId === roomId ? null : currentRoomId));
+      queryClient.setQueriesData<GetRoomsResponse>({ queryKey: roomQueries.lists() }, (oldData) =>
+        oldData
+          ? {
+              ...oldData,
+              items: oldData.items.filter((room) => room.id !== roomId),
+            }
+          : oldData,
+      );
+      queryClient.removeQueries({ queryKey: roomQueries.detail(roomId).queryKey });
+      queryClient.removeQueries({ queryKey: roomQueries.members(roomId).queryKey });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.details() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.membersAll() }),
+      ]);
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setRoomActionMessage('로그인 후 방을 삭제할 수 있어요.');
+        setRoomActionMessageTone('error');
+        onJoinRequireLogin();
+        return;
+      }
+
+      setRoomActionMessage(getDeleteRoomErrorMessage(error));
       setRoomActionMessageTone('error');
     },
   });
@@ -553,16 +620,28 @@ const MainTabSection = ({
                     {roomDetail.minAge}-{roomDetail.maxAge}대
                   </div>
                   {isHostUser ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRoomActionMessage('');
-                        setIsEditRoomModalOpen(true);
-                      }}
-                      className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                    >
-                      방 수정
-                    </button>
+                    <div className="mt-4 space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRoomActionMessage('');
+                          setIsEditRoomModalOpen(true);
+                        }}
+                        className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                      >
+                        방 수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRoomActionMessage('');
+                          setIsDeleteRoomModalOpen(true);
+                        }}
+                        className="w-full rounded-2xl bg-rose-100 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-200"
+                      >
+                        방 삭제
+                      </button>
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -687,6 +766,49 @@ const MainTabSection = ({
             setRoomActionMessageTone('error');
           }}
         />
+      ) : null}
+
+      {roomDetail && isDeleteRoomModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-5">
+          <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+            <h3 className="text-xl font-bold tracking-[-0.03em] text-slate-900">방 삭제</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              이 방을 삭제할까요? 삭제 후 되돌릴 수 없어요.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDeleteRoomModalOpen(false)}
+                disabled={deleteRoomMutation.isPending}
+                className={cn(
+                  'flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition',
+                  deleteRoomMutation.isPending
+                    ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+                    : 'bg-white hover:bg-slate-50',
+                )}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRoomActionMessage('');
+                  deleteRoomMutation.mutate(roomDetail.id);
+                }}
+                disabled={deleteRoomMutation.isPending}
+                className={cn(
+                  'flex-1 rounded-2xl px-4 py-3 text-sm font-semibold text-white transition',
+                  deleteRoomMutation.isPending
+                    ? 'cursor-not-allowed bg-rose-300'
+                    : 'bg-rose-500 hover:bg-rose-600',
+                )}
+              >
+                {deleteRoomMutation.isPending ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {activeTab === 'LUNCH' ? <MainLunchMenuSection /> : null}

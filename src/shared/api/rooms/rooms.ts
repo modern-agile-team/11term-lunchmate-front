@@ -133,3 +133,7 @@ export async function leaveRoom(roomId: number): Promise<void> {
 export async function kickRoomMember({ roomId, userId }: KickRoomMemberRequest): Promise<void> {
   await client.delete(`/api/v1/rooms/${roomId}/members/${userId}`);
 }
+
+export async function deleteRoom(roomId: number): Promise<void> {
+  await client.delete(`/api/v1/rooms/${roomId}`);
+}
