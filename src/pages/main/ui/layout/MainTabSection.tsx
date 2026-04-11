@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { type InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { Clock3, MapPin, Plus, Users } from 'lucide-react';
 import { isAuthenticated } from '@/app/authSessionStore';
@@ -40,6 +40,8 @@ interface MainTabSectionProps {
 interface ApiErrorPayload {
   message?: string | string[];
 }
+
+const ROOM_LIST_DEFAULT_SIZE = 10;
 
 const tabDescriptionMap: Record<MainTab, string> = {
   ROOM: '현재 열려 있는 점심 방을 둘러보고, 바로 참여할 수 있어요.',
@@ -162,6 +164,20 @@ const getDeleteRoomErrorMessage = (error: unknown) => {
   return '방 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.';
 };
 
+const isRoomsResponse = (data: unknown): data is GetRoomsResponse =>
+  typeof data === 'object' &&
+  data !== null &&
+  'items' in data &&
+  Array.isArray((data as GetRoomsResponse).items);
+
+const isInfiniteRoomsData = (
+  data: unknown,
+): data is InfiniteData<GetRoomsResponse, string | undefined> =>
+  typeof data === 'object' &&
+  data !== null &&
+  'pages' in data &&
+  Array.isArray((data as InfiniteData<GetRoomsResponse, string | undefined>).pages);
+
 const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
@@ -178,10 +194,20 @@ const MainTabSection = ({
   const [roomActionMessageTone, setRoomActionMessageTone] = useState<'success' | 'error'>(
     'success',
   );
+  const roomListLoadMoreRef = useRef<HTMLDivElement | null>(null);
   const roomFilters = toRoomListFilters(roomFilterState);
   const isLoggedIn = isAuthenticated();
-  const { data, isLoading, isError, error } = useQuery({
-    ...roomQueries.list(roomFilters),
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useInfiniteQuery({
+    ...roomQueries.infiniteList(roomFilters, ROOM_LIST_DEFAULT_SIZE),
     enabled: isRoomTab,
   });
   const { data: currentUser } = useQuery({
@@ -289,14 +315,26 @@ const MainTabSection = ({
       setIsEditRoomModalOpen(false);
       setJoinedRoomId((currentRoomId) => (currentRoomId === roomId ? null : currentRoomId));
       setSelectedRoomId((currentRoomId) => (currentRoomId === roomId ? null : currentRoomId));
-      queryClient.setQueriesData<GetRoomsResponse>({ queryKey: roomQueries.lists() }, (oldData) =>
-        oldData
-          ? {
-              ...oldData,
-              items: oldData.items.filter((room) => room.id !== roomId),
-            }
-          : oldData,
-      );
+      queryClient.setQueriesData({ queryKey: roomQueries.lists() }, (oldData: unknown) => {
+        if (isRoomsResponse(oldData)) {
+          return {
+            ...oldData,
+            items: oldData.items.filter((room) => room.id !== roomId),
+          };
+        }
+
+        if (isInfiniteRoomsData(oldData)) {
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              items: page.items.filter((room) => room.id !== roomId),
+            })),
+          };
+        }
+
+        return oldData;
+      });
       queryClient.removeQueries({ queryKey: roomQueries.detail(roomId).queryKey });
       queryClient.removeQueries({ queryKey: roomQueries.members(roomId).queryKey });
 
@@ -318,7 +356,10 @@ const MainTabSection = ({
       setRoomActionMessageTone('error');
     },
   });
-  const rooms = data?.items.map(toMainRoom) ?? [];
+  const rooms = useMemo(
+    () => data?.pages.flatMap((page) => page.items).map(toMainRoom) ?? [],
+    [data],
+  );
 
   useEffect(() => {
     if (!isRoomTab) {
@@ -337,6 +378,30 @@ const MainTabSection = ({
       setSelectedRoomId(rooms[0].id);
     }
   }, [isRoomTab, rooms, selectedRoomId]);
+
+  useEffect(() => {
+    const target = roomListLoadMoreRef.current;
+
+    if (!isRoomTab || !target || isLoading || isError || !hasNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+
+      if (!entry?.isIntersecting || isFetchingNextPage || !hasNextPage) {
+        return;
+      }
+
+      void fetchNextPage();
+    });
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading, isRoomTab]);
 
   const handleJoinClick = (roomId: number) => {
     if (!isAuthenticated()) {
@@ -559,6 +624,30 @@ const MainTabSection = ({
                 );
               })
             : null}
+
+          {!isLoading && !isError && rooms.length > 0 ? (
+            <div className="space-y-3">
+              {isFetchingNextPage ? (
+                <section className="rounded-[24px] border border-slate-200/80 bg-white px-5 py-4 text-center text-sm text-slate-500 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+                  점심 방을 더 불러오는 중...
+                </section>
+              ) : null}
+
+              {!hasNextPage ? (
+                <section className="rounded-[24px] border border-slate-200/80 bg-white px-5 py-4 text-center text-sm text-slate-500 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+                  마지막 방까지 모두 확인했어요.
+                </section>
+              ) : null}
+
+              {isFetchNextPageError ? (
+                <section className="rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-4 text-center text-sm text-rose-600 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+                  점심 방을 더 불러오지 못했어요.
+                </section>
+              ) : null}
+
+              <div ref={roomListLoadMoreRef} className="h-1 w-full" aria-hidden="true" />
+            </div>
+          ) : null}
         </div>
       ) : null}
 
