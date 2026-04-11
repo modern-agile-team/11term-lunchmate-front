@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Clock3, MapPin, Plus, Users } from 'lucide-react';
 import type { MainTab } from '../../model/types';
 import MainBoardSection from '../board/MainBoardSection';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
@@ -8,8 +8,8 @@ import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
 import type { MainRoom } from '../room/types';
-import type { RoomListFilters, RoomListItemResponse } from '@/shared/api/rooms/rooms';
-import { roomsListQueryOptions } from '@/shared/api/rooms/roomsQueries';
+import type { RoomDetailResponse, RoomListFilters, RoomListItemResponse } from '@/shared/api/rooms/rooms';
+import { roomDetailQueryOptions, roomsListQueryOptions } from '@/shared/api/rooms/roomsQueries';
 import { cn } from '@/shared/lib/utils';
 
 interface MainTabSectionProps {
@@ -55,6 +55,36 @@ const roomStatusFilterOptions: Array<{ label: string; value: RoomStatusFilter }>
   { label: '종료', value: 'CLOSE' },
 ];
 
+const detailRoomTypeStyleMap = {
+  MALE: {
+    badgeClassName: 'bg-sky-100 text-sky-700',
+    badgeLabel: '남성만',
+  },
+  FEMALE: {
+    badgeClassName: 'bg-rose-100 text-rose-700',
+    badgeLabel: '여성만',
+  },
+  MIXED: {
+    badgeClassName: 'bg-indigo-100 text-indigo-700',
+    badgeLabel: '혼성',
+  },
+} as const;
+
+const detailRoomStatusStyleMap = {
+  OPEN: {
+    badgeClassName: 'bg-emerald-100 text-emerald-700',
+    badgeLabel: '모집중',
+  },
+  FULL: {
+    badgeClassName: 'bg-amber-100 text-amber-700',
+    badgeLabel: '정원도달',
+  },
+  CLOSE: {
+    badgeClassName: 'bg-slate-200 text-slate-700',
+    badgeLabel: '종료',
+  },
+} as const;
+
 const toMainRoomType = (roomType: RoomListItemResponse['roomType']): MainRoom['roomType'] => {
   if (roomType === 'MALE' || roomType === 'FEMALE') {
     return roomType;
@@ -85,6 +115,24 @@ const toMainRoom = (room: RoomListItemResponse): MainRoom => ({
   lunchAt: formatLunchAt(room.lunchAt),
 });
 
+const toDetailRoomType = (roomType: RoomDetailResponse['roomType']): MainRoom['roomType'] => {
+  if (roomType === 'MALE' || roomType === 'FEMALE') {
+    return roomType;
+  }
+
+  return 'MIXED';
+};
+
+const toDetailRoomStatus = (
+  status: RoomDetailResponse['status'],
+): keyof typeof detailRoomStatusStyleMap => {
+  if (status === 'OPEN' || status === 'FULL' || status === 'CLOSE') {
+    return status;
+  }
+
+  return 'OPEN';
+};
+
 const parseAgeFilter = (value: string): number | undefined => {
   if (value.trim() === '') {
     return undefined;
@@ -109,12 +157,39 @@ const toRoomListFilters = (roomFilterState: RoomFilterState): RoomListFilters =>
 const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) => {
   const isRoomTab = activeTab === 'ROOM';
   const [roomFilterState, setRoomFilterState] = useState<RoomFilterState>(INITIAL_ROOM_FILTER_STATE);
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const roomFilters = toRoomListFilters(roomFilterState);
   const { data, isLoading, isError, error } = useQuery({
     ...roomsListQueryOptions(roomFilters),
     enabled: isRoomTab,
   });
+  const {
+    data: roomDetail,
+    isLoading: isRoomDetailLoading,
+    isError: isRoomDetailError,
+    error: roomDetailError,
+  } = useQuery({
+    ...roomDetailQueryOptions(selectedRoomId ?? 0),
+    enabled: isRoomTab && selectedRoomId !== null,
+  });
   const rooms = data?.items.map(toMainRoom) ?? [];
+
+  useEffect(() => {
+    if (!isRoomTab) {
+      return;
+    }
+
+    if (rooms.length === 0) {
+      setSelectedRoomId(null);
+      return;
+    }
+
+    const hasSelectedRoom = selectedRoomId !== null && rooms.some((room) => room.id === selectedRoomId);
+
+    if (!hasSelectedRoom) {
+      setSelectedRoomId(rooms[0].id);
+    }
+  }, [isRoomTab, rooms, selectedRoomId]);
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -256,9 +331,97 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
           ) : null}
 
           {!isLoading && !isError
-            ? rooms.map((room) => <RoomCard key={room.id} room={room} />)
+            ? rooms.map((room) => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  isSelected={selectedRoomId === room.id}
+                  onClick={() => setSelectedRoomId(room.id)}
+                />
+              ))
             : null}
         </div>
+      ) : null}
+
+      {isRoomTab && selectedRoomId !== null && !isLoading && !isError ? (
+        <>
+          {isRoomDetailLoading ? (
+            <article className="rounded-[32px] border border-slate-200/80 bg-white px-6 py-10 text-center text-sm text-slate-500 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:px-7">
+              방 상세 정보를 불러오는 중...
+            </article>
+          ) : null}
+
+          {isRoomDetailError ? (
+            <article className="rounded-[32px] border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-600 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:px-7">
+              방 상세 정보를 불러오지 못했어요.
+              {roomDetailError instanceof Error ? ` ${roomDetailError.message}` : ''}
+            </article>
+          ) : null}
+
+          {roomDetail && !isRoomDetailLoading && !isRoomDetailError ? (
+            <article className="rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-7">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={cn(
+                        'rounded-full px-3 py-1 text-xs font-semibold',
+                        detailRoomTypeStyleMap[toDetailRoomType(roomDetail.roomType)].badgeClassName,
+                      )}
+                    >
+                      {detailRoomTypeStyleMap[toDetailRoomType(roomDetail.roomType)].badgeLabel}
+                    </span>
+                    <span
+                      className={cn(
+                        'rounded-full px-3 py-1 text-xs font-semibold',
+                        detailRoomStatusStyleMap[toDetailRoomStatus(roomDetail.status)].badgeClassName,
+                      )}
+                    >
+                      {detailRoomStatusStyleMap[toDetailRoomStatus(roomDetail.status)].badgeLabel}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-[26px] font-bold tracking-[-0.03em] text-slate-900">
+                    {roomDetail.title}
+                  </h3>
+                  <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-7 text-slate-600">
+                    {roomDetail.description?.trim() || '방 소개가 아직 없어요.'}
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] bg-slate-50 px-5 py-4">
+                  <div className="text-xs font-semibold text-slate-500">모집 정보</div>
+                  <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                    <Users className="h-4 w-4 text-slate-500" />
+                    <span className="font-semibold text-slate-900">
+                      {roomDetail.currentCount}/{roomDetail.maxMembersCount}명
+                    </span>
+                  </div>
+                  <div className="mt-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                    {roomDetail.minAge}-{roomDetail.maxAge}대
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <section className="rounded-[24px] bg-slate-50 px-5 py-5">
+                  <h4 className="text-sm font-semibold text-slate-700">장소</h4>
+                  <div className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600">
+                    <MapPin className="h-4 w-4 text-indigo-500" />
+                    {roomDetail.place}
+                  </div>
+                </section>
+
+                <section className="rounded-[24px] bg-slate-50 px-5 py-5">
+                  <h4 className="text-sm font-semibold text-slate-700">시간</h4>
+                  <div className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600">
+                    <Clock3 className="h-4 w-4 text-indigo-500" />
+                    {formatLunchAt(roomDetail.lunchAt)}
+                  </div>
+                </section>
+              </div>
+            </article>
+          ) : null}
+        </>
       ) : null}
 
       {activeTab === 'LUNCH' ? <MainLunchMenuSection /> : null}

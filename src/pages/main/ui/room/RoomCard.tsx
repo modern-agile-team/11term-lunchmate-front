@@ -5,6 +5,8 @@ import type { MainRoom } from './types';
 
 interface RoomCardProps {
   room: MainRoom;
+  isSelected: boolean;
+  onClick: () => void;
 }
 
 const roomTypeStyleMap = {
@@ -34,7 +36,7 @@ const roomTypeStyleMap = {
   },
 } as const;
 
-const RoomCard = ({ room }: RoomCardProps) => {
+const RoomCard = ({ room, isSelected, onClick }: RoomCardProps) => {
   const { badgeClassName, badgeLabel, buttonClassName, cardClassName, progressClassName } =
     roomTypeStyleMap[room.roomType];
   const progressPercent = (room.currentCount / room.capacity) * 100;
@@ -42,9 +44,11 @@ const RoomCard = ({ room }: RoomCardProps) => {
 
   return (
     <article
+      onClick={onClick}
       className={cn(
-        'overflow-hidden rounded-[28px] border shadow-[0_12px_30px_rgba(15,23,42,0.05)]',
+        'cursor-pointer overflow-hidden rounded-[28px] border shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition',
         cardClassName,
+        isSelected ? 'ring-4 ring-slate-900/10' : 'hover:-translate-y-0.5',
       )}
     >
       <div className="p-5 md:p-6">
