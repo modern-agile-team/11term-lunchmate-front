@@ -5,7 +5,7 @@ import { Clock3, MapPin, Plus, Users } from 'lucide-react';
 import { isAuthenticated } from '@/app/authSessionStore';
 import type { MainTab } from '../../model/types';
 import MainBoardSection from '../board/MainBoardSection';
-import type { MainBoardCreatedPostSyncRequest } from '../board/types';
+import type { MainBoardPostSyncRequest } from '../board/types';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import CreateRoomModal, { toCreateRoomFormState } from '../room/CreateRoomModal';
@@ -36,9 +36,9 @@ interface MainTabSectionProps {
   activeTab: MainTab;
   onCreateRoomClick: () => void;
   onCreatePostClick: () => void;
-  createdPostSyncRequest: MainBoardCreatedPostSyncRequest | null;
-  onCreatedPostSyncHandled: () => void;
-  onJoinRequireLogin: () => void;
+  postSyncRequest: MainBoardPostSyncRequest | null;
+  onPostSyncHandled: () => void;
+  onRequireLogin: () => void;
 }
 
 interface ApiErrorPayload {
@@ -185,7 +185,10 @@ const isInfiniteRoomsData = (
 const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
-  onJoinRequireLogin,
+  onCreatePostClick,
+  postSyncRequest,
+  onPostSyncHandled,
+  onRequireLogin,
 }: MainTabSectionProps) => {
   const queryClient = useQueryClient();
   const isRoomTab = activeTab === 'ROOM';
@@ -908,8 +911,9 @@ const MainTabSection = ({
       {activeTab === 'RANKING' ? <MainRankingSection /> : null}
       {activeTab === 'BOARD' ? (
         <MainBoardSection
-          createdPostSyncRequest={createdPostSyncRequest}
-          onCreatedPostSyncHandled={onCreatedPostSyncHandled}
+          postSyncRequest={postSyncRequest}
+          onPostSyncHandled={onPostSyncHandled}
+          onRequireLogin={onRequireLogin}
         />
       ) : null}
     </section>

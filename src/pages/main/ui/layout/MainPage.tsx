@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import LoginModal from '../auth/LoginModal';
 import CreatePostModal from '../board/CreatePostModal';
-import type { MainBoardCreatedPostSyncRequest } from '../board/types';
+import type { MainBoardPostSyncRequest } from '../board/types';
 import CreateRoomModal from '../room/CreateRoomModal';
 import MainHeader from './MainHeader';
 import MainHero from './MainHero';
@@ -14,8 +14,7 @@ const MainPage = () => {
   const [activeTab, setActiveTab] = useState<MainTab>('ROOM');
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
-  const [createdPostSyncRequest, setCreatedPostSyncRequest] =
-    useState<MainBoardCreatedPostSyncRequest | null>(null);
+  const [postSyncRequest, setPostSyncRequest] = useState<MainBoardPostSyncRequest | null>(null);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -28,9 +27,9 @@ const MainPage = () => {
           activeTab={activeTab}
           onCreateRoomClick={() => setIsCreateRoomModalOpen(true)}
           onCreatePostClick={() => setIsCreatePostModalOpen(true)}
-          createdPostSyncRequest={createdPostSyncRequest}
-          onCreatedPostSyncHandled={() => setCreatedPostSyncRequest(null)}
-          onJoinRequireLogin={() => setIsLoginModalOpen(true)}
+          postSyncRequest={postSyncRequest}
+          onPostSyncHandled={() => setPostSyncRequest(null)}
+          onRequireLogin={() => setIsLoginModalOpen(true)}
         />
       </main>
 
@@ -44,8 +43,8 @@ const MainPage = () => {
         isOpen={isCreatePostModalOpen}
         onClose={() => setIsCreatePostModalOpen(false)}
         onRequireLogin={() => setIsLoginModalOpen(true)}
-        onSuccess={(createdPost) => {
-          setCreatedPostSyncRequest(createdPost);
+        onSuccess={(post) => {
+          setPostSyncRequest(post);
         }}
       />
     </div>

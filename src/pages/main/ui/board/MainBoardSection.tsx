@@ -1,4 +1,4 @@
-import { Heart, MessageSquareText } from 'lucide-react';
+import { Heart, MessageSquareText, PencilLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
@@ -6,8 +6,9 @@ import {
   type PostDetailResponse,
   type PostListItemResponse,
 } from '@/shared/api/posts';
+import { myUserQueryOptions } from '@/shared/api/users/meQueries';
 import { cn } from '@/shared/lib/utils';
-import type { MainBoardCreatedPostSyncRequest, MainBoardPost } from './types';
+import type { MainBoardPost, MainBoardPostSyncRequest } from './types';
 import {
   boardCategoryFilterOptions,
   boardCategoryIdLabelMap,
@@ -15,6 +16,7 @@ import {
   boardCategoryStyleMap,
   type MainBoardCategoryFilter,
 } from './board.constants';
+import CreatePostModal, { type CreatePostFormValues } from './CreatePostModal';
 
 const BOARD_LIST_DEFAULT_PAGE = 1;
 const BOARD_LIST_DEFAULT_SIZE = 10;
@@ -39,7 +41,11 @@ const formatRelativeCreatedAt = (createdAt: string) => {
   return `${diffDays}일 전`;
 };
 
-const toBoardCategory = (post: PostListItemResponse): MainBoardPost['category'] => {
+const toBoardCategory = (
+  post:
+    | Pick<PostListItemResponse, 'category' | 'categoryId'>
+    | Pick<PostDetailResponse, 'category' | 'categoryId'>,
+): MainBoardPost['category'] => {
   if (
     post.category === 'FREE' ||
     post.category === 'REVIEW' ||
@@ -106,21 +112,31 @@ const toMainBoardPostDetail = (
   createdAt: post.createdAt,
 });
 
+const toEditPostFormValues = (post: MainBoardPost): CreatePostFormValues => ({
+  category: post.category,
+  title: post.title,
+  content: post.content,
+});
+
 interface MainBoardSectionProps {
-  createdPostSyncRequest: MainBoardCreatedPostSyncRequest | null;
-  onCreatedPostSyncHandled: () => void;
+  postSyncRequest: MainBoardPostSyncRequest | null;
+  onPostSyncHandled: () => void;
+  onRequireLogin: () => void;
 }
 
 const MainBoardSection = ({
-  createdPostSyncRequest,
-  onCreatedPostSyncHandled,
+  postSyncRequest,
+  onPostSyncHandled,
+  onRequireLogin,
 }: MainBoardSectionProps) => {
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MainBoardCategoryFilter>('ALL');
-  const [pendingCreatedPostId, setPendingCreatedPostId] = useState<number | null>(null);
+  const [pendingSyncedPostId, setPendingSyncedPostId] = useState<number | null>(null);
+  const [isEditPostModalOpen, setIsEditPostModalOpen] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const categoryId =
     selectedCategory === 'ALL' ? undefined : boardCategoryIdMap[selectedCategory];
+  const { data: myUserData } = useQuery(myUserQueryOptions());
   const {
     data,
     isLoading,
@@ -156,25 +172,27 @@ const MainBoardSection = ({
     selectedBoardPostDetailData && selectedBoardPost
       ? toMainBoardPostDetail(selectedBoardPostDetailData, selectedBoardPost.author)
       : null;
+  const canEditSelectedPost =
+    selectedBoardPostDetailData !== undefined && myUserData?.id === selectedBoardPostDetailData.userId;
   const hasLoadedPosts = data !== undefined;
 
   useEffect(() => {
-    if (!createdPostSyncRequest) {
+    if (!postSyncRequest) {
       return;
     }
 
-    if (selectedCategory !== 'ALL' && selectedCategory !== createdPostSyncRequest.category) {
-      setSelectedCategory(createdPostSyncRequest.category);
+    if (selectedCategory !== 'ALL' && selectedCategory !== postSyncRequest.category) {
+      setSelectedCategory(postSyncRequest.category);
     }
 
-    setPendingCreatedPostId(createdPostSyncRequest.postId);
-    setSelectedBoardPostId(createdPostSyncRequest.postId);
-    onCreatedPostSyncHandled();
-  }, [createdPostSyncRequest, onCreatedPostSyncHandled, selectedCategory]);
+    setPendingSyncedPostId(postSyncRequest.postId);
+    setSelectedBoardPostId(postSyncRequest.postId);
+    onPostSyncHandled();
+  }, [onPostSyncHandled, postSyncRequest, selectedCategory]);
 
   useEffect(() => {
     if (boardPosts.length === 0) {
-      if (pendingCreatedPostId !== null && isFetching) {
+      if (pendingSyncedPostId !== null && isFetching) {
         return;
       }
 
@@ -182,14 +200,14 @@ const MainBoardSection = ({
       return;
     }
 
-    if (pendingCreatedPostId !== null) {
-      const hasPendingCreatedPost = boardPosts.some(
-        (boardPost) => boardPost.id === pendingCreatedPostId,
+    if (pendingSyncedPostId !== null) {
+      const hasPendingSyncedPost = boardPosts.some(
+        (boardPost) => boardPost.id === pendingSyncedPostId,
       );
 
-      if (hasPendingCreatedPost) {
-        setSelectedBoardPostId(pendingCreatedPostId);
-        setPendingCreatedPostId(null);
+      if (hasPendingSyncedPost) {
+        setSelectedBoardPostId(pendingSyncedPostId);
+        setPendingSyncedPostId(null);
         return;
       }
 
@@ -199,12 +217,13 @@ const MainBoardSection = ({
     }
 
     const hasSelectedBoardPost =
-      selectedBoardPostId !== null && boardPosts.some((boardPost) => boardPost.id === selectedBoardPostId);
+      selectedBoardPostId !== null &&
+      boardPosts.some((boardPost) => boardPost.id === selectedBoardPostId);
 
     if (!hasSelectedBoardPost) {
       setSelectedBoardPostId(boardPosts[0].id);
     }
-  }, [boardPosts, isFetching, pendingCreatedPostId, selectedBoardPostId]);
+  }, [boardPosts, isFetching, pendingSyncedPostId, selectedBoardPostId]);
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -379,15 +398,28 @@ const MainBoardSection = ({
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3 text-sm text-slate-500">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Heart className="h-4 w-4 text-rose-400" />
-                    {selectedBoardPostDetail.likedCount}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MessageSquareText className="h-4 w-4 text-indigo-500" />
-                    {selectedBoardPostDetail.commentCount}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 text-sm text-slate-500">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Heart className="h-4 w-4 text-rose-400" />
+                      {selectedBoardPostDetail.likedCount}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <MessageSquareText className="h-4 w-4 text-indigo-500" />
+                      {selectedBoardPostDetail.commentCount}
+                    </span>
+                  </div>
+
+                  {canEditSelectedPost ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditPostModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    >
+                      <PencilLine className="h-4 w-4" />
+                      게시글 수정
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -398,9 +430,9 @@ const MainBoardSection = ({
                 {selectedBoardPostDetail.author}
               </p>
 
-                <div className="mt-4 text-xs font-medium text-slate-400">
-                  조회 {selectedBoardPostDetailData?.viewCount ?? 0}
-                </div>
+              <div className="mt-4 text-xs font-medium text-slate-400">
+                조회 {selectedBoardPostDetailData?.viewCount ?? 0}
+              </div>
 
               <div className="mt-6 whitespace-pre-line rounded-[24px] bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
                 {selectedBoardPostDetail.content}
@@ -412,6 +444,25 @@ const MainBoardSection = ({
             </>
           ) : null}
         </article>
+      ) : null}
+
+      {selectedBoardPostDetail ? (
+        <CreatePostModal
+          isOpen={isEditPostModalOpen}
+          mode="edit"
+          postId={selectedBoardPostDetail.id}
+          initialValues={toEditPostFormValues(selectedBoardPostDetail)}
+          onClose={() => setIsEditPostModalOpen(false)}
+          onRequireLogin={onRequireLogin}
+          onSuccess={(post) => {
+            setPendingSyncedPostId(post.postId);
+            setSelectedBoardPostId(post.postId);
+
+            if (selectedCategory !== 'ALL' && selectedCategory !== post.category) {
+              setSelectedCategory(post.category);
+            }
+          }}
+        />
       ) : null}
     </section>
   );

@@ -10,7 +10,7 @@ export interface MainBoardPost {
   createdAt: string;
 }
 
-export interface MainBoardCreatedPostSyncRequest {
+export interface MainBoardPostSyncRequest {
   postId: number;
   category: MainBoardPost['category'];
 }
