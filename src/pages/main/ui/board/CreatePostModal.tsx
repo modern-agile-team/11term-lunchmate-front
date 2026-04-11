@@ -1,25 +1,34 @@
 import axios from 'axios';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
-import { createPost, postQueries, type CreatePostResponse } from '@/shared/api/posts';
+import {
+  createPost,
+  postQueries,
+  updatePost,
+  type CreatePostResponse,
+  type PostDetailResponse,
+} from '@/shared/api/posts';
 import {
   boardCategoryIdLabelMap,
   boardCategoryIdMap,
   boardCategoryOptions,
   type MainBoardCategory,
 } from './board.constants';
-import type { MainBoardCreatedPostSyncRequest } from './types';
+import type { MainBoardPostSyncRequest } from './types';
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRequireLogin: () => void;
-  onSuccess: (createdPost: MainBoardCreatedPostSyncRequest) => void;
+  onSuccess: (post: MainBoardPostSyncRequest) => void;
+  mode?: 'create' | 'edit';
+  postId?: number;
+  initialValues?: CreatePostFormValues;
 }
 
-interface CreatePostFormValues {
+export interface CreatePostFormValues {
   category: MainBoardCategory;
   title: string;
   content: string;
@@ -31,21 +40,26 @@ const INITIAL_CREATE_POST_FORM_VALUES: CreatePostFormValues = {
   content: '',
 };
 
-const getCreatedPostCategory = (createdPost: CreatePostResponse): MainBoardCategory => {
+const toPostCategory = (
+  post:
+    | Pick<CreatePostResponse, 'category' | 'categoryId'>
+    | Pick<PostDetailResponse, 'category' | 'categoryId'>,
+  fallbackCategory: MainBoardCategory = 'FREE',
+): MainBoardCategory => {
   if (
-    createdPost.category === 'FREE' ||
-    createdPost.category === 'REVIEW' ||
-    createdPost.category === 'INFO' ||
-    createdPost.category === 'TALK'
+    post.category === 'FREE' ||
+    post.category === 'REVIEW' ||
+    post.category === 'INFO' ||
+    post.category === 'TALK'
   ) {
-    return createdPost.category;
+    return post.category;
   }
 
-  if (createdPost.categoryId !== undefined && createdPost.categoryId !== null) {
-    return boardCategoryIdLabelMap[createdPost.categoryId] ?? 'FREE';
+  if (post.categoryId !== undefined && post.categoryId !== null) {
+    return boardCategoryIdLabelMap[post.categoryId] ?? fallbackCategory;
   }
 
-  return 'FREE';
+  return fallbackCategory;
 };
 
 const CreatePostModal = ({
@@ -53,6 +67,9 @@ const CreatePostModal = ({
   onClose,
   onRequireLogin,
   onSuccess,
+  mode = 'create',
+  postId,
+  initialValues,
 }: CreatePostModalProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const queryClient = useQueryClient();
@@ -60,12 +77,36 @@ const CreatePostModal = ({
   const categoryId = useId();
   const titleId = useId();
   const contentId = useId();
+  const defaultFormValues = useMemo<CreatePostFormValues>(
+    () => ({
+      category: initialValues?.category ?? INITIAL_CREATE_POST_FORM_VALUES.category,
+      title: initialValues?.title ?? INITIAL_CREATE_POST_FORM_VALUES.title,
+      content: initialValues?.content ?? INITIAL_CREATE_POST_FORM_VALUES.content,
+    }),
+    [initialValues?.category, initialValues?.content, initialValues?.title],
+  );
   const createPostForm = useForm<CreatePostFormValues>({
-    defaultValues: INITIAL_CREATE_POST_FORM_VALUES,
+    defaultValues: defaultFormValues,
   });
 
-  const createPostMutation = useMutation({
-    mutationFn: createPost,
+  const submitPostMutation = useMutation({
+    mutationFn: async (values: CreatePostFormValues) => {
+      const normalizedPayload = {
+        categoryId: boardCategoryIdMap[values.category],
+        title: values.title.trim(),
+        content: values.content.trim(),
+      };
+
+      if (mode === 'edit') {
+        if (!postId) {
+          throw new Error('게시글 id가 없어요.');
+        }
+
+        return updatePost(postId, normalizedPayload);
+      }
+
+      return createPost(normalizedPayload);
+    },
   });
 
   useEffect(() => {
@@ -85,8 +126,17 @@ const CreatePostModal = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    createPostForm.reset(defaultFormValues);
+    setSubmitError('');
+  }, [createPostForm, defaultFormValues, isOpen]);
+
   const handleClose = () => {
-    createPostForm.reset(INITIAL_CREATE_POST_FORM_VALUES);
+    createPostForm.reset(defaultFormValues);
     setSubmitError('');
     onClose();
   };
@@ -97,7 +147,7 @@ const CreatePostModal = ({
     }
   };
 
-  const handleCreatePostSubmit = createPostForm.handleSubmit(async (values) => {
+  const handleSubmit = createPostForm.handleSubmit(async (values) => {
     const trimmedTitle = values.title.trim();
     const trimmedContent = values.content.trim();
 
@@ -109,8 +159,8 @@ const CreatePostModal = ({
     setSubmitError('');
 
     try {
-      const createdPost = await createPostMutation.mutateAsync({
-        categoryId: boardCategoryIdMap[values.category],
+      const syncedPost = await submitPostMutation.mutateAsync({
+        category: values.category,
         title: trimmedTitle,
         content: trimmedContent,
       });
@@ -121,8 +171,8 @@ const CreatePostModal = ({
       ]);
 
       onSuccess({
-        postId: createdPost.id,
-        category: getCreatedPostCategory(createdPost),
+        postId: syncedPost.id,
+        category: toPostCategory(syncedPost, values.category),
       });
       handleClose();
     } catch (error) {
@@ -137,7 +187,11 @@ const CreatePostModal = ({
             : '';
 
         if (status === 401) {
-          setSubmitError('로그인 후 게시글을 작성할 수 있어요.');
+          setSubmitError(
+            mode === 'edit'
+              ? '로그인 후 게시글을 수정할 수 있어요.'
+              : '로그인 후 게시글을 작성할 수 있어요.',
+          );
           onRequireLogin();
           return;
         }
@@ -147,13 +201,24 @@ const CreatePostModal = ({
           return;
         }
 
+        if (status === 403) {
+          setSubmitError('게시글을 수정할 권한이 없어요.');
+          return;
+        }
+
         if (status === 404) {
-          setSubmitError('게시글 카테고리를 찾을 수 없어요.');
+          setSubmitError(
+            mode === 'edit' ? '게시글을 찾을 수 없어요.' : '게시글 카테고리를 찾을 수 없어요.',
+          );
           return;
         }
       }
 
-      setSubmitError('게시글을 작성하지 못했어요. 잠시 후 다시 시도해주세요.');
+      setSubmitError(
+        mode === 'edit'
+          ? '게시글을 수정하지 못했어요. 잠시 후 다시 시도해주세요.'
+          : '게시글을 작성하지 못했어요. 잠시 후 다시 시도해주세요.',
+      );
     }
   });
 
@@ -167,9 +232,13 @@ const CreatePostModal = ({
       <div className="p-6 md:p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-indigo-500">게시글 작성</p>
+            <p className="text-sm font-semibold text-indigo-500">
+              {mode === 'edit' ? '게시글 수정' : '게시글 작성'}
+            </p>
             <h2 className="mt-1 text-[24px] font-bold tracking-[-0.03em] text-slate-900">
-              점심 메이트와 이야기를 나눠보세요
+              {mode === 'edit'
+                ? '게시글 내용을 최신 상태로 정리해보세요'
+                : '점심 메이트와 이야기를 나눠보세요'}
             </h2>
           </div>
 
@@ -182,7 +251,7 @@ const CreatePostModal = ({
           </button>
         </div>
 
-        <form className="mt-6" onSubmit={handleCreatePostSubmit}>
+        <form className="mt-6" onSubmit={handleSubmit}>
           <div className="grid gap-4">
             <label className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-slate-700">카테고리</span>
@@ -244,10 +313,16 @@ const CreatePostModal = ({
             </button>
             <button
               type="submit"
-              disabled={createPostMutation.isPending}
+              disabled={submitPostMutation.isPending}
               className="rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.28)] transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
             >
-              {createPostMutation.isPending ? '작성 중...' : '게시글 작성'}
+              {submitPostMutation.isPending
+                ? mode === 'edit'
+                  ? '수정 중...'
+                  : '작성 중...'
+                : mode === 'edit'
+                  ? '게시글 수정'
+                  : '게시글 작성'}
             </button>
           </div>
         </form>

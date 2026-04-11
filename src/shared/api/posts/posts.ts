@@ -58,6 +58,12 @@ export interface CreatePostResponse {
   createdAt: string;
 }
 
+export interface UpdatePostRequest {
+  categoryId?: number;
+  title?: string;
+  content?: string;
+}
+
 export interface PostDetailResponse {
   id: number;
   userId: number;
@@ -85,6 +91,15 @@ export async function getPosts(params: GetPostsParams = {}): Promise<GetPostsRes
 
 export async function createPost(payload: CreatePostRequest): Promise<CreatePostResponse> {
   const response = await client.post<CreatePostResponse>('/api/v1/posts', payload);
+
+  return response.data;
+}
+
+export async function updatePost(
+  postId: number,
+  payload: UpdatePostRequest,
+): Promise<PostDetailResponse> {
+  const response = await client.patch<PostDetailResponse>(`/api/v1/posts/${postId}`, payload);
 
   return response.data;
 }

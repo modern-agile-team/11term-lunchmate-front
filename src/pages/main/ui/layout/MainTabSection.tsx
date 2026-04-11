@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
 import type { MainTab } from '../../model/types';
 import MainBoardSection from '../board/MainBoardSection';
-import type { MainBoardCreatedPostSyncRequest } from '../board/types';
+import type { MainBoardPostSyncRequest } from '../board/types';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import { mockRooms } from '../room/mockRooms';
@@ -12,8 +12,9 @@ interface MainTabSectionProps {
   activeTab: MainTab;
   onCreateRoomClick: () => void;
   onCreatePostClick: () => void;
-  createdPostSyncRequest: MainBoardCreatedPostSyncRequest | null;
-  onCreatedPostSyncHandled: () => void;
+  postSyncRequest: MainBoardPostSyncRequest | null;
+  onPostSyncHandled: () => void;
+  onRequireLogin: () => void;
 }
 
 const tabDescriptionMap: Record<MainTab, string> = {
@@ -27,8 +28,9 @@ const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
   onCreatePostClick,
-  createdPostSyncRequest,
-  onCreatedPostSyncHandled,
+  postSyncRequest,
+  onPostSyncHandled,
+  onRequireLogin,
 }: MainTabSectionProps) => {
   const isRoomTab = activeTab === 'ROOM';
   const isBoardTab = activeTab === 'BOARD';
@@ -69,8 +71,9 @@ const MainTabSection = ({
       {activeTab === 'RANKING' ? <MainRankingSection /> : null}
       {activeTab === 'BOARD' ? (
         <MainBoardSection
-          createdPostSyncRequest={createdPostSyncRequest}
-          onCreatedPostSyncHandled={onCreatedPostSyncHandled}
+          postSyncRequest={postSyncRequest}
+          onPostSyncHandled={onPostSyncHandled}
+          onRequireLogin={onRequireLogin}
         />
       ) : null}
     </section>

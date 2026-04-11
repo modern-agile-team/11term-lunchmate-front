@@ -7,6 +7,7 @@ export type {
   PostListItemResponse,
   PostListPaginationResponse,
   PostListUserResponse,
+  UpdatePostRequest,
 } from './posts';
-export { createPost, getPostDetail, getPosts } from './posts';
+export { createPost, getPostDetail, getPosts, updatePost } from './posts';
 export { postQueries } from './postsQueries';
