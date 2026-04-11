@@ -22,7 +22,7 @@ export type MbtiType = (typeof MBTI_OPTIONS)[number];
 export interface UserProfile {
   name: string;
   nickname: string;
-  bio: string;
+  introduce: string;
   mbti: MbtiType | '';
   profileImageUrl: string;
 }
@@ -30,7 +30,7 @@ export interface UserProfile {
 export interface GetMyProfileResponse {
   name: string;
   nickname: string;
-  bio: string;
+  introduce: string;
   mbti: MbtiType;
   profileImageUrl: string;
 }
@@ -38,7 +38,7 @@ export interface GetMyProfileResponse {
 export interface UpdateMyProfileRequest {
   name: string;
   nickname: string;
-  bio: string;
+  introduce: string;
   mbti: MbtiType;
   profileImageUrl: string;
 }
@@ -46,7 +46,7 @@ export interface UpdateMyProfileRequest {
 export interface UpdateMyProfileResponse {
   name: string;
   nickname: string;
-  bio: string;
+  introduce: string;
   mbti: MbtiType;
   profileImageUrl: string;
 }

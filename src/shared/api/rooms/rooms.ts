@@ -1,4 +1,4 @@
-import client from '@/shared/api/client';
+import client from '../client';
 
 export interface RoomListItemResponse {
   id: number;
