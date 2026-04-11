@@ -5,6 +5,7 @@ import { Clock3, MapPin, Plus, Users } from 'lucide-react';
 import { isAuthenticated } from '@/app/authSessionStore';
 import type { MainTab } from '../../model/types';
 import MainBoardSection from '../board/MainBoardSection';
+import type { MainBoardCreatedPostSyncRequest } from '../board/types';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import CreateRoomModal, { toCreateRoomFormState } from '../room/CreateRoomModal';
@@ -34,6 +35,9 @@ import {
 interface MainTabSectionProps {
   activeTab: MainTab;
   onCreateRoomClick: () => void;
+  onCreatePostClick: () => void;
+  createdPostSyncRequest: MainBoardCreatedPostSyncRequest | null;
+  onCreatedPostSyncHandled: () => void;
   onJoinRequireLogin: () => void;
 }
 
@@ -447,14 +451,14 @@ const MainTabSection = ({
           <p className="mt-2 text-sm leading-6 text-slate-500">{tabDescriptionMap[activeTab]}</p>
         </div>
 
-        {isRoomTab ? (
+        {isRoomTab || isBoardTab ? (
           <button
             type="button"
-            onClick={onCreateRoomClick}
+            onClick={isRoomTab ? onCreateRoomClick : onCreatePostClick}
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             <Plus className="h-4 w-4" />
-            방 만들기
+            {isRoomTab ? '방 만들기' : '게시글 작성'}
           </button>
         ) : null}
       </div>
@@ -902,7 +906,12 @@ const MainTabSection = ({
 
       {activeTab === 'LUNCH' ? <MainLunchMenuSection /> : null}
       {activeTab === 'RANKING' ? <MainRankingSection /> : null}
-      {activeTab === 'BOARD' ? <MainBoardSection /> : null}
+      {activeTab === 'BOARD' ? (
+        <MainBoardSection
+          createdPostSyncRequest={createdPostSyncRequest}
+          onCreatedPostSyncHandled={onCreatedPostSyncHandled}
+        />
+      ) : null}
     </section>
   );
 };

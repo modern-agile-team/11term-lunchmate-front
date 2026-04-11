@@ -24,13 +24,17 @@ export const boardCategoryIdLabelMap: Record<number, MainBoardCategory> = {
   4: 'TALK',
 };
 
-export const boardCategoryFilterOptions: Array<{
-  value: MainBoardCategoryFilter;
+export const boardCategoryOptions: Array<{
+  value: MainBoardCategory;
   label: string;
 }> = [
-  { value: 'ALL', label: '전체' },
   { value: 'FREE', label: '자유' },
   { value: 'REVIEW', label: '리뷰' },
   { value: 'INFO', label: '정보' },
   { value: 'TALK', label: '잡담' },
 ];
+
+export const boardCategoryFilterOptions: Array<{
+  value: MainBoardCategoryFilter;
+  label: string;
+}> = [{ value: 'ALL', label: '전체' }, ...boardCategoryOptions];

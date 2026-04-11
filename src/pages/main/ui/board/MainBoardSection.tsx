@@ -7,7 +7,7 @@ import {
   type PostListItemResponse,
 } from '@/shared/api/posts';
 import { cn } from '@/shared/lib/utils';
-import type { MainBoardPost } from './types';
+import type { MainBoardCreatedPostSyncRequest, MainBoardPost } from './types';
 import {
   boardCategoryFilterOptions,
   boardCategoryIdLabelMap,
@@ -106,9 +106,18 @@ const toMainBoardPostDetail = (
   createdAt: post.createdAt,
 });
 
-const MainBoardSection = () => {
+interface MainBoardSectionProps {
+  createdPostSyncRequest: MainBoardCreatedPostSyncRequest | null;
+  onCreatedPostSyncHandled: () => void;
+}
+
+const MainBoardSection = ({
+  createdPostSyncRequest,
+  onCreatedPostSyncHandled,
+}: MainBoardSectionProps) => {
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MainBoardCategoryFilter>('ALL');
+  const [pendingCreatedPostId, setPendingCreatedPostId] = useState<number | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const categoryId =
     selectedCategory === 'ALL' ? undefined : boardCategoryIdMap[selectedCategory];
@@ -119,6 +128,7 @@ const MainBoardSection = () => {
     error,
     fetchNextPage,
     hasNextPage,
+    isFetching,
     isFetchingNextPage,
     isFetchNextPageError,
   } = useInfiniteQuery(
@@ -149,9 +159,43 @@ const MainBoardSection = () => {
   const hasLoadedPosts = data !== undefined;
 
   useEffect(() => {
+    if (!createdPostSyncRequest) {
+      return;
+    }
+
+    if (selectedCategory !== 'ALL' && selectedCategory !== createdPostSyncRequest.category) {
+      setSelectedCategory(createdPostSyncRequest.category);
+    }
+
+    setPendingCreatedPostId(createdPostSyncRequest.postId);
+    setSelectedBoardPostId(createdPostSyncRequest.postId);
+    onCreatedPostSyncHandled();
+  }, [createdPostSyncRequest, onCreatedPostSyncHandled, selectedCategory]);
+
+  useEffect(() => {
     if (boardPosts.length === 0) {
+      if (pendingCreatedPostId !== null && isFetching) {
+        return;
+      }
+
       setSelectedBoardPostId(null);
       return;
+    }
+
+    if (pendingCreatedPostId !== null) {
+      const hasPendingCreatedPost = boardPosts.some(
+        (boardPost) => boardPost.id === pendingCreatedPostId,
+      );
+
+      if (hasPendingCreatedPost) {
+        setSelectedBoardPostId(pendingCreatedPostId);
+        setPendingCreatedPostId(null);
+        return;
+      }
+
+      if (isFetching) {
+        return;
+      }
     }
 
     const hasSelectedBoardPost =
@@ -160,7 +204,7 @@ const MainBoardSection = () => {
     if (!hasSelectedBoardPost) {
       setSelectedBoardPostId(boardPosts[0].id);
     }
-  }, [boardPosts, selectedBoardPostId]);
+  }, [boardPosts, isFetching, pendingCreatedPostId, selectedBoardPostId]);
 
   useEffect(() => {
     const target = loadMoreRef.current;
