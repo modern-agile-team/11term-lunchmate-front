@@ -1,6 +1,6 @@
 import { Heart, MessageSquareText } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { postQueries, type PostListItemResponse } from '@/shared/api/posts';
 import { cn } from '@/shared/lib/utils';
 import type { MainBoardPost } from './types';
@@ -90,6 +90,7 @@ const toMainBoardPost = (post: PostListItemResponse): MainBoardPost => ({
 const MainBoardSection = () => {
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MainBoardCategoryFilter>('ALL');
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const categoryId =
     selectedCategory === 'ALL' ? undefined : boardCategoryIdMap[selectedCategory];
   const {
@@ -97,15 +98,23 @@ const MainBoardSection = () => {
     isLoading,
     isError,
     error,
-  } = useQuery(
-    postQueries.list({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useInfiniteQuery(
+    postQueries.infiniteList({
       page: BOARD_LIST_DEFAULT_PAGE,
       size: BOARD_LIST_DEFAULT_SIZE,
       categoryId,
     }),
   );
-  const boardPosts = data?.items.map(toMainBoardPost) ?? [];
+  const boardPosts = useMemo(
+    () => data?.pages.flatMap((page) => page.items).map(toMainBoardPost) ?? [],
+    [data],
+  );
   const selectedBoardPost = boardPosts.find((boardPost) => boardPost.id === selectedBoardPostId);
+  const hasLoadedPosts = data !== undefined;
 
   useEffect(() => {
     if (boardPosts.length === 0) {
@@ -120,6 +129,30 @@ const MainBoardSection = () => {
       setSelectedBoardPostId(boardPosts[0].id);
     }
   }, [boardPosts, selectedBoardPostId]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+
+    if (!target || isLoading || isError || !hasNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+
+      if (!entry?.isIntersecting || isFetchingNextPage || !hasNextPage) {
+        return;
+      }
+
+      void fetchNextPage();
+    });
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading]);
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -213,6 +246,30 @@ const MainBoardSection = () => {
             </article>
           ))
         : null}
+
+      {!isLoading && !isError && boardPosts.length > 0 ? (
+        <div className="space-y-3">
+          {isFetchingNextPage ? (
+            <section className="rounded-[24px] border border-slate-200/80 bg-white px-5 py-4 text-center text-sm text-slate-500 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+              게시글을 더 불러오는 중...
+            </section>
+          ) : null}
+
+          {!hasNextPage && hasLoadedPosts ? (
+            <section className="rounded-[24px] border border-slate-200/80 bg-white px-5 py-4 text-center text-sm text-slate-500 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+              마지막 게시글까지 모두 확인했어요.
+            </section>
+          ) : null}
+
+          {isFetchNextPageError ? (
+            <section className="rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-4 text-center text-sm text-rose-600 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+              게시글을 더 불러오지 못했어요.
+            </section>
+          ) : null}
+
+          <div ref={loadMoreRef} className="h-1 w-full" aria-hidden="true" />
+        </div>
+      ) : null}
 
       {selectedBoardPost && !isLoading && !isError ? (
         <article className="rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-7">
