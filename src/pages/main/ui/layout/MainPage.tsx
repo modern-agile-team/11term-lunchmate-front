@@ -30,6 +30,7 @@ const MainPage = () => {
           onCreatePostClick={() => setIsCreatePostModalOpen(true)}
           createdPostSyncRequest={createdPostSyncRequest}
           onCreatedPostSyncHandled={() => setCreatedPostSyncRequest(null)}
+          onJoinRequireLogin={() => setIsLoginModalOpen(true)}
         />
       </main>
 
@@ -37,6 +38,7 @@ const MainPage = () => {
       <CreateRoomModal
         isOpen={isCreateRoomModalOpen}
         onClose={() => setIsCreateRoomModalOpen(false)}
+        onRequireLogin={() => setIsLoginModalOpen(true)}
       />
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
