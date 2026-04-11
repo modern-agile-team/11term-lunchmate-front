@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { Clock3, MapPin, Plus, Users } from 'lucide-react';
+import { isAuthenticated } from '@/app/authSessionStore';
 import type { MainTab } from '../../model/types';
 import MainBoardSection from '../board/MainBoardSection';
 import MainLunchMenuSection from '../lunch/MainLunchMenuSection';
 import MainRankingSection from '../ranking/MainRankingSection';
 import RoomCard from '../room/RoomCard';
 import RoomSummary from '../room/RoomSummary';
+import { joinRoom } from '@/shared/api/rooms/rooms';
 import { roomQueries } from '@/shared/api/rooms/roomsQueries';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -29,6 +32,11 @@ import {
 interface MainTabSectionProps {
   activeTab: MainTab;
   onCreateRoomClick: () => void;
+  onJoinRequireLogin: () => void;
+}
+
+interface ApiErrorPayload {
+  message?: string | string[];
 }
 
 const tabDescriptionMap: Record<MainTab, string> = {
@@ -38,10 +46,52 @@ const tabDescriptionMap: Record<MainTab, string> = {
   BOARD: '자유게시판에서 점심메이트와 가볍게 소통해보세요.',
 };
 
-const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) => {
+const getJoinErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 403) {
+      return '참여할 수 없는 방이에요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '방을 찾을 수 없어요.';
+    }
+
+    if (error.response?.status === 409) {
+      return '이미 다른 방에 참여 중이거나 이미 참여한 방이에요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '방 참여에 실패했어요. 잠시 후 다시 시도해 주세요.';
+};
+
+const MainTabSection = ({
+  activeTab,
+  onCreateRoomClick,
+  onJoinRequireLogin,
+}: MainTabSectionProps) => {
+  const queryClient = useQueryClient();
   const isRoomTab = activeTab === 'ROOM';
   const [roomFilterState, setRoomFilterState] = useState<RoomFilterState>(INITIAL_ROOM_FILTER_STATE);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+  const [joinedRoomId, setJoinedRoomId] = useState<number | null>(null);
+  const [roomActionMessage, setRoomActionMessage] = useState('');
+  const [roomActionMessageTone, setRoomActionMessageTone] = useState<'success' | 'error'>(
+    'success',
+  );
   const roomFilters = toRoomListFilters(roomFilterState);
   const { data, isLoading, isError, error } = useQuery({
     ...roomQueries.list(roomFilters),
@@ -55,6 +105,30 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
   } = useQuery({
     ...roomQueries.detail(selectedRoomId ?? 0),
     enabled: isRoomTab && selectedRoomId !== null,
+  });
+  const joinRoomMutation = useMutation({
+    mutationFn: joinRoom,
+    onSuccess: async ({ roomId }) => {
+      setJoinedRoomId(roomId);
+      setRoomActionMessage('방에 참여했어요.');
+      setRoomActionMessageTone('success');
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.detail(roomId).queryKey }),
+      ]);
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setRoomActionMessage('로그인 후 방에 참여할 수 있어요.');
+        setRoomActionMessageTone('error');
+        onJoinRequireLogin();
+        return;
+      }
+
+      setRoomActionMessage(getJoinErrorMessage(error));
+      setRoomActionMessageTone('error');
+    },
   });
   const rooms = data?.items.map(toMainRoom) ?? [];
 
@@ -75,6 +149,20 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
       setSelectedRoomId(rooms[0].id);
     }
   }, [isRoomTab, rooms, selectedRoomId]);
+
+  const handleJoinClick = (roomId: number) => {
+    if (!isAuthenticated()) {
+      setRoomActionMessage('로그인 후 방에 참여할 수 있어요.');
+      setRoomActionMessageTone('error');
+      onJoinRequireLogin();
+      return;
+    }
+
+    setRoomActionMessage('');
+    joinRoomMutation.mutate(roomId);
+  };
+
+  const hasJoinedActiveRoom = joinedRoomId !== null;
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -200,6 +288,19 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
 
       {isRoomTab && !isLoading && !isError ? <RoomSummary roomCount={rooms.length} /> : null}
 
+      {isRoomTab && roomActionMessage ? (
+        <section
+          className={cn(
+            'rounded-[24px] border px-5 py-4 text-sm shadow-[0_12px_30px_rgba(15,23,42,0.05)]',
+            roomActionMessageTone === 'error'
+              ? 'border-rose-200 bg-rose-50 text-rose-600'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+          )}
+        >
+          {roomActionMessage}
+        </section>
+      ) : null}
+
       {activeTab === 'ROOM' ? (
         <div className="space-y-4 md:space-y-5">
           {isLoading ? (
@@ -222,14 +323,34 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
           ) : null}
 
           {!isLoading && !isError
-            ? rooms.map((room) => (
-                <RoomCard
-                  key={room.id}
-                  room={room}
-                  isSelected={selectedRoomId === room.id}
-                  onClick={() => setSelectedRoomId(room.id)}
-                />
-              ))
+            ? rooms.map((room) => {
+                const isJoinPending =
+                  joinRoomMutation.isPending && joinRoomMutation.variables === room.id;
+                const isFullRoom = room.currentCount >= room.capacity;
+                const isJoinedRoom = joinedRoomId === room.id;
+                const joinDisabled =
+                  isFullRoom || isJoinPending || (hasJoinedActiveRoom && !isJoinedRoom);
+                const joinLabel = isFullRoom
+                  ? '정원 마감'
+                  : isJoinedRoom
+                    ? '참여 완료'
+                    : hasJoinedActiveRoom
+                      ? '다른 방 참여 중'
+                      : '참여하기';
+
+                return (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    isSelected={selectedRoomId === room.id}
+                    onClick={() => setSelectedRoomId(room.id)}
+                    onJoinClick={handleJoinClick}
+                    isJoinPending={isJoinPending}
+                    joinDisabled={joinDisabled}
+                    joinLabel={joinLabel}
+                  />
+                );
+              })
             : null}
         </div>
       ) : null}

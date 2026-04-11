@@ -49,6 +49,12 @@ export interface CreateRoomRequest {
   maxAge: number;
 }
 
+export interface RoomJoinResponse {
+  roomId: number;
+  userId: number;
+  createdAt: string;
+}
+
 export async function getRooms(filters: RoomListFilters = {}): Promise<GetRoomsResponse> {
   const response = await client.get<GetRoomsResponse>('/api/v1/rooms', {
     params: {
@@ -70,6 +76,12 @@ export async function getRoomDetail(roomId: number): Promise<RoomDetailResponse>
 
 export async function createRoom(payload: CreateRoomRequest): Promise<RoomDetailResponse> {
   const response = await client.post<RoomDetailResponse>('/api/v1/rooms', payload);
+
+  return response.data;
+}
+
+export async function joinRoom(roomId: number): Promise<RoomJoinResponse> {
+  const response = await client.post<RoomJoinResponse>(`/api/v1/rooms/${roomId}/join`);
 
   return response.data;
 }
