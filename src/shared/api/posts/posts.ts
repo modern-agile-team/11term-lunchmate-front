@@ -72,9 +72,15 @@ export interface PostDetailResponse {
   title: string;
   content: string;
   viewCount?: number | null;
+  liked?: boolean | null;
   likeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
+}
+
+export interface LikePostResponse {
+  liked: boolean;
+  likeCount: number;
 }
 
 export async function getPosts(params: GetPostsParams = {}): Promise<GetPostsResponse> {
@@ -91,6 +97,12 @@ export async function getPosts(params: GetPostsParams = {}): Promise<GetPostsRes
 
 export async function createPost(payload: CreatePostRequest): Promise<CreatePostResponse> {
   const response = await client.post<CreatePostResponse>('/api/v1/posts', payload);
+
+  return response.data;
+}
+
+export async function likePost(postId: number): Promise<LikePostResponse> {
+  const response = await client.post<LikePostResponse>(`/api/v1/posts/${postId}/like`);
 
   return response.data;
 }
