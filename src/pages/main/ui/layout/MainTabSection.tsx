@@ -10,6 +10,7 @@ import RoomSummary from '../room/RoomSummary';
 interface MainTabSectionProps {
   activeTab: MainTab;
   onCreateRoomClick: () => void;
+  onRequireLogin: () => void;
 }
 
 const tabDescriptionMap: Record<MainTab, string> = {
@@ -19,7 +20,7 @@ const tabDescriptionMap: Record<MainTab, string> = {
   BOARD: '자유게시판에서 점심메이트와 가볍게 소통해보세요.',
 };
 
-const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) => {
+const MainTabSection = ({ activeTab, onCreateRoomClick, onRequireLogin }: MainTabSectionProps) => {
   const isRoomTab = activeTab === 'ROOM';
 
   return (
@@ -56,7 +57,7 @@ const MainTabSection = ({ activeTab, onCreateRoomClick }: MainTabSectionProps) =
 
       {activeTab === 'LUNCH' ? <MainLunchMenuSection /> : null}
       {activeTab === 'RANKING' ? <MainRankingSection /> : null}
-      {activeTab === 'BOARD' ? <MainBoardSection /> : null}
+      {activeTab === 'BOARD' ? <MainBoardSection onRequireLogin={onRequireLogin} /> : null}
     </section>
   );
 };

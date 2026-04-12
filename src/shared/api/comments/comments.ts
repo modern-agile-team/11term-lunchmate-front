@@ -40,6 +40,14 @@ export interface GetCommentsResponse {
   pagination?: CommentListPaginationResponse;
 }
 
+export interface CreateCommentRequest {
+  content: string;
+}
+
+export interface CreateCommentResponse extends CommentListItemResponse {
+  postId: number;
+}
+
 export async function getComments(
   postId: number,
   params: GetCommentsParams = {},
@@ -50,6 +58,15 @@ export async function getComments(
       size: params.size,
     },
   });
+
+  return response.data;
+}
+
+export async function createComment(
+  postId: number,
+  payload: CreateCommentRequest,
+): Promise<CreateCommentResponse> {
+  const response = await client.post<CreateCommentResponse>(`/api/v1/posts/${postId}/comments`, payload);
 
   return response.data;
 }

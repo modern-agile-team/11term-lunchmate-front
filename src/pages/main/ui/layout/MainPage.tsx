@@ -22,6 +22,7 @@ const MainPage = () => {
         <MainTabSection
           activeTab={activeTab}
           onCreateRoomClick={() => setIsCreateRoomModalOpen(true)}
+          onRequireLogin={() => setIsLoginModalOpen(true)}
         />
       </main>
 

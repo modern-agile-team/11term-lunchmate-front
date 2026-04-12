@@ -1,8 +1,14 @@
 import { Heart, MessageSquareText, Pencil, SendHorizonal, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { isAuthenticated } from '@/app/authSessionStore';
-import { commentQueries, type CommentListItemResponse } from '@/shared/api/comments';
+import {
+  commentQueries,
+  createComment,
+  type CommentListItemResponse,
+  type GetCommentsResponse,
+} from '@/shared/api/comments';
 import { myUserQueryOptions } from '@/shared/api/users/meQueries';
 import { cn } from '@/shared/lib/utils';
 import type { MainBoardComment } from './types';
@@ -10,6 +16,12 @@ import { mockBoardPosts } from './mockBoardPosts';
 
 const COMMENTS_LIST_DEFAULT_PAGE = 1;
 const COMMENTS_LIST_DEFAULT_SIZE = 20;
+
+type CommentActionTone = 'success' | 'error';
+
+interface ApiErrorPayload {
+  message?: string | string[];
+}
 
 const categoryStyleMap = {
   FREE: 'bg-slate-100 text-slate-600',
@@ -64,14 +76,49 @@ const toMainBoardComment = (
         (comment.userId === currentUserId || comment.authorId === currentUserId),
 });
 
-const MainBoardSection = () => {
-  const initialSelectedBoardPostId = mockBoardPosts[0]?.id ?? null;
+const getCreateCommentErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 400) {
+      return '댓글 내용을 다시 확인해주세요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '게시글을 찾을 수 없어요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '댓글을 등록하지 못했어요. 잠시 후 다시 시도해주세요.';
+};
+
+interface MainBoardSectionProps {
+  onRequireLogin: () => void;
+}
+
+const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
+  const queryClient = useQueryClient();
+  const [boardPosts, setBoardPosts] = useState(mockBoardPosts);
+  const initialSelectedBoardPostId = boardPosts[0]?.id ?? null;
   const [selectedBoardPostId, setSelectedBoardPostId] = useState<number | null>(
     initialSelectedBoardPostId,
   );
-  const selectedBoardPost = mockBoardPosts.find(
-    (mockBoardPost) => mockBoardPost.id === selectedBoardPostId,
-  );
+  const [commentInputValue, setCommentInputValue] = useState('');
+  const [commentActionMessage, setCommentActionMessage] = useState('');
+  const [commentActionTone, setCommentActionTone] = useState<CommentActionTone>('success');
+  const selectedBoardPost = boardPosts.find((boardPost) => boardPost.id === selectedBoardPostId);
   const isLoggedIn = isAuthenticated();
   const { data: currentUser } = useQuery({
     ...myUserQueryOptions(),
@@ -100,9 +147,70 @@ const MainBoardSection = () => {
     [commentsData?.items, currentUser?.id, selectedBoardPostId],
   );
 
+  const createCommentMutation = useMutation({
+    mutationFn: ({ postId, content }: { postId: number; content: string }) =>
+      createComment(postId, { content }),
+    onSuccess: (createdComment, variables) => {
+      const queryParams = {
+        page: COMMENTS_LIST_DEFAULT_PAGE,
+        size: COMMENTS_LIST_DEFAULT_SIZE,
+      };
+
+      queryClient.setQueryData<GetCommentsResponse | undefined>(
+        commentQueries.list(variables.postId, queryParams).queryKey,
+        (oldData) => ({
+          items: [createdComment, ...(oldData?.items ?? [])],
+          pagination: oldData?.pagination,
+        }),
+      );
+
+      setBoardPosts((currentBoardPosts) =>
+        currentBoardPosts.map((boardPost) =>
+          boardPost.id === variables.postId
+            ? { ...boardPost, commentCount: boardPost.commentCount + 1 }
+            : boardPost,
+        ),
+      );
+      setCommentInputValue('');
+      setCommentActionMessage('댓글을 등록했어요.');
+      setCommentActionTone('success');
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setCommentActionMessage('로그인 후 댓글을 작성할 수 있어요.');
+        setCommentActionTone('error');
+        onRequireLogin();
+        return;
+      }
+
+      setCommentActionMessage(getCreateCommentErrorMessage(error));
+      setCommentActionTone('error');
+    },
+  });
+
+  const handleCommentSubmit = () => {
+    if (selectedBoardPostId === null) {
+      return;
+    }
+
+    const trimmedContent = commentInputValue.trim();
+
+    if (trimmedContent === '') {
+      setCommentActionMessage('댓글 내용을 다시 확인해주세요.');
+      setCommentActionTone('error');
+      return;
+    }
+
+    setCommentActionMessage('');
+    createCommentMutation.mutate({
+      postId: selectedBoardPostId,
+      content: trimmedContent,
+    });
+  };
+
   return (
     <section className="space-y-4 md:space-y-5">
-      {mockBoardPosts.map((mockBoardPost) => (
+      {boardPosts.map((mockBoardPost) => (
         <article
           key={mockBoardPost.id}
           className={cn(
@@ -193,22 +301,40 @@ const MainBoardSection = () => {
               <label className="block">
                 <span className="text-sm font-semibold text-slate-700">댓글 작성</span>
                 <textarea
-                  disabled
-                  placeholder="댓글 작성은 다음 이슈에서 연결 예정이에요."
-                  className="mt-3 min-h-[110px] w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-500 outline-none"
+                  value={commentInputValue}
+                  onChange={(event) => setCommentInputValue(event.target.value)}
+                  placeholder="점심메이트와 나누고 싶은 이야기를 남겨보세요."
+                  className="mt-3 min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100/70"
                 />
               </label>
 
               <div className="mt-4 flex items-center justify-between gap-3">
-                <p className="text-xs font-medium text-slate-400">댓글 작성은 #85에서 연결 예정이에요.</p>
+                <p
+                  className={cn(
+                    'text-xs font-medium',
+                    commentActionMessage === ''
+                      ? 'text-slate-400'
+                      : commentActionTone === 'success'
+                        ? 'text-emerald-600'
+                        : 'text-rose-600',
+                  )}
+                >
+                  {commentActionMessage || '댓글을 등록하면 목록 맨 위에 바로 보여요.'}
+                </p>
 
                 <button
                   type="button"
-                  disabled
-                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-2xl bg-slate-300 px-4 py-3 text-sm font-semibold text-white"
+                  onClick={handleCommentSubmit}
+                  disabled={createCommentMutation.isPending}
+                  className={cn(
+                    'inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white transition',
+                    createCommentMutation.isPending
+                      ? 'cursor-not-allowed bg-slate-300'
+                      : 'bg-slate-900 hover:bg-slate-800',
+                  )}
                 >
                   <SendHorizonal className="h-4 w-4" />
-                  댓글 등록
+                  {createCommentMutation.isPending ? '등록 중...' : '댓글 등록'}
                 </button>
               </div>
             </div>
