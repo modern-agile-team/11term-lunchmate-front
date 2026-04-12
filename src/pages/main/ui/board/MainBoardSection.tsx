@@ -1,4 +1,4 @@
-import { Heart, MessageSquareText, Pencil, SendHorizonal, Trash2 } from 'lucide-react';
+import { Heart, MessageSquareText, Pencil, SendHorizonal, ThumbsDown, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
@@ -7,6 +7,7 @@ import {
   commentQueries,
   createComment,
   deleteComment,
+  dislikeComment,
   type CommentListItemResponse,
   type GetCommentsResponse,
   likeComment,
@@ -68,7 +69,9 @@ const toMainBoardComment = (
   author: toBoardCommentAuthor(comment),
   content: comment.content,
   likedCount: comment.likeCount ?? 0,
+  dislikeCount: comment.dislikeCount ?? 0,
   liked: comment.liked ?? false,
+  disliked: comment.disliked ?? false,
   createdAt: comment.createdAt,
   isMine:
     typeof comment.isMine === 'boolean'
@@ -189,6 +192,30 @@ const getLikeCommentErrorMessage = (error: unknown) => {
   return '댓글 좋아요를 반영하지 못했어요. 잠시 후 다시 시도해주세요.';
 };
 
+const getDislikeCommentErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 404) {
+      return '댓글을 찾을 수 없어요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '댓글 싫어요를 반영하지 못했어요. 잠시 후 다시 시도해주세요.';
+};
+
 interface MainBoardSectionProps {
   onRequireLogin: () => void;
 }
@@ -215,6 +242,10 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
   const [commentLikeMessage, setCommentLikeMessage] = useState('');
   const [commentLikeMessageTone, setCommentLikeMessageTone] = useState<CommentActionTone>('success');
   const [likingCommentId, setLikingCommentId] = useState<number | null>(null);
+  const [commentDislikeMessage, setCommentDislikeMessage] = useState('');
+  const [commentDislikeMessageTone, setCommentDislikeMessageTone] =
+    useState<CommentActionTone>('success');
+  const [dislikingCommentId, setDislikingCommentId] = useState<number | null>(null);
   const selectedBoardPost = boardPosts.find((boardPost) => boardPost.id === selectedBoardPostId);
   const isLoggedIn = isAuthenticated();
   const { data: currentUser } = useQuery({
@@ -413,6 +444,12 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
                     ...comment,
                     liked: likedComment.liked,
                     likeCount: likedComment.likeCount,
+                    disliked:
+                      likedComment.liked && comment.disliked === true ? false : comment.disliked,
+                    dislikeCount:
+                      likedComment.liked && comment.disliked === true
+                        ? Math.max(0, (comment.dislikeCount ?? 0) - 1)
+                        : comment.dislikeCount,
                   }
                 : comment,
             ),
@@ -433,6 +470,64 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
     },
     onSettled: () => {
       setLikingCommentId(null);
+    },
+  });
+
+  const dislikeCommentMutation = useMutation({
+    mutationFn: ({ postId, commentId }: { postId: number; commentId: number }) =>
+      dislikeComment(postId, commentId),
+    onMutate: ({ commentId }) => {
+      setDislikingCommentId(commentId);
+      setCommentDislikeMessage('');
+      setCommentDislikeMessageTone('success');
+    },
+    onSuccess: (dislikedComment, variables) => {
+      const queryParams = {
+        page: COMMENTS_LIST_DEFAULT_PAGE,
+        size: COMMENTS_LIST_DEFAULT_SIZE,
+      };
+
+      queryClient.setQueryData<GetCommentsResponse | undefined>(
+        commentQueries.list(variables.postId, queryParams).queryKey,
+        (oldData) => {
+          if (oldData === undefined) {
+            return oldData;
+          }
+
+          return {
+            ...oldData,
+            items: oldData.items.map((comment) =>
+              comment.id === variables.commentId
+                ? {
+                    ...comment,
+                    disliked: dislikedComment.disliked,
+                    dislikeCount: dislikedComment.dislikeCount,
+                    liked:
+                      dislikedComment.disliked && comment.liked === true ? false : comment.liked,
+                    likeCount:
+                      dislikedComment.disliked && comment.liked === true
+                        ? Math.max(0, (comment.likeCount ?? 0) - 1)
+                        : comment.likeCount,
+                  }
+                : comment,
+            ),
+          };
+        },
+      );
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setCommentDislikeMessage('로그인 후 댓글을 싫어요할 수 있어요.');
+        setCommentDislikeMessageTone('error');
+        onRequireLogin();
+        return;
+      }
+
+      setCommentDislikeMessage(getDislikeCommentErrorMessage(error));
+      setCommentDislikeMessageTone('error');
+    },
+    onSettled: () => {
+      setDislikingCommentId(null);
     },
   });
 
@@ -526,6 +621,15 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
     setCommentLikeMessage('');
     setCommentLikeMessageTone('success');
     likeCommentMutation.mutate({
+      postId: comment.postId,
+      commentId: comment.id,
+    });
+  };
+
+  const handleCommentDislike = (comment: MainBoardComment) => {
+    setCommentDislikeMessage('');
+    setCommentDislikeMessageTone('success');
+    dislikeCommentMutation.mutate({
       postId: comment.postId,
       commentId: comment.id,
     });
@@ -711,6 +815,19 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
                 </div>
               ) : null}
 
+              {commentDislikeMessage !== '' ? (
+                <div
+                  className={cn(
+                    'rounded-[24px] border px-5 py-4 text-center text-sm',
+                    commentDislikeMessageTone === 'success'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                      : 'border-rose-200 bg-rose-50 text-rose-600',
+                  )}
+                >
+                  {commentDislikeMessage}
+                </div>
+              ) : null}
+
               {isCommentsLoading ? (
                 <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-6 text-center text-sm text-slate-500">
                   댓글을 불러오는 중...
@@ -750,10 +867,14 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
                           <button
                             type="button"
                             onClick={() => handleCommentLike(selectedBoardComment)}
-                            disabled={likingCommentId === selectedBoardComment.id}
+                            disabled={
+                              likingCommentId === selectedBoardComment.id ||
+                              dislikingCommentId === selectedBoardComment.id
+                            }
                             className={cn(
                               'inline-flex items-center gap-1 transition',
-                              likingCommentId === selectedBoardComment.id
+                              likingCommentId === selectedBoardComment.id ||
+                              dislikingCommentId === selectedBoardComment.id
                                 ? 'cursor-not-allowed opacity-60'
                                 : selectedBoardComment.liked
                                   ? 'text-rose-500 hover:text-rose-600'
@@ -762,6 +883,26 @@ const MainBoardSection = ({ onRequireLogin }: MainBoardSectionProps) => {
                           >
                             <Heart className="h-3.5 w-3.5 text-rose-400" />
                             {selectedBoardComment.likedCount}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCommentDislike(selectedBoardComment)}
+                            disabled={
+                              likingCommentId === selectedBoardComment.id ||
+                              dislikingCommentId === selectedBoardComment.id
+                            }
+                            className={cn(
+                              'inline-flex items-center gap-1 transition',
+                              likingCommentId === selectedBoardComment.id ||
+                              dislikingCommentId === selectedBoardComment.id
+                                ? 'cursor-not-allowed opacity-60'
+                                : selectedBoardComment.disliked
+                                  ? 'text-sky-600 hover:text-sky-700'
+                                  : 'text-slate-400 hover:text-sky-600',
+                            )}
+                          >
+                            <ThumbsDown className="h-3.5 w-3.5 text-sky-500" />
+                            {selectedBoardComment.dislikeCount}
                           </button>
 
                           {selectedBoardComment.isMine ? (
