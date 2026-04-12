@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { getMyUser } from '@/shared/api/users/me';
+import { getMyUser } from './me';
 
 export const myUserQueryOptions = () =>
   queryOptions({
