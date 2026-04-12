@@ -48,6 +48,14 @@ export interface CreateCommentResponse extends CommentListItemResponse {
   postId: number;
 }
 
+export interface UpdateCommentRequest {
+  content: string;
+}
+
+export interface UpdateCommentResponse extends CommentListItemResponse {
+  postId: number;
+}
+
 export async function getComments(
   postId: number,
   params: GetCommentsParams = {},
@@ -67,6 +75,19 @@ export async function createComment(
   payload: CreateCommentRequest,
 ): Promise<CreateCommentResponse> {
   const response = await client.post<CreateCommentResponse>(`/api/v1/posts/${postId}/comments`, payload);
+
+  return response.data;
+}
+
+export async function updateComment(
+  postId: number,
+  commentId: number,
+  payload: UpdateCommentRequest,
+): Promise<UpdateCommentResponse> {
+  const response = await client.patch<UpdateCommentResponse>(
+    `/api/v1/posts/${postId}/comments/${commentId}`,
+    payload,
+  );
 
   return response.data;
 }
