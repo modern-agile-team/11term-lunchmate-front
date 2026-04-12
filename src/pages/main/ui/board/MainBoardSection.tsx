@@ -2,6 +2,13 @@ import { Heart, MessageSquareText, PencilLine, ThumbsDown, Trash2 } from 'lucide
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  commentQueries,
+  createComment,
+  type CommentListItemResponse,
+  type GetCommentsResponse,
+  updateComment,
+} from '@/shared/api/comments';
+import { myUserQueryOptions } from '@/shared/api/users';
   deletePost,
   dislikePost,
   type GetPostsResponse,
@@ -90,6 +97,37 @@ const toBoardSummary = (post: PostListItemResponse) => {
   return `${sourceText.slice(0, 90).trimEnd()}...`;
 };
 
+const getUpdateCommentErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 403) {
+      return '댓글을 수정할 권한이 없어요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '댓글을 찾을 수 없어요.';
+    }
+
+    if (error.response?.status === 400) {
+      return '댓글 내용을 다시 확인해주세요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '댓글을 수정하지 못했어요. 잠시 후 다시 시도해주세요.';
+};
 const toMainBoardPost = (post: PostListItemResponse): MainBoardPost => ({
   id: post.id,
   category: toBoardCategory(post),
@@ -181,6 +219,14 @@ const MainBoardSection = ({
     () => data?.pages.flatMap((page) => page.items).map(toMainBoardPost) ?? [],
     [data],
   );
+  const [commentInputValue, setCommentInputValue] = useState('');
+  const [commentActionMessage, setCommentActionMessage] = useState('');
+  const [commentActionTone, setCommentActionTone] = useState<CommentActionTone>('success');
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentValue, setEditingCommentValue] = useState('');
+  const [commentEditMessage, setCommentEditMessage] = useState('');
+  const [commentEditMessageTone, setCommentEditMessageTone] =
+    useState<CommentActionTone>('success');
   const selectedBoardPost = boardPosts.find((boardPost) => boardPost.id === selectedBoardPostId);
   const {
     data: selectedBoardPostDetailData,
@@ -595,6 +641,56 @@ const MainBoardSection = ({
     },
   });
 
+  const updateCommentMutation = useMutation({
+    mutationFn: ({
+      postId,
+      commentId,
+      content,
+    }: {
+      postId: number;
+      commentId: number;
+      content: string;
+    }) => updateComment(postId, commentId, { content }),
+    onSuccess: (updatedComment, variables) => {
+      const queryParams = {
+        page: COMMENTS_LIST_DEFAULT_PAGE,
+        size: COMMENTS_LIST_DEFAULT_SIZE,
+      };
+
+      queryClient.setQueryData<GetCommentsResponse | undefined>(
+        commentQueries.list(variables.postId, queryParams).queryKey,
+        (oldData) => {
+          if (oldData === undefined) {
+            return oldData;
+          }
+
+          return {
+            ...oldData,
+            items: oldData.items.map((comment) =>
+              comment.id === variables.commentId ? { ...comment, ...updatedComment } : comment,
+            ),
+          };
+        },
+      );
+
+      setEditingCommentId(null);
+      setEditingCommentValue('');
+      setCommentEditMessage('댓글을 수정했어요.');
+      setCommentEditMessageTone('success');
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setCommentEditMessage('로그인 후 댓글을 수정할 수 있어요.');
+        setCommentEditMessageTone('error');
+        onRequireLogin();
+        return;
+      }
+
+      setCommentEditMessage(getUpdateCommentErrorMessage(error));
+      setCommentEditMessageTone('error');
+    },
+  });
+
   const handleCommentSubmit = () => {
     if (selectedBoardPostId === null) {
       return;
@@ -615,8 +711,62 @@ const MainBoardSection = ({
     });
   };
 
+  const handleCommentEditStart = (comment: MainBoardComment) => {
+    if (editingCommentId !== null && editingCommentId !== comment.id) {
+      return;
+    }
+
+    setCommentEditMessage('');
+    setCommentEditMessageTone('success');
+    setEditingCommentId(comment.id);
+    setEditingCommentValue(comment.content);
+  };
+
+  const handleCommentEditCancel = () => {
+    setEditingCommentId(null);
+    setEditingCommentValue('');
+    setCommentEditMessage('');
+    setCommentEditMessageTone('success');
+  };
+
+  const handleCommentUpdate = (comment: MainBoardComment) => {
+    const trimmedContent = editingCommentValue.trim();
+
+    if (trimmedContent === '') {
+      setCommentEditMessage('댓글 내용을 다시 확인해주세요.');
+      setCommentEditMessageTone('error');
+      return;
+    }
+
+    setCommentEditMessage('');
+    updateCommentMutation.mutate({
+      postId: comment.postId,
+      commentId: comment.id,
+      content: trimmedContent,
+    });
+  };
+
   return (
     <section className="space-y-4 md:space-y-5">
+      {boardPosts.map((mockBoardPost) => (
+        <article
+          key={mockBoardPost.id}
+          className={cn(
+            'cursor-pointer rounded-[28px] border bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition',
+            selectedBoardPostId === mockBoardPost.id
+              ? 'border-indigo-200 ring-4 ring-indigo-100/60'
+              : 'border-slate-200/80 hover:border-slate-300',
+          )}
+          onClick={() => {
+            setSelectedBoardPostId(mockBoardPost.id);
+            setEditingCommentId(null);
+            setEditingCommentValue('');
+            setCommentEditMessage('');
+            setCommentEditMessageTone('success');
+          }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span
       <section className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:px-6">
         <div>
           <p className="text-sm font-semibold text-slate-700">카테고리</p>
@@ -882,6 +1032,19 @@ const MainBoardSection = ({
               </div>
 
             <div className="mt-5 space-y-3">
+              {commentEditMessage !== '' ? (
+                <div
+                  className={cn(
+                    'rounded-[24px] border px-5 py-4 text-center text-sm',
+                    commentEditMessageTone === 'success'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                      : 'border-rose-200 bg-rose-50 text-rose-600',
+                  )}
+                >
+                  {commentEditMessage}
+                </div>
+              ) : null}
+
               {isCommentsLoading ? (
                 <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-6 text-center text-sm text-slate-500">
                   댓글을 불러오는 중...
@@ -927,8 +1090,20 @@ const MainBoardSection = ({
                             <>
                               <button
                                 type="button"
-                                disabled
-                                className="inline-flex cursor-not-allowed items-center gap-1 opacity-60"
+                                onClick={() => handleCommentEditStart(selectedBoardComment)}
+                                disabled={
+                                  updateCommentMutation.isPending ||
+                                  (editingCommentId !== null &&
+                                    editingCommentId !== selectedBoardComment.id)
+                                }
+                                className={cn(
+                                  'inline-flex items-center gap-1',
+                                  updateCommentMutation.isPending ||
+                                    (editingCommentId !== null &&
+                                      editingCommentId !== selectedBoardComment.id)
+                                    ? 'cursor-not-allowed opacity-60'
+                                    : 'text-slate-500 hover:text-slate-700',
+                                )}
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                                 수정
@@ -946,12 +1121,51 @@ const MainBoardSection = ({
                         </div>
                       </div>
 
-                      <p className="mt-3 text-sm leading-6 text-slate-600">
-                        {selectedBoardComment.content}
-                      </p>
+                      {editingCommentId === selectedBoardComment.id ? (
+                        <div className="mt-3 space-y-3">
+                          <textarea
+                            value={editingCommentValue}
+                            onChange={(event) => setEditingCommentValue(event.target.value)}
+                            className="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100/70"
+                          />
+
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={handleCommentEditCancel}
+                              disabled={updateCommentMutation.isPending}
+                              className={cn(
+                                'rounded-2xl px-4 py-2 text-sm font-semibold transition',
+                                updateCommentMutation.isPending
+                                  ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                              )}
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCommentUpdate(selectedBoardComment)}
+                              disabled={updateCommentMutation.isPending}
+                              className={cn(
+                                'rounded-2xl px-4 py-2 text-sm font-semibold text-white transition',
+                                updateCommentMutation.isPending
+                                  ? 'cursor-not-allowed bg-slate-300'
+                                  : 'bg-slate-900 hover:bg-slate-800',
+                              )}
+                            >
+                              {updateCommentMutation.isPending ? '수정 중...' : '수정 완료'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                          {selectedBoardComment.content}
+                        </p>
+                      )}
 
                       <p className="mt-3 text-xs font-medium text-slate-400">
-                        댓글 좋아요는 #88, 수정은 #86, 삭제는 #87에서 연결 예정이에요.
+                        댓글 좋아요는 #88, 삭제는 #87에서 연결 예정이에요.
                       </p>
                     </article>
                   ))
