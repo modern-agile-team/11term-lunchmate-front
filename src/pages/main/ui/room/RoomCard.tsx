@@ -1,3 +1,4 @@
+import { type MouseEvent } from 'react';
 import { Clock3, MapPin, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
@@ -5,6 +6,12 @@ import type { MainRoom } from './types';
 
 interface RoomCardProps {
   room: MainRoom;
+  isSelected: boolean;
+  onClick: () => void;
+  onActionClick: (roomId: number) => void;
+  isActionPending?: boolean;
+  actionDisabled?: boolean;
+  actionLabel?: string;
 }
 
 const roomTypeStyleMap = {
@@ -34,17 +41,31 @@ const roomTypeStyleMap = {
   },
 } as const;
 
-const RoomCard = ({ room }: RoomCardProps) => {
+const RoomCard = ({
+  room,
+  isSelected,
+  onClick,
+  onActionClick,
+  isActionPending = false,
+  actionDisabled = false,
+  actionLabel = '참여하기',
+}: RoomCardProps) => {
   const { badgeClassName, badgeLabel, buttonClassName, cardClassName, progressClassName } =
     roomTypeStyleMap[room.roomType];
   const progressPercent = (room.currentCount / room.capacity) * 100;
   const remainingCount = room.capacity - room.currentCount;
+  const handleActionButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onActionClick(room.id);
+  };
 
   return (
     <article
+      onClick={onClick}
       className={cn(
-        'overflow-hidden rounded-[28px] border shadow-[0_12px_30px_rgba(15,23,42,0.05)]',
+        'cursor-pointer overflow-hidden rounded-[28px] border shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition',
         cardClassName,
+        isSelected ? 'ring-4 ring-slate-900/10' : 'hover:-translate-y-0.5',
       )}
     >
       <div className="p-5 md:p-6">
@@ -89,12 +110,15 @@ const RoomCard = ({ room }: RoomCardProps) => {
 
           <button
             type="button"
+            onClick={handleActionButtonClick}
+            disabled={actionDisabled || isActionPending}
             className={cn(
               'mt-4 w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition',
+              actionDisabled || isActionPending ? 'cursor-not-allowed opacity-70' : '',
               buttonClassName,
             )}
           >
-            참여하기
+            {isActionPending ? '처리 중...' : actionLabel}
           </button>
         </div>
       </div>

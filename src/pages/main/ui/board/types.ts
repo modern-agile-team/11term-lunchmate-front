@@ -10,6 +10,11 @@ export interface MainBoardPost {
   createdAt: string;
 }
 
+export interface MainBoardPostSyncRequest {
+  postId: number;
+  category: MainBoardPost['category'];
+}
+
 export interface MainBoardComment {
   id: number;
   postId: number;
