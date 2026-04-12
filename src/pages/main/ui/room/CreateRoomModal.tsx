@@ -1,10 +1,20 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { useForm } from '@tanstack/react-form';
 import { X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { createRoom, updateRoom, type RoomDetailResponse } from '@/shared/api/rooms/rooms';
+import { roomQueries } from '@/shared/api/rooms/roomsQueries';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'create' | 'edit';
+  roomId?: number;
+  initialValues?: CreateRoomFormState;
+  onSuccess?: () => void;
+  onError?: (message: string) => void;
+  onRequireLogin?: () => void;
 }
 
 interface CreateRoomFormState {
@@ -18,6 +28,10 @@ interface CreateRoomFormState {
   maxAge: string;
 }
 
+interface ApiErrorPayload {
+  message?: string | string[];
+}
+
 const INITIAL_CREATE_ROOM_FORM_STATE: CreateRoomFormState = {
   title: '',
   description: '',
@@ -29,12 +43,260 @@ const INITIAL_CREATE_ROOM_FORM_STATE: CreateRoomFormState = {
   maxAge: '24',
 };
 
-const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
+const toCreateRoomFormState = (room: RoomDetailResponse): CreateRoomFormState => ({
+  title: room.title,
+  description: room.description ?? '',
+  roomType: room.roomType === 'MALE' || room.roomType === 'FEMALE' ? room.roomType : 'MIXED',
+  capacity: String(room.maxMembersCount),
+  place: room.place,
+  lunchAt: formatLunchAtForForm(room.lunchAt),
+  minAge: String(room.minAge),
+  maxAge: String(room.maxAge),
+});
+
+const parseRequiredNumber = (value: string) => {
+  const trimmedValue = value.trim();
+
+  if (trimmedValue === '') {
+    return null;
+  }
+
+  const parsedValue = Number(trimmedValue);
+
+  if (!Number.isFinite(parsedValue)) {
+    return null;
+  }
+
+  return parsedValue;
+};
+
+const toFutureLunchAt = (timeValue: string) => {
+  const trimmedValue = timeValue.trim();
+
+  if (!/^\d{2}:\d{2}$/.test(trimmedValue)) {
+    return null;
+  }
+
+  const [hours, minutes] = trimmedValue.split(':').map(Number);
+
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+
+  const now = new Date();
+  const lunchAt = new Date(now);
+
+  lunchAt.setHours(hours, minutes, 0, 0);
+
+  if (lunchAt.getTime() <= now.getTime()) {
+    lunchAt.setDate(lunchAt.getDate() + 1);
+  }
+
+  return lunchAt.toISOString();
+};
+
+function formatLunchAtForForm(lunchAt: string) {
+  const timeMatch = lunchAt.match(/(?:T|\s)?(\d{2}:\d{2})/);
+
+  if (timeMatch) {
+    return timeMatch[1];
+  }
+
+  return '12:00';
+}
+
+const getRoomSubmitErrorMessage = (error: unknown, mode: 'create' | 'edit') => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 401) {
+      return mode === 'edit'
+        ? '로그인 후 방을 수정할 수 있어요.'
+        : '로그인 후 방을 만들 수 있어요.';
+    }
+
+    if (mode === 'edit') {
+      if (error.response?.status === 403) {
+        return '방을 수정할 권한이 없어요.';
+      }
+
+      if (error.response?.status === 404) {
+        return '방을 찾을 수 없어요.';
+      }
+
+      if (error.response?.status === 409) {
+        return '수정할 수 없는 상태예요.';
+      }
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return mode === 'edit'
+    ? '방 수정에 실패했어요. 잠시 후 다시 시도해 주세요.'
+    : '방 만들기에 실패했어요. 잠시 후 다시 시도해 주세요.';
+};
+
+const CreateRoomModal = ({
+  isOpen,
+  onClose,
+  mode = 'create',
+  roomId,
+  initialValues,
+  onSuccess,
+  onError,
+  onRequireLogin,
+}: CreateRoomModalProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const queryClient = useQueryClient();
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitMessageTone, setSubmitMessageTone] = useState<'error' | 'success'>('success');
+  const isEditMode = mode === 'edit';
+
+  const createRoomMutation = useMutation({
+    mutationFn: createRoom,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.details() }),
+      ]);
+
+      onSuccess?.();
+      handleClose();
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        onRequireLogin?.();
+      }
+
+      const message = getRoomSubmitErrorMessage(error, 'create');
+      setSubmitMessage(message);
+      setSubmitMessageTone('error');
+      onError?.(message);
+    },
+  });
+  const updateRoomMutation = useMutation({
+    mutationFn: ({ targetRoomId, payload }: { targetRoomId: number; payload: Parameters<typeof updateRoom>[1] }) =>
+      updateRoom(targetRoomId, payload),
+    onSuccess: async (_, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.detail(variables.targetRoomId).queryKey }),
+        queryClient.invalidateQueries({ queryKey: roomQueries.members(variables.targetRoomId).queryKey }),
+      ]);
+
+      onSuccess?.();
+      handleClose();
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        onRequireLogin?.();
+      }
+
+      const message = getRoomSubmitErrorMessage(error, 'edit');
+      setSubmitMessage(message);
+      setSubmitMessageTone('error');
+      onError?.(message);
+    },
+  });
 
   const createRoomForm = useForm({
     defaultValues: INITIAL_CREATE_ROOM_FORM_STATE,
-    onSubmit: async () => undefined,
+    onSubmit: async ({ value }) => {
+      const title = value.title.trim();
+      const place = value.place.trim();
+      const description = value.description.trim();
+      const maxMembersCount = parseRequiredNumber(value.capacity);
+      const minAge = parseRequiredNumber(value.minAge);
+      const maxAge = parseRequiredNumber(value.maxAge);
+      const lunchAt = toFutureLunchAt(value.lunchAt);
+
+      if (!title) {
+        setSubmitMessage('방 제목을 입력해 주세요.');
+        setSubmitMessageTone('error');
+        return;
+      }
+
+      if (!place) {
+        setSubmitMessage('모임 장소를 입력해 주세요.');
+        setSubmitMessageTone('error');
+        return;
+      }
+
+      if (maxMembersCount === null || maxMembersCount <= 0) {
+        setSubmitMessage('모집 인원은 1명 이상 숫자로 입력해 주세요.');
+        setSubmitMessageTone('error');
+        return;
+      }
+
+      if (minAge === null || minAge < 0 || maxAge === null || maxAge < 0) {
+        setSubmitMessage('나이는 0 이상 숫자로 입력해 주세요.');
+        setSubmitMessageTone('error');
+        return;
+      }
+
+      if (minAge > maxAge) {
+        setSubmitMessage('최소 나이는 최대 나이보다 클 수 없어요.');
+        setSubmitMessageTone('error');
+        return;
+      }
+
+      if (!lunchAt) {
+        setSubmitMessage('모임 시간을 올바르게 입력해 주세요.');
+        setSubmitMessageTone('error');
+        return;
+      }
+
+      setSubmitMessage('');
+      const roomType: 'MALE' | 'FEMALE' | 'ANY' =
+        value.roomType === 'MIXED' ? 'ANY' : value.roomType;
+
+      const payload = {
+        title,
+        description: description || undefined,
+        roomType,
+        maxMembersCount,
+        place,
+        lunchAt,
+        minAge,
+        maxAge,
+      };
+
+      if (isEditMode) {
+        if (!roomId) {
+          setSubmitMessage('수정할 방 정보를 찾을 수 없어요.');
+          setSubmitMessageTone('error');
+          onError?.('수정할 방 정보를 찾을 수 없어요.');
+          return;
+        }
+
+        await updateRoomMutation.mutateAsync({
+          targetRoomId: roomId,
+          payload,
+        });
+
+        return;
+      }
+
+      await createRoomMutation.mutateAsync(payload);
+    },
   });
 
   useEffect(() => {
@@ -54,12 +316,26 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    createRoomForm.reset(initialValues ?? INITIAL_CREATE_ROOM_FORM_STATE);
+    setSubmitMessage('');
+    setSubmitMessageTone('success');
+  }, [createRoomForm, initialValues, isOpen]);
+
   const handleClose = () => {
-    createRoomForm.reset();
+    createRoomForm.reset(initialValues ?? INITIAL_CREATE_ROOM_FORM_STATE);
+    createRoomMutation.reset();
+    updateRoomMutation.reset();
+    setSubmitMessage('');
+    setSubmitMessageTone('success');
     onClose();
   };
 
-  const handleDialogClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+  const handleDialogClick = (event: MouseEvent<HTMLDialogElement>) => {
     if (event.target === dialogRef.current) {
       handleClose();
     }
@@ -75,9 +351,11 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
       <div className="p-6 md:p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-indigo-500">점심 방 만들기</p>
+            <p className="text-sm font-semibold text-indigo-500">
+              {isEditMode ? '점심 방 수정하기' : '점심 방 만들기'}
+            </p>
             <h2 className="mt-1 text-[24px] font-bold tracking-[-0.03em] text-slate-900">
-              함께 점심할 친구를 모집해보세요
+              {isEditMode ? '현재 방 정보를 수정해보세요' : '함께 점심할 친구를 모집해보세요'}
             </h2>
           </div>
 
@@ -105,7 +383,10 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                   <span className="text-sm font-semibold text-slate-700">방 제목</span>
                   <input
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     placeholder="예: 점심 같이 먹어요"
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
@@ -120,7 +401,10 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                   <span className="text-sm font-semibold text-slate-700">방 소개</span>
                   <textarea
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     placeholder="모집하고 싶은 분위기나 식당 정보를 적어주세요"
                     className="min-h-[120px] rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
@@ -135,9 +419,10 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                   <span className="text-sm font-semibold text-slate-700">방 구분</span>
                   <select
                     value={field.state.value}
-                    onChange={(event) =>
-                      field.handleChange(event.target.value as CreateRoomFormState['roomType'])
-                    }
+                    onChange={(event) => {
+                      field.handleChange(event.target.value as CreateRoomFormState['roomType']);
+                      setSubmitMessage('');
+                    }}
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   >
                     <option value="MIXED">혼성</option>
@@ -154,8 +439,13 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-slate-700">모집 인원</span>
                   <input
+                    type="number"
+                    min="1"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
                 </label>
@@ -168,8 +458,13 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-slate-700">최소 나이</span>
                   <input
+                    type="number"
+                    min="0"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
                 </label>
@@ -182,8 +477,13 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-slate-700">최대 나이</span>
                   <input
+                    type="number"
+                    min="0"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
                 </label>
@@ -197,7 +497,10 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                   <span className="text-sm font-semibold text-slate-700">모임 장소</span>
                   <input
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     placeholder="예: 학생식당"
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
@@ -211,14 +514,28 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-slate-700">모임 시간</span>
                   <input
+                    type="time"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setSubmitMessage('');
+                    }}
                     className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                   />
                 </label>
               )}
             />
           </div>
+
+          {submitMessage ? (
+            <p
+              className={`mt-4 text-sm ${
+                submitMessageTone === 'error' ? 'text-rose-500' : 'text-emerald-600'
+              }`}
+            >
+              {submitMessage}
+            </p>
+          ) : null}
 
           <div className="mt-6 flex flex-col-reverse gap-3 md:flex-row md:justify-end">
             <button
@@ -230,9 +547,16 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
             </button>
             <button
               type="submit"
-              className="rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.28)] transition hover:bg-indigo-600"
+              disabled={createRoomMutation.isPending || updateRoomMutation.isPending}
+              className="rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.28)] transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:bg-indigo-300"
             >
-              방 만들기
+              {createRoomMutation.isPending || updateRoomMutation.isPending
+                ? isEditMode
+                  ? '방 수정 중...'
+                  : '방 만드는 중...'
+                : isEditMode
+                  ? '방 수정하기'
+                  : '방 만들기'}
             </button>
           </div>
         </form>
@@ -242,3 +566,4 @@ const CreateRoomModal = ({ isOpen, onClose }: CreateRoomModalProps) => {
 };
 
 export default CreateRoomModal;
+export { toCreateRoomFormState };

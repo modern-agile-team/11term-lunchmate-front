@@ -1,3 +1,5 @@
+export interface GetMeResponse {
+  id: number;
 //유저 관련 모든 타입을 관리하는 파일
 import type { MbtiType } from './profile';
 export type Gender = 'MALE' | 'FEMALE' | 'ANY';
