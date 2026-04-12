@@ -8,7 +8,7 @@ import { MBTI_OPTIONS, type MbtiType, type UserProfile } from '@/shared/types/pr
 const EMPTY_PROFILE: UserProfile = {
   name: '',
   nickname: '',
-  bio: '',
+  introduce: '',
   mbti: '',
   profileImageUrl: '',
 };
@@ -19,7 +19,7 @@ const isMbtiType = (value: unknown): value is MbtiType =>
 const normalizeProfile = (profile: Partial<UserProfile> | null | undefined): UserProfile => ({
   name: typeof profile?.name === 'string' ? profile.name : '',
   nickname: typeof profile?.nickname === 'string' ? profile.nickname : '',
-  bio: typeof profile?.bio === 'string' ? profile.bio : '',
+  introduce: typeof profile?.introduce === 'string' ? profile.introduce : '',
   mbti: isMbtiType(profile?.mbti) ? profile.mbti : '',
   profileImageUrl: typeof profile?.profileImageUrl === 'string' ? profile.profileImageUrl : '',
 });
@@ -61,8 +61,9 @@ export default function ProfilePage() {
 
   const profile = profileDraft ?? normalizeProfile(profileData) ?? EMPTY_PROFILE;
 
+  const displayNickname = profile.nickname.trim() || '익명 사용자';
   const showProfileImage = Boolean(profile.profileImageUrl) && !imageError;
-  const profileInitial = profile.name.trim().charAt(0).toUpperCase() || 'P';
+  const profileInitial = displayNickname.trim().charAt(0).toUpperCase() || '익';
 
   const handleImageApply = () => {
     const nextImageUrl = imageInputValue.trim();
@@ -103,7 +104,7 @@ export default function ProfilePage() {
     updateProfileMutation.mutate({
       name: profile.name.trim(),
       nickname: profile.nickname.trim(),
-      bio: profile.bio.trim(),
+      introduce: profile.introduce.trim(),
       mbti: profile.mbti as MbtiType,
       profileImageUrl: profile.profileImageUrl.trim(),
     });
@@ -162,7 +163,7 @@ export default function ProfilePage() {
                 {showProfileImage ? (
                   <img
                     src={profile.profileImageUrl}
-                    alt={`${profile.name || '프로필'} profile`}
+                    alt={`${displayNickname} profile`}
                     className="h-full w-full object-cover"
                     onError={() => setImageError(true)}
                   />
@@ -218,7 +219,7 @@ export default function ProfilePage() {
             <div className="flex flex-1 flex-col justify-center text-center sm:text-left">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-                  {profile.name}
+                  {displayNickname}
                 </h1>
                 <div className="flex justify-center sm:justify-end">
                   <span className="inline-flex min-h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600">
@@ -226,11 +227,31 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
-              <p className="mt-2 text-lg text-slate-400">{profile.bio}</p>
+              <p className="mt-2 text-lg text-slate-400">{profile.introduce}</p>
+              <p className="mt-2 text-sm text-slate-500">
+                저장용 이름 {profile.name.trim() || '미입력'}
+              </p>
             </div>
           </div>
 
           <div className="mt-10 space-y-7">
+            <label className="block">
+              <span className="mb-3 block text-[18px] font-medium text-slate-800">닉네임</span>
+              <input
+                type="text"
+                value={profile.nickname}
+                onChange={(event) =>
+                  setProfileDraft((current) => ({
+                    ...profile,
+                    ...current,
+                    nickname: event.target.value,
+                  }))
+                }
+                placeholder="닉네임을 입력하세요"
+                className="h-16 w-full rounded-2xl border border-slate-100 bg-slate-50 px-6 text-lg text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-200 focus:bg-white"
+              />
+            </label>
+
             <label className="block">
               <span className="mb-3 block text-[18px] font-medium text-slate-800">이름</span>
               <input
@@ -251,12 +272,12 @@ export default function ProfilePage() {
             <label className="block">
               <span className="mb-3 block text-[18px] font-medium text-slate-800">한줄소개</span>
               <textarea
-                value={profile.bio}
+                value={profile.introduce}
                 onChange={(event) =>
                   setProfileDraft((current) => ({
                     ...profile,
                     ...current,
-                    bio: event.target.value,
+                    introduce: event.target.value,
                   }))
                 }
                 placeholder="소개를 입력하세요"
