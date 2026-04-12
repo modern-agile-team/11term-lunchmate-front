@@ -554,6 +554,67 @@ const MainBoardSection = ({
     }
   };
 
+  const createCommentMutation = useMutation({
+    mutationFn: ({ postId, content }: { postId: number; content: string }) =>
+      createComment(postId, { content }),
+    onSuccess: (createdComment, variables) => {
+      const queryParams = {
+        page: COMMENTS_LIST_DEFAULT_PAGE,
+        size: COMMENTS_LIST_DEFAULT_SIZE,
+      };
+
+      queryClient.setQueryData<GetCommentsResponse | undefined>(
+        commentQueries.list(variables.postId, queryParams).queryKey,
+        (oldData) => ({
+          items: [createdComment, ...(oldData?.items ?? [])],
+          pagination: oldData?.pagination,
+        }),
+      );
+
+      setBoardPosts((currentBoardPosts) =>
+        currentBoardPosts.map((boardPost) =>
+          boardPost.id === variables.postId
+            ? { ...boardPost, commentCount: boardPost.commentCount + 1 }
+            : boardPost,
+        ),
+      );
+      setCommentInputValue('');
+      setCommentActionMessage('댓글을 등록했어요.');
+      setCommentActionTone('success');
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setCommentActionMessage('로그인 후 댓글을 작성할 수 있어요.');
+        setCommentActionTone('error');
+        onRequireLogin();
+        return;
+      }
+
+      setCommentActionMessage(getCreateCommentErrorMessage(error));
+      setCommentActionTone('error');
+    },
+  });
+
+  const handleCommentSubmit = () => {
+    if (selectedBoardPostId === null) {
+      return;
+    }
+
+    const trimmedContent = commentInputValue.trim();
+
+    if (trimmedContent === '') {
+      setCommentActionMessage('댓글 내용을 다시 확인해주세요.');
+      setCommentActionTone('error');
+      return;
+    }
+
+    setCommentActionMessage('');
+    createCommentMutation.mutate({
+      postId: selectedBoardPostId,
+      content: trimmedContent,
+    });
+  };
+
   return (
     <section className="space-y-4 md:space-y-5">
       <section className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:px-6">
@@ -777,6 +838,45 @@ const MainBoardSection = ({
                 {selectedBoardPostDetail.author}
               </p>
 
+            <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">댓글 작성</span>
+                <textarea
+                  value={commentInputValue}
+                  onChange={(event) => setCommentInputValue(event.target.value)}
+                  placeholder="점심메이트와 나누고 싶은 이야기를 남겨보세요."
+                  className="mt-3 min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100/70"
+                />
+              </label>
+
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <p
+                  className={cn(
+                    'text-xs font-medium',
+                    commentActionMessage === ''
+                      ? 'text-slate-400'
+                      : commentActionTone === 'success'
+                        ? 'text-emerald-600'
+                        : 'text-rose-600',
+                  )}
+                >
+                  {commentActionMessage || '댓글을 등록하면 목록 맨 위에 바로 보여요.'}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleCommentSubmit}
+                  disabled={createCommentMutation.isPending}
+                  className={cn(
+                    'inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white transition',
+                    createCommentMutation.isPending
+                      ? 'cursor-not-allowed bg-slate-300'
+                      : 'bg-slate-900 hover:bg-slate-800',
+                  )}
+                >
+                  <SendHorizonal className="h-4 w-4" />
+                  {createCommentMutation.isPending ? '등록 중...' : '댓글 등록'}
+                </button>
               <div className="mt-4 text-xs font-medium text-slate-400">
                 조회 {selectedBoardPostDetailData?.viewCount ?? 0}
               </div>
@@ -867,7 +967,6 @@ const MainBoardSection = ({
               </div>
 
               <div className="mt-6 rounded-[24px] bg-slate-50 px-5 py-5 text-sm leading-7 text-slate-600">
-                댓글과 게시글 액션은 다음 이슈에서 연결 예정이에요.
               </div>
             </>
           ) : null}
