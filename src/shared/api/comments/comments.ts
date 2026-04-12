@@ -1,0 +1,55 @@
+import client from '@/shared/api/client';
+
+export interface GetCommentsParams {
+  page?: number;
+  size?: number;
+}
+
+export interface CommentListUserResponse {
+  id?: number;
+  nickname?: string;
+  name?: string;
+}
+
+export interface CommentListItemResponse {
+  id: number;
+  postId?: number | null;
+  userId?: number | null;
+  authorId?: number | null;
+  content: string;
+  likeCount?: number | null;
+  createdAt: string;
+  author?: string | null;
+  authorNickname?: string | null;
+  userNickname?: string | null;
+  nickname?: string | null;
+  isMine?: boolean | null;
+  user?: CommentListUserResponse | null;
+}
+
+export interface CommentListPaginationResponse {
+  page?: number;
+  size?: number;
+  totalCount?: number;
+  totalPages?: number;
+  hasNext?: boolean;
+}
+
+export interface GetCommentsResponse {
+  items: CommentListItemResponse[];
+  pagination?: CommentListPaginationResponse;
+}
+
+export async function getComments(
+  postId: number,
+  params: GetCommentsParams = {},
+): Promise<GetCommentsResponse> {
+  const response = await client.get<GetCommentsResponse>(`/api/v1/posts/${postId}/comments`, {
+    params: {
+      page: params.page,
+      size: params.size,
+    },
+  });
+
+  return response.data;
+}

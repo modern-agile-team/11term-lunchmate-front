@@ -781,6 +781,83 @@ const MainBoardSection = ({
                 조회 {selectedBoardPostDetailData?.viewCount ?? 0}
               </div>
 
+            <div className="mt-5 space-y-3">
+              {isCommentsLoading ? (
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-6 text-center text-sm text-slate-500">
+                  댓글을 불러오는 중...
+                </div>
+              ) : null}
+
+              {isCommentsError ? (
+                <div className="rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-6 text-center text-sm text-rose-600">
+                  댓글을 불러오지 못했어요.
+                  {commentsError instanceof Error ? ` ${commentsError.message}` : ''}
+                </div>
+              ) : null}
+
+              {!isCommentsLoading && !isCommentsError && selectedBoardComments.length === 0 ? (
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-6 text-center text-sm text-slate-500">
+                  아직 등록된 댓글이 없어요.
+                </div>
+              ) : null}
+
+              {!isCommentsLoading && !isCommentsError
+                ? selectedBoardComments.map((selectedBoardComment) => (
+                    <article
+                      key={selectedBoardComment.id}
+                      className="rounded-[24px] border border-slate-200/80 bg-white px-5 py-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {selectedBoardComment.author}
+                          </div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {formatRelativeCreatedAt(selectedBoardComment.createdAt)}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-xs font-medium text-slate-400">
+                          <span className="inline-flex items-center gap-1">
+                            <Heart className="h-3.5 w-3.5 text-rose-400" />
+                            {selectedBoardComment.likedCount}
+                          </span>
+
+                          {selectedBoardComment.isMine ? (
+                            <>
+                              <button
+                                type="button"
+                                disabled
+                                className="inline-flex cursor-not-allowed items-center gap-1 opacity-60"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                                수정
+                              </button>
+                              <button
+                                type="button"
+                                disabled
+                                className="inline-flex cursor-not-allowed items-center gap-1 opacity-60"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                삭제
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <p className="mt-3 text-sm leading-6 text-slate-600">
+                        {selectedBoardComment.content}
+                      </p>
+
+                      <p className="mt-3 text-xs font-medium text-slate-400">
+                        댓글 좋아요는 #88, 수정은 #86, 삭제는 #87에서 연결 예정이에요.
+                      </p>
+                    </article>
+                  ))
+                : null}
+            </div>
+          </section>
               {reactionErrorMessage ? (
                 <p className="mt-4 text-sm font-medium text-rose-500">{reactionErrorMessage}</p>
               ) : null}
