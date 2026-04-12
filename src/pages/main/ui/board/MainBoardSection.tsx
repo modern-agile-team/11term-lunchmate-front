@@ -9,7 +9,7 @@ import {
   type CommentListItemResponse,
   type GetCommentsResponse,
 } from '@/shared/api/comments';
-import { myUserQueryOptions } from '@/shared/api/users/meQueries';
+import { myUserQueryOptions } from '@/shared/api/users';
 import { cn } from '@/shared/lib/utils';
 import type { MainBoardComment } from './types';
 import { mockBoardPosts } from './mockBoardPosts';
