@@ -4,6 +4,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import {
   commentQueries,
   createComment,
+  deleteComment,
   type CommentListItemResponse,
   type GetCommentsResponse,
   updateComment,
@@ -175,6 +176,34 @@ const isInfinitePostListData = (
   'pages' in value &&
   Array.isArray((value as { pages?: unknown }).pages);
 
+const getDeleteCommentErrorMessage = (error: unknown) => {
+  if (isAxiosError<ApiErrorPayload>(error)) {
+    const responseMessage = error.response?.data?.message;
+
+    if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+      return responseMessage.join(' ');
+    }
+
+    if (typeof responseMessage === 'string' && responseMessage.trim() !== '') {
+      return responseMessage;
+    }
+
+    if (error.response?.status === 403) {
+      return '댓글을 삭제할 권한이 없어요.';
+    }
+
+    if (error.response?.status === 404) {
+      return '댓글을 찾을 수 없어요.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return '댓글을 삭제하지 못했어요. 잠시 후 다시 시도해주세요.';
+};
+
 interface MainBoardSectionProps {
   postSyncRequest: MainBoardPostSyncRequest | null;
   onPostSyncHandled: () => void;
@@ -226,6 +255,10 @@ const MainBoardSection = ({
   const [editingCommentValue, setEditingCommentValue] = useState('');
   const [commentEditMessage, setCommentEditMessage] = useState('');
   const [commentEditMessageTone, setCommentEditMessageTone] =
+    useState<CommentActionTone>('success');
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
+  const [commentDeleteMessage, setCommentDeleteMessage] = useState('');
+  const [commentDeleteMessageTone, setCommentDeleteMessageTone] =
     useState<CommentActionTone>('success');
   const selectedBoardPost = boardPosts.find((boardPost) => boardPost.id === selectedBoardPostId);
   const {
@@ -691,6 +724,55 @@ const MainBoardSection = ({
     },
   });
 
+  const deleteCommentMutation = useMutation({
+    mutationFn: ({ postId, commentId }: { postId: number; commentId: number }) =>
+      deleteComment(postId, commentId),
+    onSuccess: (_, variables) => {
+      const queryParams = {
+        page: COMMENTS_LIST_DEFAULT_PAGE,
+        size: COMMENTS_LIST_DEFAULT_SIZE,
+      };
+
+      queryClient.setQueryData<GetCommentsResponse | undefined>(
+        commentQueries.list(variables.postId, queryParams).queryKey,
+        (oldData) => {
+          if (oldData === undefined) {
+            return oldData;
+          }
+
+          return {
+            ...oldData,
+            items: oldData.items.filter((comment) => comment.id !== variables.commentId),
+          };
+        },
+      );
+
+      setBoardPosts((currentBoardPosts) =>
+        currentBoardPosts.map((boardPost) =>
+          boardPost.id === variables.postId
+            ? { ...boardPost, commentCount: Math.max(0, boardPost.commentCount - 1) }
+            : boardPost,
+        ),
+      );
+      setDeletingCommentId(null);
+      setEditingCommentId(null);
+      setEditingCommentValue('');
+      setCommentDeleteMessage('댓글을 삭제했어요.');
+      setCommentDeleteMessageTone('success');
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setCommentDeleteMessage('로그인 후 댓글을 삭제할 수 있어요.');
+        setCommentDeleteMessageTone('error');
+        onRequireLogin();
+        return;
+      }
+
+      setCommentDeleteMessage(getDeleteCommentErrorMessage(error));
+      setCommentDeleteMessageTone('error');
+    },
+  });
+
   const handleCommentSubmit = () => {
     if (selectedBoardPostId === null) {
       return;
@@ -716,6 +798,9 @@ const MainBoardSection = ({
       return;
     }
 
+    setDeletingCommentId(null);
+    setCommentDeleteMessage('');
+    setCommentDeleteMessageTone('success');
     setCommentEditMessage('');
     setCommentEditMessageTone('success');
     setEditingCommentId(comment.id);
@@ -746,6 +831,34 @@ const MainBoardSection = ({
     });
   };
 
+  const handleCommentDeleteStart = (commentId: number) => {
+    if (deletingCommentId !== null && deletingCommentId !== commentId) {
+      return;
+    }
+
+    setEditingCommentId(null);
+    setEditingCommentValue('');
+    setCommentEditMessage('');
+    setCommentEditMessageTone('success');
+    setCommentDeleteMessage('');
+    setCommentDeleteMessageTone('success');
+    setDeletingCommentId(commentId);
+  };
+
+  const handleCommentDeleteCancel = () => {
+    setDeletingCommentId(null);
+    setCommentDeleteMessage('');
+    setCommentDeleteMessageTone('success');
+  };
+
+  const handleCommentDelete = (comment: MainBoardComment) => {
+    setCommentDeleteMessage('');
+    deleteCommentMutation.mutate({
+      postId: comment.postId,
+      commentId: comment.id,
+    });
+  };
+
   return (
     <section className="space-y-4 md:space-y-5">
       {boardPosts.map((mockBoardPost) => (
@@ -763,6 +876,9 @@ const MainBoardSection = ({
             setEditingCommentValue('');
             setCommentEditMessage('');
             setCommentEditMessageTone('success');
+            setDeletingCommentId(null);
+            setCommentDeleteMessage('');
+            setCommentDeleteMessageTone('success');
           }}
         >
           <div className="flex items-center justify-between gap-3">
@@ -1032,6 +1148,19 @@ const MainBoardSection = ({
               </div>
 
             <div className="mt-5 space-y-3">
+              {commentDeleteMessage !== '' ? (
+                <div
+                  className={cn(
+                    'rounded-[24px] border px-5 py-4 text-center text-sm',
+                    commentDeleteMessageTone === 'success'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                      : 'border-rose-200 bg-rose-50 text-rose-600',
+                  )}
+                >
+                  {commentDeleteMessage}
+                </div>
+              ) : null}
+
               {commentEditMessage !== '' ? (
                 <div
                   className={cn(
@@ -1093,12 +1222,16 @@ const MainBoardSection = ({
                                 onClick={() => handleCommentEditStart(selectedBoardComment)}
                                 disabled={
                                   updateCommentMutation.isPending ||
+                                  deleteCommentMutation.isPending ||
+                                  deletingCommentId !== null ||
                                   (editingCommentId !== null &&
                                     editingCommentId !== selectedBoardComment.id)
                                 }
                                 className={cn(
                                   'inline-flex items-center gap-1',
                                   updateCommentMutation.isPending ||
+                                    deleteCommentMutation.isPending ||
+                                    deletingCommentId !== null ||
                                     (editingCommentId !== null &&
                                       editingCommentId !== selectedBoardComment.id)
                                     ? 'cursor-not-allowed opacity-60'
@@ -1110,8 +1243,22 @@ const MainBoardSection = ({
                               </button>
                               <button
                                 type="button"
-                                disabled
-                                className="inline-flex cursor-not-allowed items-center gap-1 opacity-60"
+                                onClick={() => handleCommentDeleteStart(selectedBoardComment.id)}
+                                disabled={
+                                  deleteCommentMutation.isPending ||
+                                  editingCommentId !== null ||
+                                  (deletingCommentId !== null &&
+                                    deletingCommentId !== selectedBoardComment.id)
+                                }
+                                className={cn(
+                                  'inline-flex items-center gap-1',
+                                  deleteCommentMutation.isPending ||
+                                    editingCommentId !== null ||
+                                    (deletingCommentId !== null &&
+                                      deletingCommentId !== selectedBoardComment.id)
+                                    ? 'cursor-not-allowed opacity-60'
+                                    : 'text-slate-500 hover:text-rose-600',
+                                )}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 삭제
@@ -1164,8 +1311,44 @@ const MainBoardSection = ({
                         </p>
                       )}
 
+                      {deletingCommentId === selectedBoardComment.id ? (
+                        <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4">
+                          <p className="text-sm font-medium text-rose-700">
+                            정말 삭제할까요?
+                          </p>
+                          <div className="mt-3 flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={handleCommentDeleteCancel}
+                              disabled={deleteCommentMutation.isPending}
+                              className={cn(
+                                'rounded-2xl px-4 py-2 text-sm font-semibold transition',
+                                deleteCommentMutation.isPending
+                                  ? 'cursor-not-allowed bg-white text-slate-400'
+                                  : 'bg-white text-slate-600 hover:bg-slate-100',
+                              )}
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCommentDelete(selectedBoardComment)}
+                              disabled={deleteCommentMutation.isPending}
+                              className={cn(
+                                'rounded-2xl px-4 py-2 text-sm font-semibold text-white transition',
+                                deleteCommentMutation.isPending
+                                  ? 'cursor-not-allowed bg-rose-300'
+                                  : 'bg-rose-500 hover:bg-rose-600',
+                              )}
+                            >
+                              {deleteCommentMutation.isPending ? '삭제 중...' : '삭제'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+
                       <p className="mt-3 text-xs font-medium text-slate-400">
-                        댓글 좋아요는 #88, 삭제는 #87에서 연결 예정이에요.
+                        댓글 좋아요는 #88에서 연결 예정이에요.
                       </p>
                     </article>
                   ))
