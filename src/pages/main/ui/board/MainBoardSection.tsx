@@ -11,6 +11,7 @@ import {
 } from '@/shared/api/comments';
 import { myUserQueryOptions } from '@/shared/api/users';
 import { cn } from '@/shared/lib/utils';
+import type { ApiErrorPayload } from '@/shared/types/api';
 import type { MainBoardComment } from './types';
 import { mockBoardPosts } from './mockBoardPosts';
 
@@ -18,10 +19,6 @@ const COMMENTS_LIST_DEFAULT_PAGE = 1;
 const COMMENTS_LIST_DEFAULT_SIZE = 20;
 
 type CommentActionTone = 'success' | 'error';
-
-interface ApiErrorPayload {
-  message?: string | string[];
-}
 
 const categoryStyleMap = {
   FREE: 'bg-slate-100 text-slate-600',
