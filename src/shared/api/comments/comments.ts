@@ -91,3 +91,7 @@ export async function updateComment(
 
   return response.data;
 }
+
+export async function deleteComment(postId: number, commentId: number): Promise<void> {
+  await client.delete(`/api/v1/posts/${postId}/comments/${commentId}`);
+}
