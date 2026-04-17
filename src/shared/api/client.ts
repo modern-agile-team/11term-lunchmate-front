@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { clearAuthSession, getAccessToken } from '@/app/authSessionStore';
+import { clearAuthSession, getAccessToken } from '@/features/auth';
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
