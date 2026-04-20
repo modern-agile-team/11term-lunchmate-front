@@ -1,5 +1,5 @@
-import MainPage from '@/pages/main/ui/MainPage';
-import ProfilePage from '@/pages/profile/ui/ProfilePage';
+import MainPage from '@/pages/main';
+import ProfilePage from '@/pages/profile';
 
 const routes = [
   {

@@ -1,23 +1,29 @@
-import { useState } from 'react';
-import LoginModal from '@/features/auth';
-import CreatePostModal from '@/features/post-editor';
-import CreateRoomModal from '@/features/room-editor';
-import MainHeader from '@/widgets/main-header';
-import MainHero from '@/widgets/main-hero';
-import MainTabSection from '@/widgets/main-tab-section';
-import MainTabs, { type MainTab } from '@/widgets/main-tabs';
-import type { PostSyncRequest } from '@/widgets/post-section/model/types';
+import PostEditorModal from '@/features/post/create';
+import RoomEditorModal from '@/features/room/create';
+import AppHeader from '@/widgets/app-header';
+import AuthDialog from '@/widgets/auth-dialog';
+import MainHero from './layout/main-hero';
+import MainTabSection from './layout/main-tab-section';
+import MainTabs from './layout/main-tabs';
+import { useMainPage } from '../model/useMainPage';
 
 const MainPage = () => {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<MainTab>('ROOM');
-  const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
-  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
-  const [postSyncRequest, setPostSyncRequest] = useState<PostSyncRequest | null>(null);
+  const {
+    isLoginModalOpen,
+    setIsLoginModalOpen,
+    activeTab,
+    setActiveTab,
+    isCreateRoomModalOpen,
+    setIsCreateRoomModalOpen,
+    isCreatePostModalOpen,
+    setIsCreatePostModalOpen,
+    postSyncRequest,
+    setPostSyncRequest,
+  } = useMainPage();
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <MainHeader onLoginClick={() => setIsLoginModalOpen(true)} />
+      <AppHeader onLoginClick={() => setIsLoginModalOpen(true)} />
 
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 py-6 md:gap-5 md:px-8 md:py-8">
         <MainHero />
@@ -32,13 +38,13 @@ const MainPage = () => {
         />
       </main>
 
-      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
-      <CreateRoomModal
+      <AuthDialog isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+      <RoomEditorModal
         isOpen={isCreateRoomModalOpen}
         onClose={() => setIsCreateRoomModalOpen(false)}
         onRequireLogin={() => setIsLoginModalOpen(true)}
       />
-      <CreatePostModal
+      <PostEditorModal
         isOpen={isCreatePostModalOpen}
         onClose={() => setIsCreatePostModalOpen(false)}
         onRequireLogin={() => setIsLoginModalOpen(true)}

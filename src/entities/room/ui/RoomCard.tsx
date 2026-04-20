@@ -1,6 +1,6 @@
 import { type MouseEvent } from 'react';
 import { Clock3, MapPin, Users } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/lib/classnames';
 
 import type { MainRoom } from '../model/mainRoom';
 

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { authSessionSelectors, useAuthSessionStore } from '@/features/auth';
+import { authSessionSelectors, useAuthSessionStore } from '@/shared/lib/auth/session';
 
 const AuthSessionBootstrap = () => {
   const hasHydrated = useAuthSessionStore(authSessionSelectors.hasHydrated);
