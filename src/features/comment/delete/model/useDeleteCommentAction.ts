@@ -22,7 +22,26 @@ export const useDeleteCommentAction = ({
       deleteComment(postId, commentId),
   });
 
-  const handleCommentDelete = async (comment: MainPostComment) => {
+  const clearDeleteFeedback = () => {
+    setCommentDeleteMessage('');
+    setCommentDeleteTone('success');
+  };
+
+  const resetCommentDeleteState = () => {
+    setDeletingCommentId(null);
+    clearDeleteFeedback();
+  };
+
+  const beginDelete = (commentId: number) => {
+    clearDeleteFeedback();
+    setDeletingCommentId(commentId);
+  };
+
+  const cancelDelete = () => {
+    resetCommentDeleteState();
+  };
+
+  const confirmDelete = async (comment: MainPostComment) => {
     try {
       await deleteCommentMutation.mutateAsync({ postId: comment.postId, commentId: comment.id });
       setDeletingCommentId(null);
@@ -42,17 +61,13 @@ export const useDeleteCommentAction = ({
 
   return {
     deletingCommentId,
-    setDeletingCommentId,
-    handleCommentDelete,
+    beginDelete,
+    cancelDelete,
+    confirmDelete,
     commentDeleteMessage,
-    setCommentDeleteMessage,
     commentDeleteTone,
-    setCommentDeleteTone,
+    clearDeleteFeedback,
     isCommentDeletePending: deleteCommentMutation.isPending,
-    resetCommentDeleteState: () => {
-      setDeletingCommentId(null);
-      setCommentDeleteMessage('');
-      setCommentDeleteTone('success');
-    },
+    resetCommentDeleteState,
   };
 };

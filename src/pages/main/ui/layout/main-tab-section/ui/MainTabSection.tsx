@@ -1,9 +1,10 @@
 import { Plus } from 'lucide-react';
+import type { PostSyncRequest } from '@/entities/post';
 import type { MainTab } from '@/pages/main/ui/layout/main-tabs';
-import LunchSection from '@/pages/main/ui/lunch';
-import RankingSection from '@/pages/main/ui/ranking';
-import PostSection, { type PostSyncRequest } from '@/pages/main/ui/post';
-import RoomSection from '@/pages/main/ui/room';
+import LunchSection from '@/widgets/lunch-section';
+import PostSection from '@/widgets/post-section';
+import RankingSection from '@/widgets/ranking-section';
+import RoomSection from '@/widgets/room-section';
 
 interface MainTabSectionProps {
   activeTab: MainTab;
@@ -21,6 +22,13 @@ const tabDescriptionMap: Record<MainTab, string> = {
   POST: '자유게시판에서 점심메이트와 가볍게 소통해보세요.',
 };
 
+const tabTitleMap: Record<MainTab, string> = {
+  ROOM: '점심 방 둘러보기',
+  LUNCH: '오늘의 학식 메뉴',
+  RANKING: '지금 인기 있는 메뉴',
+  POST: '자유게시판',
+};
+
 const MainTabSection = ({
   activeTab,
   onCreateRoomClick,
@@ -36,15 +44,7 @@ const MainTabSection = ({
     <section className="space-y-4 md:space-y-5">
       <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:flex-row md:items-center md:justify-between md:px-6">
         <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.03em] text-slate-900">
-            {isRoomTab
-              ? '점심 방 둘러보기'
-              : activeTab === 'LUNCH'
-                ? '오늘의 학식 메뉴'
-                : activeTab === 'RANKING'
-                  ? '지금 인기 있는 메뉴'
-                  : '자유게시판'}
-          </h2>
+          <h2 className="text-[22px] font-bold tracking-[-0.03em] text-slate-900">{tabTitleMap[activeTab]}</h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">{tabDescriptionMap[activeTab]}</p>
         </div>
 

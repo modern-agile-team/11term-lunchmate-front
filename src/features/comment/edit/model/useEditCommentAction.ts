@@ -23,7 +23,32 @@ export const useEditCommentAction = ({
       updateComment(payload.postId, payload.commentId, { content: payload.content }),
   });
 
-  const handleCommentUpdate = async (comment: MainPostComment) => {
+  const clearEditFeedback = () => {
+    setCommentEditMessage('');
+    setCommentEditTone('success');
+  };
+
+  const resetCommentEditState = () => {
+    setEditingCommentId(null);
+    setEditingCommentValue('');
+    clearEditFeedback();
+  };
+
+  const beginEdit = (comment: MainPostComment) => {
+    clearEditFeedback();
+    setEditingCommentId(comment.id);
+    setEditingCommentValue(comment.content);
+  };
+
+  const changeEditValue = (value: string) => {
+    setEditingCommentValue(value);
+  };
+
+  const cancelEdit = () => {
+    resetCommentEditState();
+  };
+
+  const submitEdit = async (comment: MainPostComment) => {
     const trimmedContent = editingCommentValue.trim();
     if (trimmedContent === '') {
       setCommentEditMessage('댓글 내용을 다시 확인해주세요.');
@@ -55,20 +80,15 @@ export const useEditCommentAction = ({
 
   return {
     editingCommentId,
-    setEditingCommentId,
     editingCommentValue,
-    setEditingCommentValue,
-    handleCommentUpdate,
+    beginEdit,
+    changeEditValue,
+    cancelEdit,
+    submitEdit,
     commentEditMessage,
-    setCommentEditMessage,
     commentEditTone,
-    setCommentEditTone,
+    clearEditFeedback,
     isCommentUpdatePending: updateCommentMutation.isPending,
-    resetCommentEditState: () => {
-      setEditingCommentId(null);
-      setEditingCommentValue('');
-      setCommentEditMessage('');
-      setCommentEditTone('success');
-    },
+    resetCommentEditState,
   };
 };

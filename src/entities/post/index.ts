@@ -18,6 +18,8 @@ export { postInfiniteListQueryOptions, postListQueryOptions } from './api/postLi
 export { postQueryKeys } from './api/postQueryKeys';
 export type { MainPostCategory, MainPostDetail, MainPostItem, PostSyncRequest } from './model/mainPost';
 export { postCategoryIdLabelMap, postCategoryIdMap, postCategoryOptions } from './model/postCategory';
+export { invalidatePostCaches, syncEditedPost } from './model/postCache';
+export { POST_LIST_DEFAULT_PAGE, POST_LIST_DEFAULT_SIZE } from './model/constants';
 export {
   isInfinitePostListData,
   toMainPostDetail,
@@ -26,3 +28,4 @@ export {
   toPostCategory,
   toPostSummary,
 } from './model/postMappers';
+export { default as PostCategoryBadge } from './ui/PostCategoryBadge';

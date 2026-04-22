@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PostSyncRequest } from '../ui/post';
+import type { PostSyncRequest } from '@/entities/post';
 import type { MainTab } from '../ui/layout/main-tabs';
 
 export const useMainPage = () => {
@@ -10,15 +10,21 @@ export const useMainPage = () => {
   const [postSyncRequest, setPostSyncRequest] = useState<PostSyncRequest | null>(null);
 
   return {
-    isLoginModalOpen,
-    setIsLoginModalOpen,
-    activeTab,
-    setActiveTab,
-    isCreateRoomModalOpen,
-    setIsCreateRoomModalOpen,
-    isCreatePostModalOpen,
-    setIsCreatePostModalOpen,
-    postSyncRequest,
-    setPostSyncRequest,
+    dialogs: {
+      isLoginModalOpen,
+      setIsLoginModalOpen,
+      isCreateRoomModalOpen,
+      setIsCreateRoomModalOpen,
+      isCreatePostModalOpen,
+      setIsCreatePostModalOpen,
+    },
+    tabs: {
+      activeTab,
+      setActiveTab,
+    },
+    postSync: {
+      postSyncRequest,
+      setPostSyncRequest,
+    },
   };
 };

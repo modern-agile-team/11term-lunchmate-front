@@ -5,9 +5,10 @@ import {
   isInfinitePostListData,
   postQueryKeys,
   type GetPostsResponse,
+  type MainPostDetail,
+  type MainPostItem,
 } from '@/entities/post';
 import { getApiMessage } from '@/shared/lib/api/getApiMessage';
-import type { MainPostDetail, MainPostItem } from '@/pages/main/ui/post/model/types';
 import { deletePost } from '../api';
 
 interface UseDeletePostActionParams {

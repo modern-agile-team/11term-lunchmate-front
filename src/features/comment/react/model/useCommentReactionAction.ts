@@ -1,10 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { useState } from 'react';
 import { isAuthenticated } from '@/shared/lib/auth/session';
 import { getApiMessage } from '@/shared/lib/api/getApiMessage';
 import type { MainPostComment } from '@/entities/comment';
 import { dislikeComment, likeComment } from '../api';
+import { useCommentReactionState } from './useCommentReactionState';
 
 interface UseCommentReactionActionParams {
   onRequireLogin: () => void;
@@ -15,12 +15,7 @@ export const useCommentReactionAction = ({
   onRequireLogin,
   invalidateCommentCaches,
 }: UseCommentReactionActionParams) => {
-  const [commentLikeMessage, setCommentLikeMessage] = useState('');
-  const [commentLikeTone, setCommentLikeTone] = useState<'success' | 'error'>('success');
-  const [likingCommentId, setLikingCommentId] = useState<number | null>(null);
-  const [commentDislikeMessage, setCommentDislikeMessage] = useState('');
-  const [commentDislikeTone, setCommentDislikeTone] = useState<'success' | 'error'>('success');
-  const [dislikingCommentId, setDislikingCommentId] = useState<number | null>(null);
+  const reactionState = useCommentReactionState();
   const likeCommentMutation = useMutation({
     mutationFn: ({ postId, commentId }: { postId: number; commentId: number }) =>
       likeComment(postId, commentId),
@@ -33,11 +28,11 @@ export const useCommentReactionAction = ({
   const handleCommentReaction = async (comment: MainPostComment, type: 'like' | 'dislike') => {
     if (!isAuthenticated()) {
       if (type === 'like') {
-        setCommentLikeMessage('로그인 후 댓글을 좋아요할 수 있어요.');
-        setCommentLikeTone('error');
+        reactionState.setCommentLikeMessage('로그인 후 댓글을 좋아요할 수 있어요.');
+        reactionState.setCommentLikeTone('error');
       } else {
-        setCommentDislikeMessage('로그인 후 댓글을 싫어요할 수 있어요.');
-        setCommentDislikeTone('error');
+        reactionState.setCommentDislikeMessage('로그인 후 댓글을 싫어요할 수 있어요.');
+        reactionState.setCommentDislikeTone('error');
       }
       onRequireLogin();
       return;
@@ -45,10 +40,10 @@ export const useCommentReactionAction = ({
 
     try {
       if (type === 'like') {
-        setLikingCommentId(comment.id);
+        reactionState.setLikingCommentId(comment.id);
         await likeCommentMutation.mutateAsync({ postId: comment.postId, commentId: comment.id });
       } else {
-        setDislikingCommentId(comment.id);
+        reactionState.setDislikingCommentId(comment.id);
         await dislikeCommentMutation.mutateAsync({
           postId: comment.postId,
           commentId: comment.id,
@@ -57,45 +52,42 @@ export const useCommentReactionAction = ({
       await invalidateCommentCaches(comment.postId);
     } catch (error) {
       if (type === 'like') {
-        setCommentLikeTone('error');
+        reactionState.setCommentLikeTone('error');
         if (isAxiosError(error) && error.response?.status === 401) {
-          setCommentLikeMessage('로그인 후 이용할 수 있어요.');
+          reactionState.setCommentLikeMessage('로그인 후 이용할 수 있어요.');
           onRequireLogin();
           return;
         }
-        setCommentLikeMessage(getApiMessage(error, '댓글 좋아요를 반영하지 못했어요.'));
+        reactionState.setCommentLikeMessage(
+          getApiMessage(error, '댓글 좋아요를 반영하지 못했어요.'),
+        );
       } else {
-        setCommentDislikeTone('error');
+        reactionState.setCommentDislikeTone('error');
         if (isAxiosError(error) && error.response?.status === 401) {
-          setCommentDislikeMessage('로그인 후 이용할 수 있어요.');
+          reactionState.setCommentDislikeMessage('로그인 후 이용할 수 있어요.');
           onRequireLogin();
           return;
         }
-        setCommentDislikeMessage(getApiMessage(error, '댓글 싫어요를 반영하지 못했어요.'));
+        reactionState.setCommentDislikeMessage(
+          getApiMessage(error, '댓글 싫어요를 반영하지 못했어요.'),
+        );
       }
     } finally {
-      setLikingCommentId(null);
-      setDislikingCommentId(null);
+      reactionState.setLikingCommentId(null);
+      reactionState.setDislikingCommentId(null);
     }
   };
 
   return {
     handleCommentReaction,
-    likingCommentId,
-    dislikingCommentId,
-    commentLikeMessage,
-    commentLikeTone,
-    commentDislikeMessage,
-    commentDislikeTone,
+    likingCommentId: reactionState.likingCommentId,
+    dislikingCommentId: reactionState.dislikingCommentId,
+    commentLikeMessage: reactionState.commentLikeMessage,
+    commentLikeTone: reactionState.commentLikeTone,
+    commentDislikeMessage: reactionState.commentDislikeMessage,
+    commentDislikeTone: reactionState.commentDislikeTone,
     isCommentLikePending: likeCommentMutation.isPending,
     isCommentDislikePending: dislikeCommentMutation.isPending,
-    resetCommentReactionsState: () => {
-      setCommentLikeMessage('');
-      setCommentLikeTone('success');
-      setLikingCommentId(null);
-      setCommentDislikeMessage('');
-      setCommentDislikeTone('success');
-      setDislikingCommentId(null);
-    },
+    resetCommentReactionsState: reactionState.resetCommentReactionsState,
   };
 };

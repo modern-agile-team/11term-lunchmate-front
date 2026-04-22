@@ -1,5 +1,5 @@
 import AppHeader from '@/widgets/app-header';
-import ProfileEditorSection from './profile';
+import ProfileEditorSection from '../sections/profile-editor';
 
 const ProfilePage = () => (
   <div className="min-h-screen bg-slate-50">
