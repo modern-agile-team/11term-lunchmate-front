@@ -1,6 +1,6 @@
 import { RouterProvider } from 'react-router';
 
-import AuthSessionBootstrap from './authSessionBootstrap';
+import AuthSessionBootstrap from './providers/AuthSessionBootstrap';
 import QueryProvider from './queryProvider';
 import router from './router';
 
