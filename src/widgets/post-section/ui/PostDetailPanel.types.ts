@@ -1,11 +1,10 @@
-import type { MainPostDetail, PostDetailResponse } from '@/entities/post';
+import type { MainPostDetail } from '@/entities/post';
 import type { PostCommentSectionState } from '../comment/model/types';
 
 export interface PostDetailQueryState {
   isLoading: boolean;
   isError: boolean;
   error: unknown;
-  data?: PostDetailResponse;
 }
 
 export interface PostDetailPanelDetailState {

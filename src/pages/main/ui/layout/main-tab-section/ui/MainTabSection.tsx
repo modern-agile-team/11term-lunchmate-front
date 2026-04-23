@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import type { PostSyncRequest } from '@/entities/post';
-import type { MainTab } from '@/pages/main/ui/layout/main-tabs';
+import type { MainTab } from '../../main-tabs/model/types';
 import LunchSection from '@/widgets/lunch-section';
 import PostSection from '@/widgets/post-section';
 import RankingSection from '@/widgets/ranking-section';

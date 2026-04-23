@@ -14,51 +14,71 @@ interface CommentItemProps {
 }
 
 const CommentItem = ({ comment, state, actions }: CommentItemProps) => {
-  const isEditing = state.editingCommentId === comment.id;
-  const isDeleting = state.deletingCommentId === comment.id;
-  const isLiking = state.likingCommentId === comment.id;
-  const isDisliking = state.dislikingCommentId === comment.id;
+  const itemViewState = {
+    isEditing: state.editingCommentId === comment.id,
+    isDeleting: state.deletingCommentId === comment.id,
+    isLiking: state.likingCommentId === comment.id,
+    isDisliking: state.dislikingCommentId === comment.id,
+    editingCommentValue: state.editingCommentValue,
+    editMessage: state.editMessage,
+    editTone: state.editTone,
+    deleteMessage: state.deleteMessage,
+    deleteTone: state.deleteTone,
+  };
+  const itemActions = {
+    onEditingChange: actions.onEditingChange,
+    onEditStart: () => actions.onEditStart(comment),
+    onEditCancel: actions.onEditCancel,
+    onEditSubmit: () => actions.onEditSubmit(comment),
+    onDeleteStart: () => actions.onDeleteStart(comment.id),
+    onDeleteCancel: actions.onDeleteCancel,
+    onDeleteConfirm: () => actions.onDeleteConfirm(comment),
+    onLike: () => actions.onLike(comment),
+    onDislike: () => actions.onDislike(comment),
+  };
 
   return (
     <article className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
       <CommentItemHeader
         comment={comment}
-        onEditStart={actions.onEditStart}
-        onDeleteStart={actions.onDeleteStart}
+        onEditStart={itemActions.onEditStart}
+        onDeleteStart={itemActions.onDeleteStart}
       />
 
-      {isEditing ? (
+      {itemViewState.isEditing ? (
         <CommentItemEditor
-          comment={comment}
-          editingCommentValue={state.editingCommentValue}
-          onEditingChange={actions.onEditingChange}
-          onEditCancel={actions.onEditCancel}
-          onEditSubmit={actions.onEditSubmit}
+          editingCommentValue={itemViewState.editingCommentValue}
+          onEditingChange={itemActions.onEditingChange}
+          onEditCancel={itemActions.onEditCancel}
+          onEditSubmit={itemActions.onEditSubmit}
         />
       ) : (
         <CommentItemBody comment={comment} />
       )}
 
-      {isEditing && state.editMessage ? (
-        <CommentActionMessage message={state.editMessage} tone={state.editTone} />
+      {itemViewState.isEditing && itemViewState.editMessage ? (
+        <CommentActionMessage message={itemViewState.editMessage} tone={itemViewState.editTone} />
       ) : null}
-      {isDeleting && state.deleteMessage ? (
-        <CommentActionMessage message={state.deleteMessage} tone={state.deleteTone} />
+      {itemViewState.isDeleting && itemViewState.deleteMessage ? (
+        <CommentActionMessage
+          message={itemViewState.deleteMessage}
+          tone={itemViewState.deleteTone}
+        />
       ) : null}
 
-      {isDeleting ? (
+      {itemViewState.isDeleting ? (
         <CommentDeleteConfirm
-          onCancel={actions.onDeleteCancel}
-          onConfirm={() => actions.onDeleteConfirm(comment)}
+          onCancel={itemActions.onDeleteCancel}
+          onConfirm={itemActions.onDeleteConfirm}
         />
       ) : null}
 
       <CommentItemReactionBar
         comment={comment}
-        isLiking={isLiking}
-        isDisliking={isDisliking}
-        onLike={actions.onLike}
-        onDislike={actions.onDislike}
+        isLiking={itemViewState.isLiking}
+        isDisliking={itemViewState.isDisliking}
+        onLike={itemActions.onLike}
+        onDislike={itemActions.onDislike}
       />
     </article>
   );

@@ -6,8 +6,8 @@ interface CommentItemReactionBarProps {
   comment: MainPostComment;
   isLiking: boolean;
   isDisliking: boolean;
-  onLike: (comment: MainPostComment) => void;
-  onDislike: (comment: MainPostComment) => void;
+  onLike: () => void;
+  onDislike: () => void;
 }
 
 const CommentItemReactionBar = ({
@@ -20,7 +20,7 @@ const CommentItemReactionBar = ({
   <div className="mt-4 flex items-center gap-3">
     <button
       type="button"
-      onClick={() => onLike(comment)}
+      onClick={onLike}
       disabled={isLiking}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-medium transition',
@@ -34,7 +34,7 @@ const CommentItemReactionBar = ({
     </button>
     <button
       type="button"
-      onClick={() => onDislike(comment)}
+      onClick={onDislike}
       disabled={isDisliking}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-medium transition',

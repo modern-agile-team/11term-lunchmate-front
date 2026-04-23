@@ -1,8 +1,8 @@
 import { Eye } from 'lucide-react';
 import { useId } from 'react';
 import { useForm } from 'react-hook-form';
-import AuthField from '@/features/auth/ui/AuthField';
-import AuthSubmitButton from '@/features/auth/ui/AuthSubmitButton';
+import AuthField from '@/shared/ui/auth/AuthField';
+import AuthSubmitButton from '@/shared/ui/auth/AuthSubmitButton';
 
 interface SignInFormProps {
   onSuccess: () => void;
