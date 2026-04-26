@@ -1,1 +1,1 @@
-export { default } from './ui/AuthDialog';
+export { default } from '@/widgets/app-header/ui/modalLayout';

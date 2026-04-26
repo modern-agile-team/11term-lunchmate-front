@@ -6,15 +6,11 @@ import MainPageDialogs from './MainPageDialogs';
 import { useMainPage } from '../model/useMainPage';
 
 const MainPage = () => {
-  const {
-    dialogs,
-    tabs,
-    postSync,
-  } = useMainPage();
+  const { dialogs, tabs, postSync } = useMainPage();
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <AppHeader onLoginClick={() => dialogs.setIsLoginModalOpen(true)} />
+      <AppHeader onLoginClick={(): void => dialogs.setIsLoginModalOpen(true)} />
 
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 py-6 md:gap-5 md:px-8 md:py-8">
         <MainHero />
