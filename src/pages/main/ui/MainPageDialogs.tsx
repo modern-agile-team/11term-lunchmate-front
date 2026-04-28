@@ -2,7 +2,6 @@ import type { PostSyncRequest } from '@/entities/post';
 import PostEditorModal from '@/features/post/editor';
 import RoomEditorModal from '@/features/room/editor';
 import AuthDialog from '@/widgets/auth-dialog';
-
 interface MainPageDialogsProps {
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (isOpen: boolean) => void;
