@@ -5,10 +5,7 @@ import type {
   RoomDetailResponse,
   RoomListItemResponse,
 } from '@/entities/room';
-import type {
-  GetCommentsResponse,
-  CommentListItemResponse,
-} from '@/entities/comment/model/types';
+import type { GetCommentsResponse, CommentListItemResponse } from '@/entities/comment/model/types';
 import type {
   GetPostsResponse,
   PostDetailResponse,
@@ -216,7 +213,7 @@ export const handlers = [
 
   http.patch('/api/v1/users/me/profile', async ({ request }) => {
     await wait();
-    const payload = await request.json() as Partial<GetMyProfileResponse>;
+    const payload = (await request.json()) as Partial<GetMyProfileResponse>;
     profile = { ...profile, ...payload };
     return HttpResponse.json(profile);
   }),
@@ -249,7 +246,7 @@ export const handlers = [
 
   http.post('/api/v1/rooms', async ({ request }) => {
     await wait();
-    const payload = await request.json() as Partial<RoomDetailResponse>;
+    const payload = (await request.json()) as Partial<RoomDetailResponse>;
     const nextRoom: RoomDetailResponse = {
       id: Math.max(0, ...rooms.map((room) => room.id)) + 1,
       hostUserId: currentUserId,
@@ -324,8 +321,8 @@ export const handlers = [
   http.patch('/api/v1/rooms/:roomId', async ({ params, request }) => {
     await wait();
     const roomId = Number(params.roomId);
-    const payload = await request.json() as Partial<RoomDetailResponse>;
-    rooms = rooms.map((room) => room.id === roomId ? { ...room, ...payload } : room);
+    const payload = (await request.json()) as Partial<RoomDetailResponse>;
+    rooms = rooms.map((room) => (room.id === roomId ? { ...room, ...payload } : room));
     return HttpResponse.json(getRoom(roomId));
   }),
 
@@ -364,7 +361,7 @@ export const handlers = [
 
   http.post('/api/v1/posts', async ({ request }) => {
     await wait();
-    const payload = await request.json() as Partial<PostDetailResponse>;
+    const payload = (await request.json()) as Partial<PostDetailResponse>;
     const post: PostDetailResponse = {
       id: Math.max(0, ...posts.map((item) => item.id)) + 1,
       userId: currentUserId,
@@ -401,7 +398,7 @@ export const handlers = [
   http.post('/api/v1/posts/:postId/comments', async ({ params, request }) => {
     await wait();
     const postId = Number(params.postId);
-    const payload = await request.json() as { content?: string };
+    const payload = (await request.json()) as { content?: string };
     const comment: CommentListItemResponse = {
       id: Math.max(0, ...comments.map((item) => item.id)) + 1,
       postId,
@@ -430,8 +427,8 @@ export const handlers = [
   http.patch('/api/v1/posts/:postId', async ({ params, request }) => {
     await wait();
     const postId = Number(params.postId);
-    const payload = await request.json() as Partial<PostDetailResponse>;
-    posts = posts.map((post) => post.id === postId ? { ...post, ...payload } : post);
+    const payload = (await request.json()) as Partial<PostDetailResponse>;
+    posts = posts.map((post) => (post.id === postId ? { ...post, ...payload } : post));
     return HttpResponse.json(posts.find((post) => post.id === postId));
   }),
 
@@ -464,9 +461,11 @@ export const handlers = [
   http.patch('/api/v1/posts/:postId/comments/:commentId', async ({ params, request }) => {
     await wait();
     const commentId = Number(params.commentId);
-    const payload = await request.json() as { content?: string };
+    const payload = (await request.json()) as { content?: string };
     comments = comments.map((comment) =>
-      comment.id === commentId ? { ...comment, content: payload.content ?? comment.content } : comment,
+      comment.id === commentId
+        ? { ...comment, content: payload.content ?? comment.content }
+        : comment,
     );
     return HttpResponse.json(comments.find((comment) => comment.id === commentId));
   }),
@@ -493,5 +492,29 @@ export const handlers = [
     comment.disliked = !comment.disliked;
     comment.dislikeCount = Math.max(0, (comment.dislikeCount ?? 0) + (comment.disliked ? 1 : -1));
     return HttpResponse.json({ disliked: comment.disliked, dislikeCount: comment.dislikeCount });
+  }),
+  http.post('/api/v1/auth/login', async () => {
+    return HttpResponse.json(
+      {
+        user: {
+          id: 1,
+          name: 'dd',
+          nickname: 'dd',
+          profileImage: 'https://via.placeholder.com/150',
+        },
+        accessToken: 'mock-access-token-12345',
+        refreshToken: 'mock-refresh-token-67890',
+      },
+      { status: 200 },
+    );
+  }),
+
+  http.get('/api/v1/users/me', () => {
+    return HttpResponse.json({
+      id: 1,
+      name: 'dd',
+      email: 'example@email.com',
+      nickname: 'dd',
+    });
   }),
 ];
