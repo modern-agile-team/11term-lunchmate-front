@@ -27,7 +27,7 @@ const LoginForm = () => {
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (loginData: LoginInput) => {
       const response = await client.post('/api/v1/auth/login', loginData);
-      return response.data; // { user, accessToken, refreshToken }
+      return response.data;
     },
     onSuccess: (data) => {
       setAuthAccessToken(data.accessToken);

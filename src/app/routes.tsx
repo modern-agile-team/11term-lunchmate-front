@@ -1,6 +1,5 @@
 import MainPage from '@/pages/main';
-import ProfilePage from '@/pages/profile';
-import LoginPage from '@/pages/profile/ui/LoginPage';
+import { LoginPage, ProfilePage } from '@/pages/profile';
 
 const routes = [
   {
@@ -12,7 +11,7 @@ const routes = [
     element: <ProfilePage />,
   },
   {
-    path: '/profile/ui/login',
+    path: '/login',
     element: <LoginPage />,
   },
 ];
