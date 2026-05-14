@@ -12,4 +12,6 @@ export interface MainLunchMenu {
   spicyLevel: '순한맛' | '보통맛' | '매운맛';
   likedCount: number;
   dislikedCount: number;
+  likedByMe?: boolean;
+  dislikedByMe?: boolean;
 }

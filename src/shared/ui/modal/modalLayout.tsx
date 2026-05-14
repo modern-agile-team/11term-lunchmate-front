@@ -12,7 +12,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
 
   const handleLoginClick = () => {
     onClose();
-    navigate('/profile/ui/login');
+    navigate('/login');
   };
 
   return (

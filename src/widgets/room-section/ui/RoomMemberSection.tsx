@@ -31,13 +31,42 @@ const RoomMemberSection = ({
     ) : null}
     {!roomMembersQuery.isLoading && !roomMembersQuery.isError
       ? roomMembers.map((member) => (
-          <div key={member.userId} className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
-            <span className="text-sm font-medium text-slate-700">{member.nickname}</span>
+          <div
+            key={member.userId}
+            className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 px-4 py-4"
+          >
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100">
+                {member.profileImageUrl ? (
+                  <img
+                    src={member.profileImageUrl}
+                    alt={`${member.nickname} profile`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-semibold text-slate-500">
+                    {member.nickname.charAt(0)}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-800">{member.nickname}</span>
+                  <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-700">
+                    {member.mbti}
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                    {member.age}세
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-sm text-slate-500">{member.schoolName}</p>
+              </div>
+            </div>
             {isHostUser && currentUserId !== member.userId ? (
               <button
                 type="button"
                 onClick={() => void onKickMember(member.userId)}
-                className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
+                className="shrink-0 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
               >
                 강퇴
               </button>

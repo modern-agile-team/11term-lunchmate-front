@@ -11,17 +11,185 @@ import type {
   PostDetailResponse,
   PostListItemResponse,
 } from '@/entities/post/model/types';
-import type { GetMyProfileResponse } from '@/entities/user';
+import type {
+  DeleteMyUserResponse,
+  Gender,
+  GetMyProfileResponse,
+  GetMyUserResponse,
+  LoginRequest,
+  LoginResponse,
+  LogoutResponse,
+  UpdateMyUserRequest,
+} from '@/entities/user';
+import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
 
 const currentUserId = 1;
+const MOCK_ACCESS_TOKEN = 'mock-access-token-12345';
+const MOCK_REFRESH_TOKEN = 'mock-refresh-token-67890';
+let isAccountDeleted = false;
+
+let currentUser: GetMyUserResponse = {
+  id: 1,
+  name: '홍길동',
+  email: 'hong@example.com',
+  nickname: '점심대장',
+  profileImageUrl: '',
+  mbti: 'ENFP',
+  introduce: '오늘도 같이 먹을 사람을 찾고 있어요.',
+  birthDate: '2000-05-15',
+  gender: 'ANY',
+  createdAt: '2025-03-01T09:00:00.000Z',
+};
 
 let profile: GetMyProfileResponse = {
-  name: '홍길동',
-  nickname: '점심대장',
-  introduce: '오늘도 같이 먹을 사람을 찾고 있어요.',
-  mbti: 'ENFP',
-  profileImageUrl: '',
+  name: currentUser.name,
+  nickname: currentUser.nickname,
+  introduce: currentUser.introduce,
+  mbti: currentUser.mbti || 'ENFP',
+  profileImageUrl: currentUser.profileImageUrl,
 };
+
+const mockUsers: GetMyUserResponse[] = [
+  currentUser,
+  {
+    id: 2,
+    name: '김대건',
+    email: 'daegeon@example.com',
+    nickname: '든든한밥친구',
+    profileImageUrl: '',
+    mbti: 'ISTJ',
+    introduce: '학생회관 맛집 위주로 다녀요.',
+    birthDate: '1999-11-20',
+    gender: 'MALE',
+    createdAt: '2025-03-10T09:00:00.000Z',
+  },
+  {
+    id: 3,
+    name: '이수진',
+    email: 'sujin@example.com',
+    nickname: '도서관러',
+    profileImageUrl: '',
+    mbti: 'INTP',
+    introduce: '조용한 점심 좋아해요.',
+    birthDate: '2001-08-02',
+    gender: 'FEMALE',
+    createdAt: '2025-03-12T09:00:00.000Z',
+  },
+  {
+    id: 4,
+    name: '박민호',
+    email: 'minho@example.com',
+    nickname: '제육파',
+    profileImageUrl: '',
+    mbti: 'ESTP',
+    introduce: '매운 음식 환영!',
+    birthDate: '1998-01-09',
+    gender: 'MALE',
+    createdAt: '2025-03-20T09:00:00.000Z',
+  },
+];
+
+const memberMetaByUserId: Record<
+  number,
+  {
+    nickname: string;
+    mbti: string;
+    profileImageUrl: string;
+    schoolName: string;
+    age: number;
+  }
+> = {
+  1: {
+    nickname: '점심대장',
+    mbti: 'ENFP',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 컴퓨터공학과',
+    age: 25,
+  },
+  2: {
+    nickname: '든든한밥친구',
+    mbti: 'ISTJ',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 경영학과',
+    age: 26,
+  },
+  3: {
+    nickname: '도서관러',
+    mbti: 'INTP',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 국어국문학과',
+    age: 24,
+  },
+  4: {
+    nickname: '파스타좋아',
+    mbti: 'ESFP',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 시각디자인학과',
+    age: 23,
+  },
+  5: {
+    nickname: '새내기',
+    mbti: 'ISFJ',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 생명과학과',
+    age: 20,
+  },
+  6: {
+    nickname: '소스추가',
+    mbti: 'ENTJ',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 화학과',
+    age: 22,
+  },
+  7: {
+    nickname: '공대생',
+    mbti: 'ISTP',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1502767089025-6572583495b0?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 기계공학과',
+    age: 27,
+  },
+  8: {
+    nickname: '제육파',
+    mbti: 'ESTP',
+    profileImageUrl:
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=300&q=80',
+    schoolName: '한국대학교 전자공학과',
+    age: 28,
+  },
+};
+
+let friendIds = [2];
+let friendRequests = [
+  {
+    id: 1,
+    fromUserId: 3,
+    toUserId: 1,
+    senderNickname: '도서관러',
+    receiverNickname: '점심대장',
+    message: '도서관 근처에서 자주 점심 드시면 친구해요.',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    direction: 'INCOMING' as const,
+    status: 'PENDING' as const,
+  },
+  {
+    id: 2,
+    fromUserId: 1,
+    toUserId: 4,
+    senderNickname: '점심대장',
+    receiverNickname: '제육파',
+    message: '다음에 제육 같이 먹어요.',
+    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    direction: 'OUTGOING' as const,
+    status: 'PENDING' as const,
+  },
+];
 
 let rooms: RoomDetailResponse[] = [
   {
@@ -83,20 +251,10 @@ let rooms: RoomDetailResponse[] = [
 ];
 
 const membersByRoomId: Record<number, GetRoomMembersResponse['items']> = {
-  1: [
-    { userId: 1, nickname: '점심대장' },
-    { userId: 2, nickname: '든든한밥친구' },
-  ],
-  2: [{ userId: 3, nickname: '도서관러' }],
-  3: [
-    { userId: 4, nickname: '파스타좋아' },
-    { userId: 5, nickname: '새내기' },
-    { userId: 6, nickname: '소스추가' },
-  ],
-  4: [
-    { userId: 7, nickname: '공대생' },
-    { userId: 8, nickname: '제육파' },
-  ],
+  1: [toRoomMember(1), toRoomMember(2)],
+  2: [toRoomMember(3)],
+  3: [toRoomMember(4), toRoomMember(5), toRoomMember(6)],
+  4: [toRoomMember(7), toRoomMember(8)],
 };
 
 let posts: PostDetailResponse[] = [
@@ -172,6 +330,50 @@ let comments: CommentListItemResponse[] = [
 
 const wait = () => delay(250);
 
+const isAuthorized = (request: Request) =>
+  request.headers.get('Authorization') === `Bearer ${MOCK_ACCESS_TOKEN}` && !isAccountDeleted;
+
+const unauthorizedResponse = () =>
+  HttpResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
+
+const findUserById = (userId: number) => mockUsers.find((user) => user.id === userId);
+
+function toRoomMember(userId: number): GetRoomMembersResponse['items'][number] {
+  const memberMeta = memberMetaByUserId[userId];
+
+  return {
+    userId,
+    nickname: memberMeta?.nickname ?? `사용자${userId}`,
+    mbti: memberMeta?.mbti ?? '미설정',
+    profileImageUrl: memberMeta?.profileImageUrl ?? '',
+    schoolName: memberMeta?.schoolName ?? '학교 정보 미등록',
+    age: memberMeta?.age ?? 0,
+  };
+}
+
+const syncCurrentUserProfile = () => {
+  currentUser = {
+    ...currentUser,
+    name: profile.name,
+    nickname: profile.nickname,
+    profileImageUrl: profile.profileImageUrl,
+    introduce: profile.introduce,
+    mbti: profile.mbti,
+  };
+
+  const userIndex = mockUsers.findIndex((user) => user.id === currentUser.id);
+  if (userIndex >= 0) {
+    mockUsers[userIndex] = currentUser;
+  }
+
+  memberMetaByUserId[currentUser.id] = {
+    ...memberMetaByUserId[currentUser.id],
+    nickname: profile.nickname,
+    mbti: profile.mbti,
+    profileImageUrl: profile.profileImageUrl,
+  };
+};
+
 const toRoomListItem = (room: RoomDetailResponse): RoomListItemResponse => ({
   id: room.id,
   title: room.title,
@@ -201,21 +403,215 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => ({
 });
 
 export const handlers = [
-  http.get('/api/v1/users/me', async () => {
+  http.post('/api/v1/auth/login', async ({ request }) => {
     await wait();
-    return HttpResponse.json({ id: currentUserId });
+    if (isAccountDeleted) {
+      return HttpResponse.json({ message: '탈퇴한 계정입니다.' }, { status: 410 });
+    }
+
+    const payload = (await request.json()) as LoginRequest;
+
+    if (!payload.email?.trim() || !payload.password?.trim()) {
+      return HttpResponse.json({ message: '이메일 또는 비밀번호가 필요합니다.' }, { status: 401 });
+    }
+
+    return HttpResponse.json<LoginResponse>({
+      user: currentUser,
+      accessToken: MOCK_ACCESS_TOKEN,
+      refreshToken: MOCK_REFRESH_TOKEN,
+    });
   }),
 
-  http.get('/api/v1/users/me/profile', async () => {
+  http.post('/api/v1/auth/logout', async ({ request }) => {
     await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    return HttpResponse.json<LogoutResponse>({
+      message: '로그아웃되었습니다.',
+    });
+  }),
+
+  http.get('/api/v1/users/me', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    return HttpResponse.json<GetMyUserResponse>(currentUser);
+  }),
+
+  http.patch('/api/v1/users/me', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const payload = (await request.json()) as Partial<UpdateMyUserRequest>;
+    currentUser = {
+      ...currentUser,
+      name: payload.name ?? currentUser.name,
+      email: payload.email ?? currentUser.email,
+      birthDate: payload.birthDate ?? currentUser.birthDate,
+      gender: (payload.gender as Gender | undefined) ?? currentUser.gender,
+    };
+    profile.name = currentUser.name;
+    syncCurrentUserProfile();
+
+    return HttpResponse.json<GetMyUserResponse>(currentUser);
+  }),
+
+  http.delete('/api/v1/users/me', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    isAccountDeleted = true;
+    friendIds = [];
+    friendRequests = [];
+
+    return HttpResponse.json<DeleteMyUserResponse>({
+      message: '회원탈퇴가 완료되었습니다.',
+    });
+  }),
+
+  http.get('/api/v1/users/me/profile', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
     return HttpResponse.json(profile);
   }),
 
   http.patch('/api/v1/users/me/profile', async ({ request }) => {
     await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
     const payload = (await request.json()) as Partial<GetMyProfileResponse>;
     profile = { ...profile, ...payload };
+    syncCurrentUserProfile();
     return HttpResponse.json(profile);
+  }),
+
+  http.get('/api/v1/friends', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const items = friendIds
+      .map((friendId) => findUserById(friendId))
+      .filter((friend): friend is GetMyUserResponse => Boolean(friend))
+      .map((friend) => ({
+        id: friend.id,
+        name: friend.name,
+        nickname: friend.nickname,
+        mbti: friend.mbti,
+        introduce: friend.introduce,
+        profileImageUrl: friend.profileImageUrl,
+      }));
+
+    return HttpResponse.json<GetFriendsResponse>({ items });
+  }),
+
+  http.get('/api/v1/friends/requests', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    return HttpResponse.json<GetFriendRequestsResponse>({
+      items: friendRequests,
+    });
+  }),
+
+  http.post('/api/v1/friends/requests', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const payload = (await request.json()) as { target?: string; message?: string };
+    const target = payload.target?.trim().toLowerCase();
+    const targetUser = mockUsers.find(
+      (user) =>
+        user.id !== currentUserId &&
+        (user.nickname.toLowerCase() === target || user.email.toLowerCase() === target),
+    );
+
+    if (!targetUser) {
+      return HttpResponse.json({ message: '대상 사용자를 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    const duplicated = friendRequests.some((item) => item.toUserId === targetUser.id);
+    if (duplicated || friendIds.includes(targetUser.id)) {
+      return HttpResponse.json({ message: '이미 친구 또는 신청된 사용자예요.' }, { status: 409 });
+    }
+
+    const nextRequest = {
+      id: Math.max(0, ...friendRequests.map((item) => item.id)) + 1,
+      fromUserId: currentUserId,
+      toUserId: targetUser.id,
+      senderNickname: profile.nickname,
+      receiverNickname: targetUser.nickname,
+      message: payload.message?.trim() ?? '',
+      createdAt: new Date().toISOString(),
+      direction: 'OUTGOING' as const,
+      status: 'PENDING' as const,
+    };
+
+    friendRequests = [nextRequest, ...friendRequests];
+    return HttpResponse.json(nextRequest, { status: 201 });
+  }),
+
+  http.patch('/api/v1/friends/requests/:requestId', async ({ params, request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const requestId = Number(params.requestId);
+    const payload = (await request.json()) as { accepted?: boolean };
+    const targetRequest = friendRequests.find((item) => item.id === requestId);
+
+    if (!targetRequest) {
+      return HttpResponse.json({ message: '친구 신청을 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    if (payload.accepted) {
+      friendIds = Array.from(new Set([...friendIds, targetRequest.fromUserId]));
+    }
+
+    friendRequests = friendRequests.filter((item) => item.id !== requestId);
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.delete('/api/v1/friends/requests/:requestId', async ({ params, request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    friendRequests = friendRequests.filter((item) => item.id !== Number(params.requestId));
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.delete('/api/v1/friends/:friendId', async ({ params, request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    friendIds = friendIds.filter((friendId) => friendId !== Number(params.friendId));
+
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.get('/api/v1/rooms', async ({ request }) => {
@@ -263,7 +659,7 @@ export const handlers = [
     };
 
     rooms = [nextRoom, ...rooms];
-    membersByRoomId[nextRoom.id] = [{ userId: currentUserId, nickname: profile.nickname }];
+    membersByRoomId[nextRoom.id] = [toRoomMember(currentUserId)];
 
     return HttpResponse.json(nextRoom, { status: 201 });
   }),
@@ -284,7 +680,7 @@ export const handlers = [
 
     membersByRoomId[roomId] = [
       ...(membersByRoomId[roomId] ?? []),
-      { userId: currentUserId, nickname: profile.nickname },
+      toRoomMember(currentUserId),
     ];
     room.currentMembersCount = Math.min(room.maxMembersCount, room.currentMembersCount + 1);
     room.status = room.currentMembersCount >= room.maxMembersCount ? 'FULL' : 'OPEN';
@@ -492,29 +888,5 @@ export const handlers = [
     comment.disliked = !comment.disliked;
     comment.dislikeCount = Math.max(0, (comment.dislikeCount ?? 0) + (comment.disliked ? 1 : -1));
     return HttpResponse.json({ disliked: comment.disliked, dislikeCount: comment.dislikeCount });
-  }),
-  http.post('/api/v1/auth/login', async () => {
-    return HttpResponse.json(
-      {
-        user: {
-          id: 1,
-          name: 'dd',
-          nickname: 'dd',
-          profileImage: 'https://via.placeholder.com/150',
-        },
-        accessToken: 'mock-access-token-12345',
-        refreshToken: 'mock-refresh-token-67890',
-      },
-      { status: 200 },
-    );
-  }),
-
-  http.get('/api/v1/users/me', () => {
-    return HttpResponse.json({
-      id: 1,
-      name: 'dd',
-      email: 'example@email.com',
-      nickname: 'dd',
-    });
   }),
 ];

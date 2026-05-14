@@ -1,5 +1,6 @@
 import MainPage from '@/pages/main';
-import { LoginPage, ProfilePage } from '@/pages/profile';
+import { ProfilePage } from '@/pages/profile';
+import LoginPage from '@/pages/user';
 
 const routes = [
   {

@@ -26,7 +26,7 @@ const LoginPage = () => {
             서비스 메인으로 이동
           </Link>
         </section>
-        <LoginForm />{' '}
+        <LoginForm />
       </div>
     </div>
   );

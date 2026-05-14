@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
 import { LogIn, Loader2 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { login, myProfileQueryOptions, myUserQueryOptions } from '@/entities/user';
 import { setAuthAccessToken } from '@/shared/lib/auth/session';
-import client from '@/shared/api/client';
 import axios from 'axios';
 
 interface LoginInput {
@@ -13,6 +13,7 @@ interface LoginInput {
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     handleSubmit,
     register,
@@ -25,16 +26,13 @@ const LoginForm = () => {
   });
 
   const { mutate, isPending, isError } = useMutation({
-    mutationFn: async (loginData: LoginInput) => {
-      const response = await client.post('/api/v1/auth/login', loginData);
-      return response.data;
-    },
-    onSuccess: (data) => {
+    mutationFn: login,
+    onSuccess: async (data) => {
       setAuthAccessToken(data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-
-      alert(`${data.user.nickname || data.user.name}님, 환영합니다!`);
-      navigate('/api/v1/users/me');
+      queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
+      await queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
+      navigate('/profile');
     },
     onError: (err: unknown) => {
       if (axios.isAxiosError(err)) {
