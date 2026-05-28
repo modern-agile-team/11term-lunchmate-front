@@ -1,9 +1,33 @@
+import { X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const getSocialLoginUrl = (provider: 'kakao' | 'google') => {
+  const overrideUrl =
+    provider === 'kakao'
+      ? import.meta.env.VITE_KAKAO_LOGIN_URL
+      : import.meta.env.VITE_GOOGLE_LOGIN_URL;
+
+  if (overrideUrl?.trim()) {
+    return overrideUrl;
+  }
+
+  const apiBaseUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (apiBaseUrl) {
+    return new URL(`/oauth2/authorization/${provider}`, apiBaseUrl).toString();
+  }
+
+  if (!import.meta.env.DEV) {
+    return new URL(`/oauth2/authorization/${provider}`, window.location.origin).toString();
+  }
+
+  return null;
+};
 
 function AuthDialog({ isOpen, onClose }: ModalProps) {
   const navigate = useNavigate();
@@ -13,6 +37,20 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
   const handleLoginClick = () => {
     onClose();
     navigate('/login');
+  };
+
+  const handleSocialLogin = (provider: 'kakao' | 'google') => {
+    const socialLoginUrl = getSocialLoginUrl(provider);
+
+    if (!socialLoginUrl) {
+      window.alert(
+        `${provider === 'kakao' ? '카카오' : '구글'} 로그인 URL이 설정되지 않았어요.\n.env 파일에 VITE_API_URL 또는 전용 로그인 URL을 추가해주세요.`,
+      );
+      return;
+    }
+
+    onClose();
+    window.location.assign(socialLoginUrl);
   };
 
   return (
@@ -26,17 +64,25 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
       >
         <button
           onClick={onClose}
+          aria-label="닫기"
           className="absolute top-4 right-5 text-gray-400 text-2xl hover:text-white transition-colors"
         >
-          ✕
+          <X className="h-8 w-8 stroke-[2.2]" />
         </button>
 
-        <div className="text-3xl font-extrabold tracking-tighter bg-gradient-to-b from-indigo-400 to-indigo-700 bg-clip-text text-transparent py-1">
-          점심메이트 추천
+        <div className="relative py-1">
+          <div className="absolute inset-x-3 top-3 h-4 rounded-full bg-indigo-500/25 blur-xl" />
+          <h1 className="relative text-3xl font-black tracking-[-0.08em] text-transparent bg-gradient-to-b from-[#8f95ff] via-[#6f73ff] to-[#4f46e5] bg-clip-text drop-shadow-[0_6px_18px_rgba(99,102,241,0.35)]">
+            점심메이트 추천
+          </h1>
         </div>
 
         <div className="flex flex-col gap-3 w-full">
-          <button className="h-12 w-full bg-[#FEE500] text-[#191919] rounded-xl font-bold text-[15px] flex justify-center items-center gap-2.5 transition hover:opacity-95 shadow-sm">
+          <button
+            type="button"
+            onClick={() => handleSocialLogin('kakao')}
+            className="h-12 w-full bg-[#FEE500] text-[#191919] rounded-xl font-bold text-[15px] flex justify-center items-center gap-2.5 transition hover:opacity-95 shadow-sm"
+          >
             <svg
               width="18"
               height="18"
@@ -54,7 +100,11 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
             카카오로 로그인
           </button>
 
-          <button className="h-12 w-full bg-white text-[#3c4043] rounded-xl font-bold text-[15px] border border-[#dadce0] flex justify-center items-center gap-2.5 transition hover:bg-gray-50 shadow-sm">
+          <button
+            type="button"
+            onClick={() => handleSocialLogin('google')}
+            className="h-12 w-full bg-white text-[#3c4043] rounded-xl font-bold text-[15px] border border-[#dadce0] flex justify-center items-center gap-2.5 transition hover:bg-gray-50 shadow-sm"
+          >
             <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path
                 fill="#EA4335"

@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { clearAuthSession, getAccessToken } from '@/shared/lib/auth/session';
 
+const isMockEnabled = import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCKS !== 'false';
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '',
+  baseURL: isMockEnabled ? '' : import.meta.env.VITE_API_URL || '',
   timeout: 10000,
   headers: {
     Accept: 'application/json',
