@@ -73,6 +73,10 @@ export interface RoomJoinResponse {
 export interface RoomMemberResponse {
   userId: number;
   nickname: string;
+  mbti: string;
+  profileImageUrl: string;
+  schoolName: string;
+  age: number;
 }
 
 export interface GetRoomMembersResponse {

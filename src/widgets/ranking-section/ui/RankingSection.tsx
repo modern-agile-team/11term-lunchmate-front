@@ -1,6 +1,5 @@
-import { Medal, TrendingUp } from 'lucide-react';
-
-import { mockRankings } from '../model/mockRankings';
+import { Medal, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
+import type { MainRankingItem } from '../model/types';
 
 const rankStyleMap = {
   1: 'from-amber-400 to-orange-400',
@@ -8,10 +7,14 @@ const rankStyleMap = {
   3: 'from-orange-300 to-amber-600',
 } as const;
 
-const RankingSection = () => {
+interface RankingSectionProps {
+  rankings: MainRankingItem[];
+}
+
+const RankingSection = ({ rankings }: RankingSectionProps) => {
   return (
     <section className="grid gap-4 md:gap-5">
-      {mockRankings.map((mockRanking) => (
+      {rankings.map((mockRanking) => (
         <article
           key={mockRanking.id}
           className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:p-6"
@@ -38,14 +41,24 @@ const RankingSection = () => {
             </div>
 
             <div className="rounded-2xl bg-indigo-50 px-4 py-3 text-right">
-              <div className="text-xs font-semibold text-indigo-600">좋아요</div>
-              <div className="mt-1 text-xl font-bold text-slate-900">{mockRanking.likedCount}</div>
+              <div className="text-xs font-semibold text-indigo-600">반응 점수</div>
+              <div className="mt-1 text-xl font-bold text-slate-900">{mockRanking.score}</div>
             </div>
           </div>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600">
-            <TrendingUp className="h-4 w-4 text-indigo-500" />
-            {mockRanking.changeText}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600">
+              <TrendingUp className="h-4 w-4 text-indigo-500" />
+              {mockRanking.changeText}
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700">
+              <ThumbsUp className="h-4 w-4" />
+              {mockRanking.likedCount}
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+              <ThumbsDown className="h-4 w-4" />
+              {mockRanking.dislikedCount}
+            </div>
           </div>
         </article>
       ))}

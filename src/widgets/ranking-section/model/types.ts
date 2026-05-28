@@ -5,5 +5,7 @@ export interface MainRankingItem {
   cafeteriaName: string;
   mealTime: string;
   likedCount: number;
+  dislikedCount: number;
+  score: number;
   changeText: string;
 }

@@ -8,6 +8,8 @@ export const mockRankings: MainRankingItem[] = [
     cafeteriaName: '학생식당 A',
     mealTime: '점심',
     likedCount: 132,
+    dislikedCount: 6,
+    score: 126,
     changeText: '지난주보다 2계단 상승',
   },
   {
@@ -17,6 +19,8 @@ export const mockRankings: MainRankingItem[] = [
     cafeteriaName: '학생식당 B',
     mealTime: '점심',
     likedCount: 119,
+    dislikedCount: 9,
+    score: 110,
     changeText: '지난주와 동일',
   },
   {
@@ -26,6 +30,8 @@ export const mockRankings: MainRankingItem[] = [
     cafeteriaName: '교직원식당',
     mealTime: '점심',
     likedCount: 97,
+    dislikedCount: 12,
+    score: 85,
     changeText: '지난주보다 1계단 하락',
   },
 ];

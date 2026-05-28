@@ -1,11 +1,31 @@
-import { Link } from 'react-router';
-import { LogIn, UsersRound } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router';
+import { LogIn, LogOut, UserCircle2, UsersRound } from 'lucide-react';
+import { logout, myUserQueryOptions } from '@/entities/user';
+import {
+  authSessionSelectors,
+  clearAuthSession,
+  useAuthSessionStore,
+} from '@/shared/lib/auth/session';
 
 interface AppHeaderProps {
   onLoginClick?: () => void;
 }
 
 const AppHeader = ({ onLoginClick }: AppHeaderProps) => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const isAuthenticated = useAuthSessionStore(authSessionSelectors.isAuthenticated);
+
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSettled: async () => {
+      clearAuthSession();
+      await queryClient.invalidateQueries({ queryKey: myUserQueryOptions().queryKey });
+      navigate('/');
+    },
+  });
+
   return (
     <header className="border-b border-slate-200/80 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-[78px] w-full max-w-5xl items-center justify-between px-5 md:px-8">
@@ -26,13 +46,42 @@ const AppHeader = ({ onLoginClick }: AppHeaderProps) => {
           </div>
         </Link>
 
-        <button
-          onClick={onLoginClick}
-          className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-500 transition hover:bg-indigo-50"
-        >
-          <LogIn className="h-4 w-4" />
-          로그인
-        </button>
+        {isAuthenticated ? (
+          <div className="flex items-center gap-2">
+            <Link
+              to="/profile"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              <UserCircle2 className="h-4 w-4" />
+              프로필
+            </Link>
+            <button
+              type="button"
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-500 transition hover:bg-indigo-50 disabled:opacity-70"
+            >
+              <LogOut className="h-4 w-4" />
+              {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              if (onLoginClick) {
+                onLoginClick();
+                return;
+              }
+
+              navigate('/login');
+            }}
+            className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-500 transition hover:bg-indigo-50"
+          >
+            <LogIn className="h-4 w-4" />
+            로그인
+          </button>
+        )}
       </div>
     </header>
   );

@@ -3,6 +3,10 @@ import type { MainRoom, RoomDetailResponse, RoomDetailStatus } from '@/entities/
 export interface RoomMember {
   userId: number;
   nickname: string;
+  mbti: string;
+  profileImageUrl: string;
+  schoolName: string;
+  age: number;
 }
 
 export interface RoomMembersQueryState {

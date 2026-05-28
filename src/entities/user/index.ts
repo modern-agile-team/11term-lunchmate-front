@@ -1,4 +1,5 @@
-export { getMyUser } from './api/me';
+export { login, logout } from './api/auth';
+export { deleteMyUser, getMyUser, updateMyUser } from './api/me';
 export { myUserQueryOptions } from './api/meQueries';
 export { getMyProfile, updateMyProfile } from './api/profile';
 export { myProfileQueryOptions } from './api/profileQueries';
@@ -10,5 +11,15 @@ export type {
   UpdateMyProfileResponse,
   UserProfile,
 } from './model/profile';
-export type { Gender, GetMyUserResponse, LoginRequest, LoginResponse, User } from './model/types';
+export type {
+  DeleteMyUserResponse,
+  Gender,
+  GetMyUserResponse,
+  LoginRequest,
+  LoginResponse,
+  LogoutResponse,
+  UpdateMyUserRequest,
+  UpdateMyUserResponse,
+  User,
+} from './model/types';
 export { default as ProfileAvatar } from './ui/ProfileAvatar';

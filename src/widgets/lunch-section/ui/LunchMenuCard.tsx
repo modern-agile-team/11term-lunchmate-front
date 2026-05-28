@@ -43,11 +43,13 @@ const LunchMenuCard = ({ menu, isSelected, onSelect }: LunchMenuCardProps) => (
 
     <div className="mt-5 flex flex-wrap gap-3 text-sm font-medium">
       <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-700">
-        <ThumbsUp className="h-4 w-4 text-indigo-500" />
+        <ThumbsUp className={`h-4 w-4 ${menu.likedByMe ? 'text-indigo-700' : 'text-indigo-500'}`} />
         좋아요 {menu.likedCount}
       </div>
       <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-700">
-        <ThumbsDown className="h-4 w-4 text-rose-500" />
+        <ThumbsDown
+          className={`h-4 w-4 ${menu.dislikedByMe ? 'text-rose-700' : 'text-rose-500'}`}
+        />
         싫어요 {menu.dislikedCount}
       </div>
     </div>
