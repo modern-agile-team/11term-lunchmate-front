@@ -1,19 +1,54 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { login, myProfileQueryOptions, myUserQueryOptions } from '@/entities/user';
+import { setAuthAccessToken } from '@/shared/lib/auth/session';
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface LoginInput {
+  email: string;
+  password: string;
+}
+
 function AuthDialog({ isOpen, onClose }: ModalProps) {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    defaultValues: { email: '', password: '' },
+  });
+
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: login,
+    onSuccess: async (data) => {
+      setAuthAccessToken(data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
+      await queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
+      onClose();
+    },
+    onError: (err: unknown) => {
+      if (axios.isAxiosError(err)) {
+        const errMsg =
+          err.response?.status === 401
+            ? '이메일 또는 비밀번호가 틀렸습니다.'
+            : '로그인 중 오류가 발생했습니다.';
+        alert(errMsg);
+      }
+    },
+  });
 
   if (!isOpen) return null;
 
-  const handleLoginClick = () => {
-    onClose();
-    navigate('/login');
+  const onSubmit = (data: LoginInput) => {
+    mutate(data);
   };
 
   return (
@@ -27,7 +62,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-5 text-gray-400 text-2xl hover:text-white transition-colors"
+          className="absolute top-4 right-5 text-gray-400 text-2xl hover:text-gray-700 transition-colors"
         >
           ✕
         </button>
@@ -36,28 +71,54 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
           점심메이트 추천
         </div>
 
-        <div className="w-full flex flex-col gap-3">
-          <input
-            type="text"
-            placeholder="이메일"
-            className="w-full h-12 rounded-xl border border-gray-300 px-4 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400"
-          />
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-3">
+          <div className="space-y-1">
+            <input
+              type="email"
+              placeholder="이메일"
+              className={`w-full h-12 rounded-xl border px-4 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400 ${
+                errors.email ? 'border-red-400' : 'border-gray-300'
+              }`}
+              {...register('email', {
+                required: '이메일을 입력해 주세요.',
+                pattern: {
+                  value: /\S+@\S+\.\S+/,
+                  message: '이메일 형식이 올바르지 않습니다.',
+                },
+              })}
+            />
+            {errors.email && <p className="pl-1 text-xs text-red-500">{errors.email.message}</p>}
+          </div>
 
-          <div className="relative w-full">
+          <div className="space-y-1">
             <input
               type="password"
               placeholder="비밀번호"
-              className="w-full h-12 rounded-xl border border-gray-300 px-4 pr-11 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400"
+              className={`w-full h-12 rounded-xl border px-4 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400 ${
+                errors.password ? 'border-red-400' : 'border-gray-300'
+              }`}
+              {...register('password', { required: '비밀번호를 입력해 주세요.' })}
             />
+            {errors.password && (
+              <p className="pl-1 text-xs text-red-500">{errors.password.message}</p>
+            )}
           </div>
-        </div>
 
-        <button
-          onClick={handleLoginClick}
-          className="h-12 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white/5 px-4 text-[15px] font-bold text-indigo-400 transition hover:bg-white/10"
-        >
-          로그인
-        </button>
+          {isError && (
+            <p className="text-xs text-red-500 text-center font-medium">
+              인증 정보가 일치하지 않습니다.
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isPending}
+            className="h-12 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-500 px-4 text-[15px] font-bold text-white transition hover:bg-indigo-700 disabled:opacity-70"
+          >
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending ? '확인 중...' : '로그인'}
+          </button>
+        </form>
 
         <div className="flex items-center gap-3 text-sm text-gray-500">
           <button className="underline hover:text-gray-700">비밀번호 찾기</button>
@@ -113,13 +174,6 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
             </svg>
             구글로 로그인
           </button>
-
-          {/* <button
-            onClick={handleLoginClick}
-            className="h-12 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white/5 px-4 text-[15px] font-bold text-indigo-400 transition hover:bg-white/10"
-          >
-            로그인/회원가입
-          </button> */}
         </div>
       </div>
     </div>
