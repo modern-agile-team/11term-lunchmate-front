@@ -22,7 +22,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative px-12 py-10 bg-[#2c2c2c] rounded-lg shadow-2xl flex flex-col items-center gap-7 min-w-[360px]"
+        className="relative px-12 py-10 bg-white rounded-lg shadow-2xl flex flex-col items-center gap-7 min-w-[360px]"
       >
         <button
           onClick={onClose}
