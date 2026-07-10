@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 export interface ModalProps {
@@ -22,7 +23,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative px-12 py-10 bg-white rounded-lg shadow-2xl flex flex-col items-center gap-7 min-w-[360px]"
+        className="relative px-12 py-10 bg-white rounded-lg shadow-2xl flex flex-col items-center gap-5 min-w-[360px]"
       >
         <button
           onClick={onClose}
@@ -33,6 +34,43 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
 
         <div className="text-3xl font-extrabold tracking-tighter bg-gradient-to-b from-indigo-400 to-indigo-700 bg-clip-text text-transparent py-1">
           점심메이트 추천
+        </div>
+
+        <div className="w-full flex flex-col gap-3">
+          <input
+            type="text"
+            placeholder="이메일"
+            className="w-full h-12 rounded-xl border border-gray-300 px-4 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400"
+          />
+
+          <div className="relative w-full">
+            <input
+              type="password"
+              placeholder="비밀번호"
+              className="w-full h-12 rounded-xl border border-gray-300 px-4 pr-11 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handleLoginClick}
+          className="h-12 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white/5 px-4 text-[15px] font-bold text-indigo-400 transition hover:bg-white/10"
+        >
+          로그인
+        </button>
+
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <button className="underline hover:text-gray-700">비밀번호 찾기</button>
+          <span className="text-gray-300">|</span>
+          <button className="underline hover:text-gray-700">회원가입</button>
+          <span className="text-gray-300">|</span>
+          <button className="underline hover:text-gray-700">아이디(이메일) 찾기</button>
+        </div>
+
+        <div className="w-full flex items-center gap-3">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400 whitespace-nowrap">간편 로그인</span>
+          <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         <div className="flex flex-col gap-3 w-full">
@@ -76,12 +114,12 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
             구글로 로그인
           </button>
 
-          <button
+          {/* <button
             onClick={handleLoginClick}
             className="h-12 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white/5 px-4 text-[15px] font-bold text-indigo-400 transition hover:bg-white/10"
           >
             로그인/회원가입
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
