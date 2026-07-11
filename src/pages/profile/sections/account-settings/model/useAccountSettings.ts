@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   deleteMyUser,
@@ -14,28 +14,26 @@ const EMPTY_FORM: UpdateMyUserRequest = {
   name: '',
   email: '',
   birthDate: '',
-  gender: 'ANY',
+  gender: 'MALE',
 };
 
 export const useAccountSettings = () => {
   const queryClient = useQueryClient();
   const myUserQuery = useQuery(myUserQueryOptions());
   const [form, setForm] = useState<UpdateMyUserRequest>(EMPTY_FORM);
+  const [syncedUserId, setSyncedUserId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState<'success' | 'error'>('success');
 
-  useEffect(() => {
-    if (!myUserQuery.data) {
-      return;
-    }
-
+  if (myUserQuery.data && myUserQuery.data.id !== syncedUserId) {
+    setSyncedUserId(myUserQuery.data.id);
     setForm({
       name: myUserQuery.data.name,
       email: myUserQuery.data.email,
       birthDate: myUserQuery.data.birthDate,
       gender: myUserQuery.data.gender,
     });
-  }, [myUserQuery.data]);
+  }
 
   const updateMutation = useMutation({
     mutationFn: updateMyUser,

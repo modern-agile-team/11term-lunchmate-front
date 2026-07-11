@@ -19,6 +19,8 @@ import type {
   LoginRequest,
   LoginResponse,
   LogoutResponse,
+  SignUpRequest,
+  SignUpResponse,
   UpdateMyUserRequest,
 } from '@/entities/user';
 import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
@@ -37,7 +39,7 @@ let currentUser: GetMyUserResponse = {
   mbti: 'ENFP',
   introduce: '오늘도 같이 먹을 사람을 찾고 있어요.',
   birthDate: '2000-05-15',
-  gender: 'ANY',
+  gender: 'MALE',
   createdAt: '2025-03-01T09:00:00.000Z',
 };
 
@@ -403,7 +405,7 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => ({
 });
 
 export const handlers = [
-  http.post('/api/v1/auth/login', async ({ request }) => {
+  http.post('/auth/login', async ({ request }) => {
     await wait();
     if (isAccountDeleted) {
       return HttpResponse.json({ message: '탈퇴한 계정입니다.' }, { status: 410 });
@@ -422,7 +424,7 @@ export const handlers = [
     });
   }),
 
-  http.post('/api/v1/auth/logout', async ({ request }) => {
+  http.post('/auth/logout', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
@@ -430,6 +432,49 @@ export const handlers = [
 
     return HttpResponse.json<LogoutResponse>({
       message: '로그아웃되었습니다.',
+    });
+  }),
+
+  http.post('/auth/signup', async ({ request }) => {
+    await wait();
+
+    const payload = (await request.json()) as SignUpRequest;
+
+    if (
+      !payload.name?.trim() ||
+      !payload.nickname?.trim() ||
+      !payload.email?.trim() ||
+      !payload.password?.trim() ||
+      !payload.birthDate?.trim() ||
+      !payload.gender
+    ) {
+      return HttpResponse.json({ message: '필수 정보를 모두 입력해 주세요.' }, { status: 400 });
+    }
+
+    if (mockUsers.some((user) => user.email === payload.email)) {
+      return HttpResponse.json({ message: '이미 가입된 이메일입니다.' }, { status: 409 });
+    }
+
+    const newUser: GetMyUserResponse = {
+      id: mockUsers.length + 1,
+      name: payload.name,
+      email: payload.email,
+      nickname: payload.nickname,
+      profileImageUrl: '',
+      mbti: (payload.mbti as GetMyUserResponse['mbti']) ?? '',
+      introduce: payload.introduce ?? '',
+      birthDate: payload.birthDate,
+      gender: payload.gender,
+      createdAt: new Date().toISOString(),
+    };
+
+    mockUsers.push(newUser);
+    currentUser = newUser;
+
+    return HttpResponse.json<SignUpResponse>({
+      user: newUser,
+      accessToken: MOCK_ACCESS_TOKEN,
+      refreshToken: MOCK_REFRESH_TOKEN,
     });
   }),
 
