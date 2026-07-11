@@ -1,6 +1,6 @@
 import type { MbtiType } from './profile';
 
-export type Gender = 'MALE' | 'FEMALE' | 'ANY';
+export type Gender = 'MALE' | 'FEMALE';
 
 export interface User {
   id: number;
@@ -16,6 +16,24 @@ export interface User {
 }
 
 export type GetMyUserResponse = User;
+
+export interface SignUpRequest {
+  email: string;
+  password: string;
+  name: string;
+  nickname: string;
+  birthDate: string;
+  gender: Gender;
+  schoolInfo?: string;
+  introduce?: string;
+  mbti?: string;
+}
+
+export interface SignUpResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+}
 
 export interface LoginRequest {
   email: string;
