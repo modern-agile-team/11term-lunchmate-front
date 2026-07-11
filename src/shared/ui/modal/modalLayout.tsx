@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import { login, myProfileQueryOptions, myUserQueryOptions } from '@/entities/user';
 import { setAuthAccessToken } from '@/shared/lib/auth/session';
 
@@ -16,6 +17,7 @@ interface LoginInput {
 }
 
 function AuthDialog({ isOpen, onClose }: ModalProps) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
     handleSubmit,
@@ -123,7 +125,15 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
         <div className="flex items-center gap-3 text-sm text-gray-500">
           <button className="underline hover:text-gray-700">비밀번호 찾기</button>
           <span className="text-gray-300">|</span>
-          <button className="underline hover:text-gray-700">회원가입</button>
+          <button
+            onClick={() => {
+              onClose();
+              navigate('/signup');
+            }}
+            className="underline hover:text-gray-700"
+          >
+            회원가입
+          </button>
           <span className="text-gray-300">|</span>
           <button className="underline hover:text-gray-700">아이디(이메일) 찾기</button>
         </div>
