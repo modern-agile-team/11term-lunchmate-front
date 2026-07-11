@@ -36,7 +36,7 @@ const AppDialog = ({
     <dialog
       ref={dialogRef}
       onClick={handleDialogClick}
-      className={`backdrop:bg-slate-950/50 w-full ${maxWidthClassName} rounded-[32px] bg-white p-0 text-left shadow-[0_24px_80px_rgba(15,23,42,0.22)] backdrop:backdrop-blur-[2px]`}
+      className={`m-auto backdrop:bg-slate-950/50 w-full ${maxWidthClassName} rounded-[32px] bg-white p-0 text-left shadow-[0_24px_80px_rgba(15,23,42,0.22)] backdrop:backdrop-blur-[2px]`}
     >
       <div className="p-6 md:p-7">
         <div className="flex items-start justify-between gap-4">
