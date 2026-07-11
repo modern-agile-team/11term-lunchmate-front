@@ -31,8 +31,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
       setAuthAccessToken(data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
-      await queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
-      onClose();
+      return queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
     },
     onError: (err: unknown) => {
       if (axios.isAxiosError(err)) {
@@ -48,7 +47,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
   if (!isOpen) return null;
 
   const onSubmit = (data: LoginInput) => {
-    mutate(data);
+    mutate(data, { onSuccess: () => onClose() });
   };
 
   return (
