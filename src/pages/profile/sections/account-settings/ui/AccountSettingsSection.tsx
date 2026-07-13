@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import { useAccountSettings } from '../model/useAccountSettings';
 
 const GENDER_OPTIONS = [
-  { value: 'ANY', label: '선택 안 함' },
   { value: 'MALE', label: '남성' },
   { value: 'FEMALE', label: '여성' },
 ] as const;
@@ -104,7 +103,7 @@ const AccountSettingsSection = () => {
 
         <div className="block">
           <span className="mb-2 block text-sm font-semibold text-slate-700">성별</span>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {GENDER_OPTIONS.map((option) => {
               const isSelected = form.gender === option.value;
               return (

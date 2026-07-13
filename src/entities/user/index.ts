@@ -1,4 +1,4 @@
-export { login, logout } from './api/auth';
+export { login, logout, signup } from './api/auth';
 export { deleteMyUser, getMyUser, updateMyUser } from './api/me';
 export { myUserQueryOptions } from './api/meQueries';
 export { getMyProfile, updateMyProfile } from './api/profile';
@@ -15,6 +15,8 @@ export type {
   DeleteMyUserResponse,
   Gender,
   GetMyUserResponse,
+  SignUpRequest,
+  SignUpResponse,
   LoginRequest,
   LoginResponse,
   LogoutResponse,
