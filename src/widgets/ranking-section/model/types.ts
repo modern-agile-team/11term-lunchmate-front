@@ -6,6 +6,4 @@ export interface MainRankingItem {
   mealTime: string;
   likedCount: number;
   dislikedCount: number;
-  score: number;
-  changeText: string;
 }

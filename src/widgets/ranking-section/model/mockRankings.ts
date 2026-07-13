@@ -10,7 +10,6 @@ export const mockRankings: MainRankingItem[] = [
     likedCount: 132,
     dislikedCount: 6,
     score: 126,
-    changeText: '지난주보다 2계단 상승',
   },
   {
     id: 2,
@@ -21,7 +20,6 @@ export const mockRankings: MainRankingItem[] = [
     likedCount: 119,
     dislikedCount: 9,
     score: 110,
-    changeText: '지난주와 동일',
   },
   {
     id: 3,
@@ -32,6 +30,5 @@ export const mockRankings: MainRankingItem[] = [
     likedCount: 97,
     dislikedCount: 12,
     score: 85,
-    changeText: '지난주보다 1계단 하락',
   },
 ];
