@@ -1,4 +1,5 @@
 import type { MainPostCategory } from '../model/mainPost';
+import { postCategoryOptions } from '../model/postCategory';
 
 const postCategoryStyleMap: Record<MainPostCategory, string> = {
   FREE: 'bg-slate-100 text-slate-600',
@@ -15,7 +16,7 @@ const PostCategoryBadge = ({ category }: PostCategoryBadgeProps) => (
   <span
     className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${postCategoryStyleMap[category]}`}
   >
-    {category}
+    {postCategoryOptions.find((categoryOption) => categoryOption.value === category)?.label}
   </span>
 );
 
