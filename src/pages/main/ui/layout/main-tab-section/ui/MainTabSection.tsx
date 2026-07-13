@@ -48,15 +48,7 @@ const MainTabSection = ({
   const rankings = useMemo<MainRankingItem[]>(
     () =>
       [...lunchMenus]
-        .sort((a, b) => {
-          const scoreDiff = b.likedCount - b.dislikedCount - (a.likedCount - a.dislikedCount);
-          if (scoreDiff !== 0) {
-            return scoreDiff;
-          }
-
-          return b.likedCount - a.likedCount;
-        })
-        .slice(0, 3)
+        .sort((a, b) => b.likedCount - a.likedCount)
         .map((menu, index) => ({
           id: menu.id,
           rank: index + 1,
@@ -65,11 +57,6 @@ const MainTabSection = ({
           mealTime: menu.mealTime,
           likedCount: menu.likedCount,
           dislikedCount: menu.dislikedCount,
-          score: menu.likedCount - menu.dislikedCount,
-          changeText:
-            index === 0
-              ? '현재 반응 점수 1위 메뉴'
-              : `현재 반응 점수 TOP ${index + 1}`,
         })),
     [lunchMenus],
   );
@@ -120,7 +107,9 @@ const MainTabSection = ({
     <section className="space-y-4 md:space-y-5">
       <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] md:flex-row md:items-center md:justify-between md:px-6">
         <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.03em] text-slate-900">{tabTitleMap[activeTab]}</h2>
+          <h2 className="text-[22px] font-bold tracking-[-0.03em] text-slate-900">
+            {tabTitleMap[activeTab]}
+          </h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">{tabDescriptionMap[activeTab]}</p>
         </div>
 
