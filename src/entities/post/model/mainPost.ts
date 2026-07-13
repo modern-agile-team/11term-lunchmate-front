@@ -5,6 +5,7 @@ export interface MainPostItem {
   category: MainPostCategory;
   title: string;
   author: string;
+  authorProfileImageUrl: string;
   summary: string;
   content: string;
   likedCount: number;
@@ -17,6 +18,7 @@ export interface MainPostDetail {
   category: MainPostCategory;
   title: string;
   author: string;
+  authorProfileImageUrl: string;
   summary: string;
   content: string;
   likedCount: number;

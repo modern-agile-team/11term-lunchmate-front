@@ -8,6 +8,7 @@ export interface PostListUserResponse {
   id?: number;
   nickname?: string;
   name?: string;
+  profileImageUrl?: string;
 }
 
 export interface PostListItemResponse {
@@ -24,6 +25,7 @@ export interface PostListItemResponse {
   authorNickname?: string | null;
   userNickname?: string | null;
   nickname?: string | null;
+  profileImageUrl?: string | null;
   user?: PostListUserResponse | null;
 }
 

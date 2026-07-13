@@ -1,7 +1,7 @@
 import { Heart, MessageSquareText } from 'lucide-react';
 import { PostCategoryBadge, type MainPostItem } from '@/entities/post';
 import { cn } from '@/shared/lib/classnames';
-import { formatRelativeCreatedAt } from '@/shared/lib/date/formatRelativeCreatedAt';
+import { formatPostListDate } from '@/shared/lib/date/formatCreatedAt';
 
 interface PostItemCardProps {
   postItem: MainPostItem;
@@ -21,14 +21,16 @@ const PostItemCard = ({ postItem, isSelected, onSelect }: PostItemCardProps) => 
   >
     <div className="flex items-center justify-between gap-3">
       <PostCategoryBadge category={postItem.category} />
-      <span className="text-sm text-slate-400">{formatRelativeCreatedAt(postItem.createdAt)}</span>
     </div>
     <h2 className="mt-4 text-[19px] font-bold tracking-[-0.03em] text-slate-900">
       {postItem.title}
     </h2>
     <p className="mt-2 text-sm leading-6 text-slate-500">{postItem.summary}</p>
     <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
-      <span className="font-medium text-slate-700">{postItem.author}</span>
+      <span className="inline-flex items-center gap-2">
+        <span className="font-medium text-slate-700">{postItem.author}</span>
+        <span className="text-slate-400">{formatPostListDate(postItem.createdAt)}</span>
+      </span>
       <div className="flex items-center gap-4">
         <span className="inline-flex items-center gap-1.5">
           <Heart className="h-4 w-4 text-rose-400" />

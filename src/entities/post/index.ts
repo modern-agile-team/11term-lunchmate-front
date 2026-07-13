@@ -28,3 +28,4 @@ export {
   toPostSummary,
 } from './model/postMappers';
 export { default as PostCategoryBadge } from './ui/PostCategoryBadge';
+export { default as PostAuthorAvatar } from './ui/PostAuthorAvatar';

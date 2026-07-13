@@ -42,6 +42,9 @@ export const toPostAuthor = (post: PostListItemResponse) =>
   post.user?.name?.trim() ||
   '익명 사용자';
 
+export const toPostAuthorProfileImageUrl = (post: PostListItemResponse) =>
+  post.profileImageUrl?.trim() || post.user?.profileImageUrl?.trim() || '';
+
 export const toPostSummary = (post: PostListItemResponse) => {
   const sourceText = post.summary?.trim() || post.content?.trim() || '';
 
@@ -57,6 +60,7 @@ export const toMainPostItem = (post: PostListItemResponse): MainPostItem => ({
   category: toPostCategory(post),
   title: post.title,
   author: toPostAuthor(post),
+  authorProfileImageUrl: toPostAuthorProfileImageUrl(post),
   summary: toPostSummary(post),
   content: post.content ?? '',
   likedCount: post.likeCount ?? 0,
@@ -64,11 +68,16 @@ export const toMainPostItem = (post: PostListItemResponse): MainPostItem => ({
   createdAt: post.createdAt,
 });
 
-export const toMainPostDetail = (post: PostDetailResponse, author: string): MainPostDetail => ({
+export const toMainPostDetail = (
+  post: PostDetailResponse,
+  author: string,
+  authorProfileImageUrl: string,
+): MainPostDetail => ({
   id: post.id,
   category: toPostCategory(post),
   title: post.title,
   author,
+  authorProfileImageUrl,
   summary: post.content,
   content: post.content,
   likedCount: post.likeCount ?? 0,

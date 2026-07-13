@@ -1,5 +1,6 @@
 import { PencilLine, Trash2 } from 'lucide-react';
 import type { MainPostComment } from '@/entities/comment';
+import { formatPostDetailDate } from '@/shared/lib/date/formatCreatedAt';
 
 interface CommentItemHeaderProps {
   comment: MainPostComment;
@@ -15,7 +16,7 @@ const CommentItemHeader = ({
   <div className="flex items-start justify-between gap-4">
     <div>
       <p className="font-semibold text-slate-800">{comment.author}</p>
-      <p className="mt-1 text-xs text-slate-400">{comment.createdAt}</p>
+      <p className="mt-1 text-xs text-slate-400">{formatPostDetailDate(comment.createdAt)}</p>
     </div>
     {comment.isMine ? (
       <div className="flex items-center gap-2">

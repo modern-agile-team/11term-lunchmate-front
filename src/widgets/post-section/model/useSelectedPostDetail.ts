@@ -24,7 +24,11 @@ export const useSelectedPostDetail = ({
 
   const selectedPostDetail: MainPostDetail | null =
     postDetailQuery.data && selectedPost
-      ? toMainPostDetail(postDetailQuery.data, selectedPost.author)
+      ? toMainPostDetail(
+          postDetailQuery.data,
+          selectedPost.author,
+          selectedPost.authorProfileImageUrl,
+        )
       : null;
 
   const canEditSelectedPost =
