@@ -268,10 +268,8 @@ let posts: PostDetailResponse[] = [
     title: '오늘 학식 메뉴 꽤 괜찮네요',
     content: '김치찌개랑 계란말이가 나왔는데 생각보다 든든했어요. 점심 고민 중이면 추천합니다.',
     likeCount: 12,
-    dislikeCount: 1,
     commentCount: 2,
     liked: false,
-    disliked: false,
     createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
   },
   {
@@ -282,10 +280,8 @@ let posts: PostDetailResponse[] = [
     title: '후문 쌀국수집 후기',
     content: '양이 많고 국물이 진해요. 점심 피크 시간에는 10분 정도 기다렸습니다.',
     likeCount: 8,
-    dislikeCount: 0,
     commentCount: 1,
     liked: false,
-    disliked: false,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -297,9 +293,7 @@ let comments: CommentListItemResponse[] = [
     userId: 1,
     content: '오 좋네요. 오늘은 학식 가야겠어요.',
     likeCount: 3,
-    dislikeCount: 0,
     liked: false,
-    disliked: false,
     createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
     nickname: '점심대장',
     isMine: true,
@@ -310,9 +304,7 @@ let comments: CommentListItemResponse[] = [
     userId: 4,
     content: '계란말이 인정합니다.',
     likeCount: 1,
-    dislikeCount: 0,
     liked: false,
-    disliked: false,
     createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
     nickname: '든든한밥친구',
   },
@@ -322,9 +314,7 @@ let comments: CommentListItemResponse[] = [
     userId: 5,
     content: '고수 빼달라고 할 수 있나요?',
     likeCount: 0,
-    dislikeCount: 0,
     liked: false,
-    disliked: false,
     createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
     nickname: '쌀국수입문',
   },
@@ -398,7 +388,6 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => ({
   summary: post.content,
   content: post.content,
   likeCount: post.likeCount,
-  dislikeCount: post.dislikeCount,
   commentCount: comments.filter((comment) => comment.postId === post.id).length,
   createdAt: post.createdAt,
   authorNickname: post.userId === currentUserId ? profile.nickname : '점심친구',
@@ -810,10 +799,8 @@ export const handlers = [
       title: payload.title ?? '새 게시글',
       content: payload.content ?? '',
       likeCount: 0,
-      dislikeCount: 0,
       commentCount: 0,
       liked: false,
-      disliked: false,
       createdAt: new Date().toISOString(),
     };
     posts = [post, ...posts];
@@ -846,9 +833,7 @@ export const handlers = [
       userId: currentUserId,
       content: payload.content ?? '',
       likeCount: 0,
-      dislikeCount: 0,
       liked: false,
-      disliked: false,
       createdAt: new Date().toISOString(),
       nickname: profile.nickname,
       isMine: true,
@@ -890,15 +875,6 @@ export const handlers = [
     return HttpResponse.json({ liked: post.liked, likeCount: post.likeCount });
   }),
 
-  http.post('/api/v1/posts/:postId/dislike', async ({ params }) => {
-    await wait();
-    const post = posts.find((item) => item.id === Number(params.postId));
-    if (!post) return HttpResponse.json({ message: '게시글을 찾을 수 없어요.' }, { status: 404 });
-    post.disliked = !post.disliked;
-    post.dislikeCount = Math.max(0, (post.dislikeCount ?? 0) + (post.disliked ? 1 : -1));
-    return HttpResponse.json({ disliked: post.disliked, dislikeCount: post.dislikeCount });
-  }),
-
   http.patch('/api/v1/posts/:postId/comments/:commentId', async ({ params, request }) => {
     await wait();
     const commentId = Number(params.commentId);
@@ -926,12 +902,4 @@ export const handlers = [
     return HttpResponse.json({ liked: comment.liked, likeCount: comment.likeCount });
   }),
 
-  http.post('/api/v1/posts/:postId/comments/:commentId/dislike', async ({ params }) => {
-    await wait();
-    const comment = comments.find((item) => item.id === Number(params.commentId));
-    if (!comment) return HttpResponse.json({ message: '댓글을 찾을 수 없어요.' }, { status: 404 });
-    comment.disliked = !comment.disliked;
-    comment.dislikeCount = Math.max(0, (comment.dislikeCount ?? 0) + (comment.disliked ? 1 : -1));
-    return HttpResponse.json({ disliked: comment.disliked, dislikeCount: comment.dislikeCount });
-  }),
 ];

@@ -20,11 +20,9 @@ export interface MainPostDetail {
   summary: string;
   content: string;
   likedCount: number;
-  dislikeCount: number;
   commentCount: number;
   createdAt: string;
   liked: boolean;
-  disliked: boolean;
 }
 
 export interface PostSyncRequest {

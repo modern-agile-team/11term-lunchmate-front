@@ -18,7 +18,6 @@ const CommentItem = ({ comment, state, actions }: CommentItemProps) => {
     isEditing: state.editingCommentId === comment.id,
     isDeleting: state.deletingCommentId === comment.id,
     isLiking: state.likingCommentId === comment.id,
-    isDisliking: state.dislikingCommentId === comment.id,
     editingCommentValue: state.editingCommentValue,
     editMessage: state.editMessage,
     editTone: state.editTone,
@@ -34,7 +33,6 @@ const CommentItem = ({ comment, state, actions }: CommentItemProps) => {
     onDeleteCancel: actions.onDeleteCancel,
     onDeleteConfirm: () => actions.onDeleteConfirm(comment),
     onLike: () => actions.onLike(comment),
-    onDislike: () => actions.onDislike(comment),
   };
 
   return (
@@ -76,9 +74,7 @@ const CommentItem = ({ comment, state, actions }: CommentItemProps) => {
       <CommentItemReactionBar
         comment={comment}
         isLiking={itemViewState.isLiking}
-        isDisliking={itemViewState.isDisliking}
         onLike={itemActions.onLike}
-        onDislike={itemActions.onDislike}
       />
     </article>
   );

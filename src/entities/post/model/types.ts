@@ -18,7 +18,6 @@ export interface PostListItemResponse {
   summary?: string | null;
   content?: string | null;
   likeCount?: number | null;
-  dislikeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
   author?: string | null;
@@ -72,9 +71,7 @@ export interface PostDetailResponse {
   content: string;
   viewCount?: number | null;
   liked?: boolean | null;
-  disliked?: boolean | null;
   likeCount?: number | null;
-  dislikeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
 }
@@ -82,9 +79,4 @@ export interface PostDetailResponse {
 export interface LikePostResponse {
   liked: boolean;
   likeCount: number;
-}
-
-export interface DislikePostResponse {
-  disliked: boolean;
-  dislikeCount: number;
 }

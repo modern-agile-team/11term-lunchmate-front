@@ -72,11 +72,9 @@ export const toMainPostDetail = (post: PostDetailResponse, author: string): Main
   summary: post.content,
   content: post.content,
   likedCount: post.likeCount ?? 0,
-  dislikeCount: post.dislikeCount ?? 0,
   commentCount: post.commentCount ?? 0,
   createdAt: post.createdAt,
   liked: post.liked ?? false,
-  disliked: post.disliked ?? false,
 });
 
 export const isInfinitePostListData = (

@@ -13,7 +13,6 @@ export interface CommentItemState {
   editingCommentValue: string;
   deletingCommentId: number | null;
   likingCommentId: number | null;
-  dislikingCommentId: number | null;
   editMessage: string;
   editTone: MessageTone;
   deleteMessage: string;
@@ -29,7 +28,6 @@ export interface CommentItemActions {
   onDeleteCancel: () => void;
   onDeleteConfirm: (comment: MainPostComment) => void;
   onLike: (comment: MainPostComment) => void;
-  onDislike: (comment: MainPostComment) => void;
 }
 
 export interface CommentComposerState {
@@ -59,16 +57,10 @@ export interface CommentEditorState {
 }
 
 export interface CommentReactionState {
-  handleCommentReaction: (
-    comment: MainPostComment,
-    type: 'like' | 'dislike',
-  ) => Promise<void>;
+  handleCommentReaction: (comment: MainPostComment) => Promise<void>;
   likingCommentId: number | null;
-  dislikingCommentId: number | null;
   commentLikeMessage: string;
   commentLikeTone: MessageTone;
-  commentDislikeMessage: string;
-  commentDislikeTone: MessageTone;
 }
 
 export interface PostCommentSectionState {

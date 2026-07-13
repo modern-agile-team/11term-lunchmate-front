@@ -8,7 +8,6 @@ export type {
   CreatePostRequest,
   CreatePostResponse,
   LikePostResponse,
-  DislikePostResponse,
   UpdatePostRequest,
 } from './model/types';
 export { getPostDetail } from './api/postDetail';

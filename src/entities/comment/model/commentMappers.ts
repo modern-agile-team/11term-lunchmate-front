@@ -17,9 +17,7 @@ export const toMainPostComment = (
     '익명 사용자',
   content: comment.content,
   likedCount: comment.likeCount ?? 0,
-  dislikeCount: comment.dislikeCount ?? 0,
   liked: comment.liked ?? false,
-  disliked: comment.disliked ?? false,
   createdAt: comment.createdAt,
   isMine:
     typeof comment.isMine === 'boolean'
