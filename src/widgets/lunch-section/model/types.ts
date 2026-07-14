@@ -1,17 +1,21 @@
+export type LunchMealType = 'BREAKFAST' | 'LUNCH' | 'DINNER';
+
 export interface MainLunchMenu {
   id: number;
-  cafeteriaName: string;
-  mealTime: string;
-  title: string;
-  description: string;
-  detailDescription: string;
+  mealType: LunchMealType;
+  menuName: string;
   price: number;
   calorie: number;
-  sideMenus: string[];
-  location: string;
-  spicyLevel: '순한맛' | '보통맛' | '매운맛';
-  likedCount: number;
-  dislikedCount: number;
+  schoolInfo: string;
+  components: string[];
+  likeCount: number;
+  dislikeCount: number;
   likedByMe?: boolean;
   dislikedByMe?: boolean;
 }
+
+export const lunchMealTypeLabelMap: Record<LunchMealType, string> = {
+  BREAKFAST: '아침',
+  LUNCH: '점심',
+  DINNER: '저녁',
+};
