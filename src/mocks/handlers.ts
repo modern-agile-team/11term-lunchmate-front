@@ -26,9 +26,20 @@ import type {
 import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
 
 const currentUserId = 1;
-const MOCK_ACCESS_TOKEN = 'mock-access-token-12345';
 const MOCK_REFRESH_TOKEN = 'mock-refresh-token-67890';
 let isAccountDeleted = false;
+let lunchMenuIdCounter = 1000;
+
+interface MockLunchMenuPayload {
+  mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER';
+  menuName: string;
+  price: number;
+  calorie: number;
+  schoolInfo: string;
+  components: string[];
+}
+
+const createMockAccessToken = (user: GetMyUserResponse) => `mock-access-token-${user.id}`;
 
 let currentUser: GetMyUserResponse = {
   id: 1,
@@ -40,6 +51,7 @@ let currentUser: GetMyUserResponse = {
   introduce: '오늘도 같이 먹을 사람을 찾고 있어요.',
   birthDate: '2000-05-15',
   gender: 'MALE',
+  role: 'ADMIN',
   createdAt: '2025-03-01T09:00:00.000Z',
 };
 
@@ -63,6 +75,7 @@ const mockUsers: GetMyUserResponse[] = [
     introduce: '학생회관 맛집 위주로 다녀요.',
     birthDate: '1999-11-20',
     gender: 'MALE',
+    role: 'USER',
     createdAt: '2025-03-10T09:00:00.000Z',
   },
   {
@@ -75,6 +88,7 @@ const mockUsers: GetMyUserResponse[] = [
     introduce: '조용한 점심 좋아해요.',
     birthDate: '2001-08-02',
     gender: 'FEMALE',
+    role: 'USER',
     createdAt: '2025-03-12T09:00:00.000Z',
   },
   {
@@ -87,6 +101,7 @@ const mockUsers: GetMyUserResponse[] = [
     introduce: '매운 음식 환영!',
     birthDate: '1998-01-09',
     gender: 'MALE',
+    role: 'USER',
     createdAt: '2025-03-20T09:00:00.000Z',
   },
 ];
@@ -538,11 +553,22 @@ let comments: CommentListItemResponse[] = [
 
 const wait = () => delay(250);
 
-const isAuthorized = (request: Request) =>
-  request.headers.get('Authorization') === `Bearer ${MOCK_ACCESS_TOKEN}` && !isAccountDeleted;
+const getBearerToken = (request: Request) => {
+  const header = request.headers.get('Authorization');
+
+  return header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null;
+};
+
+const isAuthorized = (request: Request) => Boolean(getBearerToken(request)) && !isAccountDeleted;
+
+const isAdminAuthorized = (request: Request) =>
+  isAuthorized(request) && currentUser.role === 'ADMIN';
 
 const unauthorizedResponse = () =>
   HttpResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
+
+const forbiddenResponse = () =>
+  HttpResponse.json({ message: '관리자만 이용할 수 있어요.' }, { status: 403 });
 
 const findUserById = (userId: number) => mockUsers.find((user) => user.id === userId);
 
@@ -617,7 +643,7 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => {
 };
 
 export const handlers = [
-  http.post('/auth/login', async ({ request }) => {
+  http.post('/api/v1/auth/login', async ({ request }) => {
     await wait();
     if (isAccountDeleted) {
       return HttpResponse.json({ message: '탈퇴한 계정입니다.' }, { status: 410 });
@@ -631,12 +657,12 @@ export const handlers = [
 
     return HttpResponse.json<LoginResponse>({
       user: currentUser,
-      accessToken: MOCK_ACCESS_TOKEN,
+      accessToken: createMockAccessToken(currentUser),
       refreshToken: MOCK_REFRESH_TOKEN,
     });
   }),
 
-  http.post('/auth/logout', async ({ request }) => {
+  http.post('/api/v1/auth/logout', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
@@ -647,7 +673,7 @@ export const handlers = [
     });
   }),
 
-  http.post('/auth/signup', async ({ request }) => {
+  http.post('/api/v1/auth/signup', async ({ request }) => {
     await wait();
 
     const payload = (await request.json()) as SignUpRequest;
@@ -677,6 +703,7 @@ export const handlers = [
       introduce: payload.introduce ?? '',
       birthDate: payload.birthDate,
       gender: payload.gender,
+      role: 'USER',
       createdAt: new Date().toISOString(),
     };
 
@@ -685,7 +712,7 @@ export const handlers = [
 
     return HttpResponse.json<SignUpResponse>({
       user: newUser,
-      accessToken: MOCK_ACCESS_TOKEN,
+      accessToken: createMockAccessToken(newUser),
       refreshToken: MOCK_REFRESH_TOKEN,
     });
   }),
@@ -1125,4 +1152,25 @@ export const handlers = [
     return HttpResponse.json({ liked: comment.liked, likeCount: comment.likeCount });
   }),
 
+  http.post('/api/v1/lunch-menus', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) return unauthorizedResponse();
+    if (!isAdminAuthorized(request)) return forbiddenResponse();
+
+    const payload = (await request.json()) as MockLunchMenuPayload;
+    lunchMenuIdCounter += 1;
+
+    return HttpResponse.json({ id: lunchMenuIdCounter, ...payload }, { status: 201 });
+  }),
+
+  http.patch('/api/v1/lunch-menus/:menuId', async ({ request, params }) => {
+    await wait();
+    if (!isAuthorized(request)) return unauthorizedResponse();
+    if (!isAdminAuthorized(request)) return forbiddenResponse();
+
+    const payload = (await request.json()) as MockLunchMenuPayload;
+    const menuId = Number(params.menuId);
+
+    return HttpResponse.json({ id: menuId, ...payload });
+  }),
 ];

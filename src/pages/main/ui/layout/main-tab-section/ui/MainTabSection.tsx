@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import type { PostSyncRequest } from '@/entities/post';
+import { myUserQueryOptions } from '@/entities/user';
 import type { MainTab } from '../../main-tabs/model/types';
 import LunchSection from '@/widgets/lunch-section';
 import PostSection from '@/widgets/post-section';
@@ -44,19 +46,21 @@ const MainTabSection = ({
   const [lunchMenus, setLunchMenus] = useState<MainLunchMenu[]>(mockLunchMenus);
   const isRoomTab = activeTab === 'ROOM';
   const isPostTab = activeTab === 'POST';
+  const myUserQuery = useQuery(myUserQueryOptions());
+  const isAdmin = myUserQuery.data?.role === 'ADMIN';
 
   const rankings = useMemo<MainRankingItem[]>(
     () =>
       [...lunchMenus]
-        .sort((a, b) => b.likedCount - a.likedCount)
+        .sort((a, b) => b.likeCount - a.likeCount)
         .map((menu, index) => ({
           id: menu.id,
           rank: index + 1,
-          title: menu.title,
-          cafeteriaName: menu.cafeteriaName,
-          mealTime: menu.mealTime,
-          likedCount: menu.likedCount,
-          dislikedCount: menu.dislikedCount,
+          menuName: menu.menuName,
+          mealType: menu.mealType,
+          schoolInfo: menu.schoolInfo,
+          likeCount: menu.likeCount,
+          dislikeCount: menu.dislikeCount,
         })),
     [lunchMenus],
   );
@@ -75,8 +79,8 @@ const MainTabSection = ({
           ...menu,
           likedByMe: nextLikedByMe,
           dislikedByMe: removeDislike ? false : menu.dislikedByMe,
-          likedCount: Math.max(0, menu.likedCount + (nextLikedByMe ? 1 : -1)),
-          dislikedCount: Math.max(0, menu.dislikedCount - (removeDislike ? 1 : 0)),
+          likeCount: Math.max(0, menu.likeCount + (nextLikedByMe ? 1 : -1)),
+          dislikeCount: Math.max(0, menu.dislikeCount - (removeDislike ? 1 : 0)),
         };
       }),
     );
@@ -96,11 +100,23 @@ const MainTabSection = ({
           ...menu,
           dislikedByMe: nextDislikedByMe,
           likedByMe: removeLike ? false : menu.likedByMe,
-          dislikedCount: Math.max(0, menu.dislikedCount + (nextDislikedByMe ? 1 : -1)),
-          likedCount: Math.max(0, menu.likedCount - (removeLike ? 1 : 0)),
+          dislikeCount: Math.max(0, menu.dislikeCount + (nextDislikedByMe ? 1 : -1)),
+          likeCount: Math.max(0, menu.likeCount - (removeLike ? 1 : 0)),
         };
       }),
     );
+  };
+
+  const handleLunchMenuSaved = (menu: MainLunchMenu) => {
+    setLunchMenus((currentMenus) => {
+      const existingIndex = currentMenus.findIndex((item) => item.id === menu.id);
+
+      if (existingIndex === -1) {
+        return [menu, ...currentMenus];
+      }
+
+      return currentMenus.map((item) => (item.id === menu.id ? menu : item));
+    });
   };
 
   return (
@@ -127,7 +143,13 @@ const MainTabSection = ({
 
       {activeTab === 'ROOM' ? <RoomSection onRequireLogin={onRequireLogin} /> : null}
       {activeTab === 'LUNCH' ? (
-        <LunchSection lunchMenus={lunchMenus} onLike={handleLike} onDislike={handleDislike} />
+        <LunchSection
+          lunchMenus={lunchMenus}
+          isAdmin={isAdmin}
+          onLike={handleLike}
+          onDislike={handleDislike}
+          onMenuSaved={handleLunchMenuSaved}
+        />
       ) : null}
       {activeTab === 'RANKING' ? <RankingSection rankings={rankings} /> : null}
       {activeTab === 'POST' ? (

@@ -15,6 +15,7 @@ export type {
   DeleteMyUserResponse,
   Gender,
   GetMyUserResponse,
+  Role,
   SignUpRequest,
   SignUpResponse,
   LoginRequest,

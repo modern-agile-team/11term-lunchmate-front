@@ -1,5 +1,5 @@
 import { Medal, ThumbsDown, ThumbsUp } from 'lucide-react';
-import type { MainRankingItem } from '../model/types';
+import { lunchMealTypeLabelMap, type MainRankingItem } from '../model/types';
 
 const rankStyleMap = {
   1: 'from-amber-400 to-orange-400',
@@ -38,10 +38,10 @@ const RankingSection = ({ rankings }: RankingSectionProps) => {
               <div className="text-sm font-semibold text-indigo-500">TOP {mockRanking.rank}</div>
               <div className="mt-1 flex items-center">
                 <h2 className="min-w-0 shrink truncate text-[20px] font-bold tracking-[-0.03em] text-slate-900">
-                  {mockRanking.title}
+                  {mockRanking.menuName}
                 </h2>
                 <p className="ml-2 shrink-0 text-sm text-slate-500">
-                  {mockRanking.cafeteriaName} · {mockRanking.mealTime}
+                  {mockRanking.schoolInfo} · {lunchMealTypeLabelMap[mockRanking.mealType]}
                 </p>
               </div>
             </div>
@@ -50,11 +50,11 @@ const RankingSection = ({ rankings }: RankingSectionProps) => {
           <div className="flex max-w-50 min-w-40 shrink-0 items-center justify-between">
             <span className="flex items-center gap-1.5 text-lg font-semibold tabular-nums text-slate-700">
               <ThumbsUp className="h-5 w-5 text-indigo-500" />
-              {mockRanking.likedCount}개
+              {mockRanking.likeCount}개
             </span>
             <span className="flex items-center gap-1.5 text-lg font-semibold tabular-nums text-slate-700">
               <ThumbsDown className="h-5 w-5 text-rose-400" />
-              {mockRanking.dislikedCount}개
+              {mockRanking.dislikeCount}개
             </span>
           </div>
         </article>
