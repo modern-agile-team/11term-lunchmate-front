@@ -56,7 +56,6 @@ export const usePostSection = ({
       reactionErrorMessage: postDetailActions.reactionErrorMessage,
       handlePostReaction: postDetailActions.handlePostReaction,
       isLikePostPending: postDetailActions.isLikePostPending,
-      isDislikePostPending: postDetailActions.isDislikePostPending,
     },
     comments: commentSection.sectionState,
     dialogs: {

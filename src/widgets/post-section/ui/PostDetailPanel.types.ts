@@ -15,9 +15,8 @@ export interface PostDetailPanelDetailState {
 
 export interface PostDetailPanelReactionState {
   reactionErrorMessage: string;
-  handlePostReaction: (type: 'like' | 'dislike') => Promise<void>;
+  handlePostReaction: () => Promise<void>;
   isLikePostPending: boolean;
-  isDislikePostPending: boolean;
 }
 
 export interface PostDetailPanelActionState {

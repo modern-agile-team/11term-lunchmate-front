@@ -26,7 +26,6 @@ const PostCommentSection = ({ comments }: PostCommentSectionProps) => {
     editingCommentValue: comments.editor.editingCommentValue,
     deletingCommentId: comments.editor.deletingCommentId,
     likingCommentId: comments.reactions.likingCommentId,
-    dislikingCommentId: comments.reactions.dislikingCommentId,
     editMessage: comments.editor.editMessage,
     editTone: comments.editor.editTone,
     deleteMessage: comments.editor.deleteMessage,
@@ -45,10 +44,7 @@ const PostCommentSection = ({ comments }: PostCommentSectionProps) => {
       void comments.editor.confirmDelete(comment);
     },
     onLike: (comment: MainPostComment) => {
-      void comments.reactions.handleCommentReaction(comment, 'like');
-    },
-    onDislike: (comment: MainPostComment) => {
-      void comments.reactions.handleCommentReaction(comment, 'dislike');
+      void comments.reactions.handleCommentReaction(comment);
     },
   };
 
@@ -59,8 +55,6 @@ const PostCommentSection = ({ comments }: PostCommentSectionProps) => {
       <CommentReactionMessages
         commentLikeMessage={reactions.commentLikeMessage}
         commentLikeTone={reactions.commentLikeTone}
-        commentDislikeMessage={reactions.commentDislikeMessage}
-        commentDislikeTone={reactions.commentDislikeTone}
       />
 
       <CommentList

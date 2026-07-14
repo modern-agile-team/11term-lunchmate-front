@@ -7,7 +7,6 @@ export type {
   CreateCommentRequest,
   CreateCommentResponse,
   LikeCommentResponse,
-  DislikeCommentResponse,
   UpdateCommentRequest,
   UpdateCommentResponse,
 } from './model/types';

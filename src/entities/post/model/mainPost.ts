@@ -5,6 +5,7 @@ export interface MainPostItem {
   category: MainPostCategory;
   title: string;
   author: string;
+  authorProfileImageUrl: string;
   summary: string;
   content: string;
   likedCount: number;
@@ -17,14 +18,13 @@ export interface MainPostDetail {
   category: MainPostCategory;
   title: string;
   author: string;
+  authorProfileImageUrl: string;
   summary: string;
   content: string;
   likedCount: number;
-  dislikeCount: number;
   commentCount: number;
   createdAt: string;
   liked: boolean;
-  disliked: boolean;
 }
 
 export interface PostSyncRequest {

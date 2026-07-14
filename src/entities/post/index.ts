@@ -8,7 +8,6 @@ export type {
   CreatePostRequest,
   CreatePostResponse,
   LikePostResponse,
-  DislikePostResponse,
   UpdatePostRequest,
 } from './model/types';
 export { getPostDetail } from './api/postDetail';
@@ -29,3 +28,4 @@ export {
   toPostSummary,
 } from './model/postMappers';
 export { default as PostCategoryBadge } from './ui/PostCategoryBadge';
+export { default as PostAuthorAvatar } from './ui/PostAuthorAvatar';

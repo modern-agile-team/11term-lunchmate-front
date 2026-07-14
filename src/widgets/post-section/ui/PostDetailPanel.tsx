@@ -38,7 +38,6 @@ const PostDetailPanel = ({
             reactionErrorMessage={reactions.reactionErrorMessage}
             handlePostReaction={reactions.handlePostReaction}
             isLikePostPending={reactions.isLikePostPending}
-            isDislikePostPending={reactions.isDislikePostPending}
           />
           <PostCommentSection comments={comments} />
         </>

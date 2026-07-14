@@ -8,6 +8,7 @@ export interface PostListUserResponse {
   id?: number;
   nickname?: string;
   name?: string;
+  profileImageUrl?: string;
 }
 
 export interface PostListItemResponse {
@@ -18,13 +19,13 @@ export interface PostListItemResponse {
   summary?: string | null;
   content?: string | null;
   likeCount?: number | null;
-  dislikeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
   author?: string | null;
   authorNickname?: string | null;
   userNickname?: string | null;
   nickname?: string | null;
+  profileImageUrl?: string | null;
   user?: PostListUserResponse | null;
 }
 
@@ -72,9 +73,7 @@ export interface PostDetailResponse {
   content: string;
   viewCount?: number | null;
   liked?: boolean | null;
-  disliked?: boolean | null;
   likeCount?: number | null;
-  dislikeCount?: number | null;
   commentCount?: number | null;
   createdAt: string;
 }
@@ -82,9 +81,4 @@ export interface PostDetailResponse {
 export interface LikePostResponse {
   liked: boolean;
   likeCount: number;
-}
-
-export interface DislikePostResponse {
-  disliked: boolean;
-  dislikeCount: number;
 }

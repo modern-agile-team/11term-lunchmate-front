@@ -16,9 +16,7 @@ export interface CommentListItemResponse {
   authorId?: number | null;
   content: string;
   likeCount?: number | null;
-  dislikeCount?: number | null;
   liked?: boolean | null;
-  disliked?: boolean | null;
   createdAt: string;
   author?: string | null;
   authorNickname?: string | null;
@@ -60,9 +58,4 @@ export interface UpdateCommentResponse extends CommentListItemResponse {
 export interface LikeCommentResponse {
   liked: boolean;
   likeCount: number;
-}
-
-export interface DislikeCommentResponse {
-  disliked: boolean;
-  dislikeCount: number;
 }

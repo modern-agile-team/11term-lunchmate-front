@@ -34,7 +34,6 @@ const PostSection = ({ postSyncRequest, onPostSyncHandled, onRequireLogin }: Pos
             reactionErrorMessage: detail.reactionErrorMessage,
             handlePostReaction: detail.handlePostReaction,
             isLikePostPending: detail.isLikePostPending,
-            isDislikePostPending: detail.isDislikePostPending,
           }}
           actions={{
             onEditOpen: () => dialogs.setIsEditPostModalOpen(true),

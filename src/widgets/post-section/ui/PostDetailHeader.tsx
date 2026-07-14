@@ -1,6 +1,5 @@
 import { PencilLine, Trash2 } from 'lucide-react';
 import { PostCategoryBadge, type MainPostDetail } from '@/entities/post';
-import { formatRelativeCreatedAt } from '@/shared/lib/date/formatRelativeCreatedAt';
 
 interface PostDetailHeaderProps {
   selectedPostDetail: MainPostDetail;
@@ -18,9 +17,6 @@ const PostDetailHeader = ({
   <div className="flex flex-wrap items-center justify-between gap-3">
     <div className="flex items-center gap-3">
       <PostCategoryBadge category={selectedPostDetail.category} />
-      <span className="text-sm text-slate-400">
-        {formatRelativeCreatedAt(selectedPostDetail.createdAt)}
-      </span>
     </div>
     {canEditSelectedPost ? (
       <div className="flex items-center gap-2">

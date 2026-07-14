@@ -75,11 +75,8 @@ export const useCommentThreadController = ({
   const reactions: CommentReactionState = {
     handleCommentReaction: reactionAction.handleCommentReaction,
     likingCommentId: reactionAction.likingCommentId,
-    dislikingCommentId: reactionAction.dislikingCommentId,
     commentLikeMessage: reactionAction.commentLikeMessage,
     commentLikeTone: reactionAction.commentLikeTone,
-    commentDislikeMessage: reactionAction.commentDislikeMessage,
-    commentDislikeTone: reactionAction.commentDislikeTone,
   };
 
   const resetCommentTransientState = () => {
