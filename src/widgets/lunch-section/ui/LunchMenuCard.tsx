@@ -1,4 +1,4 @@
-import { Flame, PencilLine, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { Flame, PencilLine, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react';
 import { cn } from '@/shared/lib/classnames';
 import { lunchMealTypeLabelMap, type MainLunchMenu } from '../model/types';
 
@@ -10,9 +10,17 @@ interface LunchMenuCardProps {
   onSelect: (menuId: number) => void;
   isAdmin?: boolean;
   onEdit?: (menu: MainLunchMenu) => void;
+  onDelete?: (menu: MainLunchMenu) => void;
 }
 
-const LunchMenuCard = ({ menu, isSelected, onSelect, isAdmin, onEdit }: LunchMenuCardProps) => (
+const LunchMenuCard = ({
+  menu,
+  isSelected,
+  onSelect,
+  isAdmin,
+  onEdit,
+  onDelete,
+}: LunchMenuCardProps) => (
   <article
     onClick={() => onSelect(menu.id)}
     className={cn(
@@ -38,6 +46,20 @@ const LunchMenuCard = ({ menu, isSelected, onSelect, isAdmin, onEdit }: LunchMen
               className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200"
             >
               <PencilLine className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+          {isAdmin ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete?.(menu);
+              }}
+              aria-label="메뉴 삭제"
+              title="메뉴 삭제"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-rose-100 hover:text-rose-600"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           ) : null}
         </div>
