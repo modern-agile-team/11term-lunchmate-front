@@ -11,7 +11,6 @@ interface LunchSectionProps {
   isAdmin: boolean;
   onLike: (menuId: number) => void;
   onDislike: (menuId: number) => void;
-  onMenuSaved: (menu: MainLunchMenu) => void;
 }
 
 const toEditorFormValues = (menu: MainLunchMenu): LunchMenuEditorFormValues => ({
@@ -23,7 +22,7 @@ const toEditorFormValues = (menu: MainLunchMenu): LunchMenuEditorFormValues => (
   componentsText: menu.components.join(', '),
 });
 
-const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike, onMenuSaved }: LunchSectionProps) => {
+const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionProps) => {
   const { selectedLunchMenuId, setSelectedLunchMenuId, selectedLunchMenu } = useLunchSelection({
     lunchMenus,
   });
@@ -72,13 +71,6 @@ const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike, onMenuSaved }: L
         mode={isEditMode ? 'edit' : 'create'}
         menuId={isEditMode ? editorTarget.id : undefined}
         initialValues={isEditMode ? toEditorFormValues(editorTarget) : undefined}
-        onSuccess={(result) => {
-          onMenuSaved(
-            isEditMode
-              ? { ...editorTarget, ...result }
-              : { ...result, likeCount: 0, dislikeCount: 0 },
-          );
-        }}
       />
     </section>
   );

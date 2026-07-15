@@ -1,5 +1,5 @@
+import { LUNCH_MEAL_TYPE_OPTIONS } from '@/entities/lunch-menu';
 import { getLunchMenuEditorSubmitLabel } from '../model/lunchMenuEditor.messages';
-import { LUNCH_MEAL_TYPE_OPTIONS } from '../model/lunchMenuEditor.types';
 import type { useLunchMenuEditorForm } from '../model/useLunchMenuEditorForm';
 
 interface LunchMenuEditorFormProps {

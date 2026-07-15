@@ -7,7 +7,6 @@ import LunchMenuEditorForm from './LunchMenuEditorForm';
 const LunchMenuEditorModal = ({
   isOpen,
   onClose,
-  onSuccess,
   mode = 'create',
   menuId,
   initialValues,
@@ -15,7 +14,6 @@ const LunchMenuEditorModal = ({
   const editor = useLunchMenuEditorForm({
     isOpen,
     onClose,
-    onSuccess,
     mode,
     menuId,
     initialValues,

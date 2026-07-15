@@ -1,10 +1,6 @@
-export type LunchMealType = 'BREAKFAST' | 'LUNCH' | 'DINNER';
+import type { LunchMealType } from '@/entities/lunch-menu';
 
-export const lunchMealTypeLabelMap: Record<LunchMealType, string> = {
-  BREAKFAST: '아침',
-  LUNCH: '점심',
-  DINNER: '저녁',
-};
+export { lunchMealTypeLabelMap } from '@/entities/lunch-menu';
 
 export interface MainRankingItem {
   id: number;

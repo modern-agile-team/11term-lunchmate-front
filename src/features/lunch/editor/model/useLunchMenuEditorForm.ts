@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { lunchMenuQueryKeys } from '@/entities/lunch-menu';
 import { createLunchMenu, updateLunchMenu } from '../api';
 import { getLunchMenuEditorErrorMessage } from './lunchMenuEditor.messages';
 import {
@@ -12,7 +13,7 @@ import {
 
 type UseLunchMenuEditorFormParams = Pick<
   LunchMenuEditorModalProps,
-  'isOpen' | 'mode' | 'menuId' | 'initialValues' | 'onClose' | 'onSuccess'
+  'isOpen' | 'mode' | 'menuId' | 'initialValues' | 'onClose'
 >;
 
 export const useLunchMenuEditorForm = ({
@@ -21,8 +22,8 @@ export const useLunchMenuEditorForm = ({
   menuId,
   initialValues,
   onClose,
-  onSuccess,
 }: UseLunchMenuEditorFormParams) => {
+  const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState('');
   const form = useForm<LunchMenuEditorFormValues>({
     defaultValues: initialValues ?? INITIAL_LUNCH_MENU_EDITOR_FORM_VALUES,
@@ -36,7 +37,13 @@ export const useLunchMenuEditorForm = ({
     form.reset(initialValues ?? INITIAL_LUNCH_MENU_EDITOR_FORM_VALUES);
   }, [isOpen]);
 
-  const createMutation = useMutation({ mutationFn: createLunchMenu });
+  const invalidateLunchMenus = () =>
+    queryClient.invalidateQueries({ queryKey: lunchMenuQueryKeys.lists() });
+
+  const createMutation = useMutation({
+    mutationFn: createLunchMenu,
+    onSuccess: invalidateLunchMenus,
+  });
   const updateMutation = useMutation({
     mutationFn: (payload: LunchMenuEditorPayload) => {
       if (!menuId) {
@@ -45,6 +52,7 @@ export const useLunchMenuEditorForm = ({
 
       return updateLunchMenu(menuId, payload);
     },
+    onSuccess: invalidateLunchMenus,
   });
   const isPending = createMutation.isPending || updateMutation.isPending;
 
@@ -78,12 +86,12 @@ export const useLunchMenuEditorForm = ({
     };
 
     try {
-      const result =
-        mode === 'edit'
-          ? await updateMutation.mutateAsync(payload)
-          : await createMutation.mutateAsync(payload);
+      if (mode === 'edit') {
+        await updateMutation.mutateAsync(payload);
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
 
-      onSuccess(result);
       reset();
     } catch (error) {
       setSubmitError(getLunchMenuEditorErrorMessage(error, mode));

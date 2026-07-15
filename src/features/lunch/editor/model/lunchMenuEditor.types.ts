@@ -1,10 +1,4 @@
-export type LunchMealType = 'BREAKFAST' | 'LUNCH' | 'DINNER';
-
-export const LUNCH_MEAL_TYPE_OPTIONS: Array<{ value: LunchMealType; label: string }> = [
-  { value: 'BREAKFAST', label: '아침' },
-  { value: 'LUNCH', label: '점심' },
-  { value: 'DINNER', label: '저녁' },
-];
+import type { LunchMealType } from '@/entities/lunch-menu';
 
 export interface LunchMenuEditorFormValues {
   mealType: LunchMealType;
@@ -31,7 +25,6 @@ export interface LunchMenuEditorResult extends LunchMenuEditorPayload {
 export interface LunchMenuEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (menu: LunchMenuEditorResult) => void;
   mode?: 'create' | 'edit';
   menuId?: number;
   initialValues?: LunchMenuEditorFormValues;

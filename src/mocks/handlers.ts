@@ -24,6 +24,7 @@ import type {
   UpdateMyUserRequest,
 } from '@/entities/user';
 import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
+import type { MainLunchMenu } from '@/entities/lunch-menu';
 
 const currentUserId = 1;
 const MOCK_REFRESH_TOKEN = 'mock-refresh-token-67890';
@@ -38,6 +39,207 @@ interface MockLunchMenuPayload {
   schoolInfo: string;
   components: string[];
 }
+
+let lunchMenus: MainLunchMenu[] = [
+  {
+    id: 1,
+    mealType: 'LUNCH',
+    menuName: '불고기 덮밥',
+    price: 5500,
+    calorie: 742,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['맑은 장국', '배추김치', '샐러드'],
+    likeCount: 82,
+    dislikeCount: 7,
+  },
+  {
+    id: 2,
+    mealType: 'LUNCH',
+    menuName: '돈까스 정식',
+    price: 6000,
+    calorie: 915,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['크림스프', '양배추 샐러드', '단무지'],
+    likeCount: 74,
+    dislikeCount: 12,
+  },
+  {
+    id: 3,
+    mealType: 'LUNCH',
+    menuName: '닭갈비 볶음',
+    price: 6500,
+    calorie: 688,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['계란찜', '콩나물무침', '무생채'],
+    likeCount: 96,
+    dislikeCount: 9,
+  },
+  {
+    id: 4,
+    mealType: 'LUNCH',
+    menuName: '김치찌개 백반',
+    price: 5000,
+    calorie: 654,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '멸치볶음', '어묵볶음'],
+    likeCount: 88,
+    dislikeCount: 5,
+  },
+  {
+    id: 5,
+    mealType: 'LUNCH',
+    menuName: '제육볶음 정식',
+    price: 6000,
+    calorie: 780,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['쌈채소', '된장국', '콩자반'],
+    likeCount: 101,
+    dislikeCount: 11,
+  },
+  {
+    id: 6,
+    mealType: 'LUNCH',
+    menuName: '순두부찌개',
+    price: 5500,
+    calorie: 598,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '계란후라이', '깍두기'],
+    likeCount: 79,
+    dislikeCount: 8,
+  },
+  {
+    id: 7,
+    mealType: 'LUNCH',
+    menuName: '비빔밥',
+    price: 5500,
+    calorie: 612,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['계란후라이', '고추장', '미역국'],
+    likeCount: 91,
+    dislikeCount: 6,
+  },
+  {
+    id: 8,
+    mealType: 'LUNCH',
+    menuName: '카레라이스',
+    price: 5000,
+    calorie: 705,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['단무지', '피클', '요구르트'],
+    likeCount: 85,
+    dislikeCount: 4,
+  },
+  {
+    id: 9,
+    mealType: 'LUNCH',
+    menuName: '짜장밥',
+    price: 5000,
+    calorie: 733,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['단무지', '군만두 1개', '오이무침'],
+    likeCount: 77,
+    dislikeCount: 9,
+  },
+  {
+    id: 10,
+    mealType: 'LUNCH',
+    menuName: '오므라이스',
+    price: 5500,
+    calorie: 689,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['피클', '양상추 샐러드'],
+    likeCount: 83,
+    dislikeCount: 5,
+  },
+  {
+    id: 11,
+    mealType: 'LUNCH',
+    menuName: '규동',
+    price: 6500,
+    calorie: 745,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['미소국', '단무지'],
+    likeCount: 94,
+    dislikeCount: 6,
+  },
+  {
+    id: 12,
+    mealType: 'LUNCH',
+    menuName: '잡채밥',
+    price: 6000,
+    calorie: 710,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '배추김치', '계란국'],
+    likeCount: 87,
+    dislikeCount: 7,
+  },
+  {
+    id: 13,
+    mealType: 'LUNCH',
+    menuName: '된장찌개 백반',
+    price: 5500,
+    calorie: 560,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '고사리나물', '시금치나물'],
+    likeCount: 72,
+    dislikeCount: 4,
+  },
+  {
+    id: 14,
+    mealType: 'LUNCH',
+    menuName: '치킨마요 덮밥',
+    price: 6000,
+    calorie: 820,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['미소국', '단무지', '양배추 샐러드'],
+    likeCount: 118,
+    dislikeCount: 10,
+  },
+  {
+    id: 15,
+    mealType: 'LUNCH',
+    menuName: '떡갈비 정식',
+    price: 7000,
+    calorie: 860,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['쌈채소', '된장찌개', '깍두기'],
+    likeCount: 99,
+    dislikeCount: 8,
+  },
+  {
+    id: 16,
+    mealType: 'LUNCH',
+    menuName: '고등어구이 정식',
+    price: 6500,
+    calorie: 690,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '무생채', '된장국'],
+    likeCount: 68,
+    dislikeCount: 6,
+  },
+  {
+    id: 17,
+    mealType: 'LUNCH',
+    menuName: '크림 파스타',
+    price: 6500,
+    calorie: 812,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['마늘빵', '피클'],
+    likeCount: 76,
+    dislikeCount: 13,
+  },
+  {
+    id: 18,
+    mealType: 'LUNCH',
+    menuName: '부대찌개',
+    price: 7000,
+    calorie: 890,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '라면사리', '배추김치'],
+    likeCount: 105,
+    dislikeCount: 9,
+  },
+];
 
 const createMockAccessToken = (user: GetMyUserResponse) => `mock-access-token-${user.id}`;
 
@@ -1152,6 +1354,12 @@ export const handlers = [
     return HttpResponse.json({ liked: comment.liked, likeCount: comment.likeCount });
   }),
 
+  http.get('/api/v1/lunch-menus', async () => {
+    await wait();
+
+    return HttpResponse.json(lunchMenus);
+  }),
+
   http.post('/api/v1/lunch-menus', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) return unauthorizedResponse();
@@ -1160,7 +1368,15 @@ export const handlers = [
     const payload = (await request.json()) as MockLunchMenuPayload;
     lunchMenuIdCounter += 1;
 
-    return HttpResponse.json({ id: lunchMenuIdCounter, ...payload }, { status: 201 });
+    const created: MainLunchMenu = {
+      id: lunchMenuIdCounter,
+      ...payload,
+      likeCount: 0,
+      dislikeCount: 0,
+    };
+    lunchMenus = [created, ...lunchMenus];
+
+    return HttpResponse.json(created, { status: 201 });
   }),
 
   http.patch('/api/v1/lunch-menus/:menuId', async ({ request, params }) => {
@@ -1170,7 +1386,15 @@ export const handlers = [
 
     const payload = (await request.json()) as MockLunchMenuPayload;
     const menuId = Number(params.menuId);
+    const existingMenu = lunchMenus.find((menu) => menu.id === menuId);
 
-    return HttpResponse.json({ id: menuId, ...payload });
+    if (!existingMenu) {
+      return HttpResponse.json({ message: '메뉴를 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    const updated: MainLunchMenu = { ...existingMenu, ...payload };
+    lunchMenus = lunchMenus.map((menu) => (menu.id === menuId ? updated : menu));
+
+    return HttpResponse.json(updated);
   }),
 ];
