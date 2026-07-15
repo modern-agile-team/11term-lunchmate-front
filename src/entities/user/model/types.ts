@@ -1,6 +1,7 @@
 import type { MbtiType } from './profile';
 
 export type Gender = 'MALE' | 'FEMALE';
+export type Role = 'ADMIN' | 'USER';
 
 export interface User {
   id: number;
@@ -12,6 +13,7 @@ export interface User {
   nickname: string;
   birthDate: string;
   gender: Gender;
+  role: Role;
   createdAt: string;
 }
 

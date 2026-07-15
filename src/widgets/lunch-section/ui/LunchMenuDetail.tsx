@@ -1,5 +1,5 @@
-import { Flame, MapPin, ThumbsDown, ThumbsUp } from 'lucide-react';
-import type { MainLunchMenu } from '../model/types';
+import { Flame, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { lunchMealTypeLabelMap, type MainLunchMenu } from '../model/types';
 
 const KRW_NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
 
@@ -14,14 +14,11 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
         <div className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
-          {menu.cafeteriaName} · {menu.mealTime}
+          {menu.schoolInfo} · {lunchMealTypeLabelMap[menu.mealType]}
         </div>
         <h3 className="mt-4 text-[26px] font-bold tracking-[-0.03em] text-slate-900">
-          {menu.title}
+          {menu.menuName}
         </h3>
-        <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-7 text-slate-600">
-          {menu.detailDescription}
-        </p>
       </div>
 
       <div className="rounded-[24px] bg-emerald-50 px-5 py-4">
@@ -33,32 +30,21 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
           <Flame className="h-4 w-4 text-orange-400" />
           {menu.calorie}kcal
         </div>
-        <div className="mt-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
-          맵기 {menu.spicyLevel}
-        </div>
       </div>
     </div>
 
-    <div className="mt-6 grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+    <div className="mt-6 grid gap-4">
       <section className="rounded-[24px] bg-slate-50 px-5 py-5">
         <h4 className="text-sm font-semibold text-slate-700">구성</h4>
         <div className="mt-3 flex flex-wrap gap-2">
-          {menu.sideMenus.map((sideMenu) => (
+          {menu.components.map((component) => (
             <span
-              key={sideMenu}
+              key={component}
               className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-600"
             >
-              {sideMenu}
+              {component}
             </span>
           ))}
-        </div>
-      </section>
-
-      <section className="rounded-[24px] bg-slate-50 px-5 py-5">
-        <h4 className="text-sm font-semibold text-slate-700">식당 정보</h4>
-        <div className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600">
-          <MapPin className="h-4 w-4 text-emerald-500" />
-          {menu.location}
         </div>
       </section>
     </div>
@@ -72,7 +58,7 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
         }`}
       >
         <ThumbsUp className="h-4 w-4" />
-        좋아요 {menu.likedCount}
+        좋아요 {menu.likeCount}
       </button>
       <button
         type="button"
@@ -84,7 +70,7 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
         }`}
       >
         <ThumbsDown className="h-4 w-4" />
-        싫어요 {menu.dislikedCount}
+        싫어요 {menu.dislikeCount}
       </button>
     </div>
   </article>

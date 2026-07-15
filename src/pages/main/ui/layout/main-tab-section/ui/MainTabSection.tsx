@@ -1,13 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import type { PostSyncRequest } from '@/entities/post';
+import { myUserQueryOptions } from '@/entities/user';
+import { lunchMenuListQueryOptions, lunchMenuQueryKeys, type MainLunchMenu } from '@/entities/lunch-menu';
 import type { MainTab } from '../../main-tabs/model/types';
 import LunchSection from '@/widgets/lunch-section';
 import PostSection from '@/widgets/post-section';
 import RankingSection from '@/widgets/ranking-section';
 import RoomSection from '@/widgets/room-section';
-import { mockLunchMenus } from '@/widgets/lunch-section/model/mockLunchMenus';
-import type { MainLunchMenu } from '@/widgets/lunch-section/model/types';
 import type { MainRankingItem } from '@/widgets/ranking-section/model/types';
 
 interface MainTabSectionProps {
@@ -41,28 +42,40 @@ const MainTabSection = ({
   onPostSyncHandled,
   onRequireLogin,
 }: MainTabSectionProps) => {
-  const [lunchMenus, setLunchMenus] = useState<MainLunchMenu[]>(mockLunchMenus);
+  const queryClient = useQueryClient();
   const isRoomTab = activeTab === 'ROOM';
   const isPostTab = activeTab === 'POST';
+  const myUserQuery = useQuery(myUserQueryOptions());
+  const isAdmin = myUserQuery.data?.role === 'ADMIN';
+  const lunchMenusQuery = useQuery(lunchMenuListQueryOptions());
+  const lunchMenus = useMemo(() => lunchMenusQuery.data ?? [], [lunchMenusQuery.data]);
 
   const rankings = useMemo<MainRankingItem[]>(
     () =>
       [...lunchMenus]
-        .sort((a, b) => b.likedCount - a.likedCount)
+        .sort((a, b) => b.likeCount - a.likeCount)
         .map((menu, index) => ({
           id: menu.id,
           rank: index + 1,
-          title: menu.title,
-          cafeteriaName: menu.cafeteriaName,
-          mealTime: menu.mealTime,
-          likedCount: menu.likedCount,
-          dislikedCount: menu.dislikedCount,
+          menuName: menu.menuName,
+          mealType: menu.mealType,
+          schoolInfo: menu.schoolInfo,
+          likeCount: menu.likeCount,
+          dislikeCount: menu.dislikeCount,
         })),
     [lunchMenus],
   );
 
+  const updateLunchMenusCache = (
+    updater: (menus: MainLunchMenu[]) => MainLunchMenu[],
+  ) => {
+    queryClient.setQueryData<MainLunchMenu[]>(lunchMenuQueryKeys.lists(), (currentMenus) =>
+      updater(currentMenus ?? []),
+    );
+  };
+
   const handleLike = (menuId: number) => {
-    setLunchMenus((currentMenus) =>
+    updateLunchMenusCache((currentMenus) =>
       currentMenus.map((menu) => {
         if (menu.id !== menuId) {
           return menu;
@@ -75,15 +88,15 @@ const MainTabSection = ({
           ...menu,
           likedByMe: nextLikedByMe,
           dislikedByMe: removeDislike ? false : menu.dislikedByMe,
-          likedCount: Math.max(0, menu.likedCount + (nextLikedByMe ? 1 : -1)),
-          dislikedCount: Math.max(0, menu.dislikedCount - (removeDislike ? 1 : 0)),
+          likeCount: Math.max(0, menu.likeCount + (nextLikedByMe ? 1 : -1)),
+          dislikeCount: Math.max(0, menu.dislikeCount - (removeDislike ? 1 : 0)),
         };
       }),
     );
   };
 
   const handleDislike = (menuId: number) => {
-    setLunchMenus((currentMenus) =>
+    updateLunchMenusCache((currentMenus) =>
       currentMenus.map((menu) => {
         if (menu.id !== menuId) {
           return menu;
@@ -96,8 +109,8 @@ const MainTabSection = ({
           ...menu,
           dislikedByMe: nextDislikedByMe,
           likedByMe: removeLike ? false : menu.likedByMe,
-          dislikedCount: Math.max(0, menu.dislikedCount + (nextDislikedByMe ? 1 : -1)),
-          likedCount: Math.max(0, menu.likedCount - (removeLike ? 1 : 0)),
+          dislikeCount: Math.max(0, menu.dislikeCount + (nextDislikedByMe ? 1 : -1)),
+          likeCount: Math.max(0, menu.likeCount - (removeLike ? 1 : 0)),
         };
       }),
     );
@@ -127,7 +140,12 @@ const MainTabSection = ({
 
       {activeTab === 'ROOM' ? <RoomSection onRequireLogin={onRequireLogin} /> : null}
       {activeTab === 'LUNCH' ? (
-        <LunchSection lunchMenus={lunchMenus} onLike={handleLike} onDislike={handleDislike} />
+        <LunchSection
+          lunchMenus={lunchMenus}
+          isAdmin={isAdmin}
+          onLike={handleLike}
+          onDislike={handleDislike}
+        />
       ) : null}
       {activeTab === 'RANKING' ? <RankingSection rankings={rankings} /> : null}
       {activeTab === 'POST' ? (

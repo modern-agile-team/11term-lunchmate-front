@@ -24,11 +24,224 @@ import type {
   UpdateMyUserRequest,
 } from '@/entities/user';
 import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
+import type { MainLunchMenu } from '@/entities/lunch-menu';
 
 const currentUserId = 1;
-const MOCK_ACCESS_TOKEN = 'mock-access-token-12345';
 const MOCK_REFRESH_TOKEN = 'mock-refresh-token-67890';
 let isAccountDeleted = false;
+let lunchMenuIdCounter = 1000;
+
+interface MockLunchMenuPayload {
+  mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER';
+  menuName: string;
+  price: number;
+  calorie: number;
+  schoolInfo: string;
+  components: string[];
+}
+
+let lunchMenus: MainLunchMenu[] = [
+  {
+    id: 1,
+    mealType: 'LUNCH',
+    menuName: '불고기 덮밥',
+    price: 5500,
+    calorie: 742,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['맑은 장국', '배추김치', '샐러드'],
+    likeCount: 82,
+    dislikeCount: 7,
+  },
+  {
+    id: 2,
+    mealType: 'LUNCH',
+    menuName: '돈까스 정식',
+    price: 6000,
+    calorie: 915,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['크림스프', '양배추 샐러드', '단무지'],
+    likeCount: 74,
+    dislikeCount: 12,
+  },
+  {
+    id: 3,
+    mealType: 'LUNCH',
+    menuName: '닭갈비 볶음',
+    price: 6500,
+    calorie: 688,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['계란찜', '콩나물무침', '무생채'],
+    likeCount: 96,
+    dislikeCount: 9,
+  },
+  {
+    id: 4,
+    mealType: 'LUNCH',
+    menuName: '김치찌개 백반',
+    price: 5000,
+    calorie: 654,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '멸치볶음', '어묵볶음'],
+    likeCount: 88,
+    dislikeCount: 5,
+  },
+  {
+    id: 5,
+    mealType: 'LUNCH',
+    menuName: '제육볶음 정식',
+    price: 6000,
+    calorie: 780,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['쌈채소', '된장국', '콩자반'],
+    likeCount: 101,
+    dislikeCount: 11,
+  },
+  {
+    id: 6,
+    mealType: 'LUNCH',
+    menuName: '순두부찌개',
+    price: 5500,
+    calorie: 598,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '계란후라이', '깍두기'],
+    likeCount: 79,
+    dislikeCount: 8,
+  },
+  {
+    id: 7,
+    mealType: 'LUNCH',
+    menuName: '비빔밥',
+    price: 5500,
+    calorie: 612,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['계란후라이', '고추장', '미역국'],
+    likeCount: 91,
+    dislikeCount: 6,
+  },
+  {
+    id: 8,
+    mealType: 'LUNCH',
+    menuName: '카레라이스',
+    price: 5000,
+    calorie: 705,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['단무지', '피클', '요구르트'],
+    likeCount: 85,
+    dislikeCount: 4,
+  },
+  {
+    id: 9,
+    mealType: 'LUNCH',
+    menuName: '짜장밥',
+    price: 5000,
+    calorie: 733,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['단무지', '군만두 1개', '오이무침'],
+    likeCount: 77,
+    dislikeCount: 9,
+  },
+  {
+    id: 10,
+    mealType: 'LUNCH',
+    menuName: '오므라이스',
+    price: 5500,
+    calorie: 689,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['피클', '양상추 샐러드'],
+    likeCount: 83,
+    dislikeCount: 5,
+  },
+  {
+    id: 11,
+    mealType: 'LUNCH',
+    menuName: '규동',
+    price: 6500,
+    calorie: 745,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['미소국', '단무지'],
+    likeCount: 94,
+    dislikeCount: 6,
+  },
+  {
+    id: 12,
+    mealType: 'LUNCH',
+    menuName: '잡채밥',
+    price: 6000,
+    calorie: 710,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '배추김치', '계란국'],
+    likeCount: 87,
+    dislikeCount: 7,
+  },
+  {
+    id: 13,
+    mealType: 'LUNCH',
+    menuName: '된장찌개 백반',
+    price: 5500,
+    calorie: 560,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '고사리나물', '시금치나물'],
+    likeCount: 72,
+    dislikeCount: 4,
+  },
+  {
+    id: 14,
+    mealType: 'LUNCH',
+    menuName: '치킨마요 덮밥',
+    price: 6000,
+    calorie: 820,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['미소국', '단무지', '양배추 샐러드'],
+    likeCount: 118,
+    dislikeCount: 10,
+  },
+  {
+    id: 15,
+    mealType: 'LUNCH',
+    menuName: '떡갈비 정식',
+    price: 7000,
+    calorie: 860,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['쌈채소', '된장찌개', '깍두기'],
+    likeCount: 99,
+    dislikeCount: 8,
+  },
+  {
+    id: 16,
+    mealType: 'LUNCH',
+    menuName: '고등어구이 정식',
+    price: 6500,
+    calorie: 690,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '무생채', '된장국'],
+    likeCount: 68,
+    dislikeCount: 6,
+  },
+  {
+    id: 17,
+    mealType: 'LUNCH',
+    menuName: '크림 파스타',
+    price: 6500,
+    calorie: 812,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['마늘빵', '피클'],
+    likeCount: 76,
+    dislikeCount: 13,
+  },
+  {
+    id: 18,
+    mealType: 'LUNCH',
+    menuName: '부대찌개',
+    price: 7000,
+    calorie: 890,
+    schoolInfo: '인덕대학교 학생식당',
+    components: ['공깃밥', '라면사리', '배추김치'],
+    likeCount: 105,
+    dislikeCount: 9,
+  },
+];
+
+const createMockAccessToken = (user: GetMyUserResponse) => `mock-access-token-${user.id}`;
 
 let currentUser: GetMyUserResponse = {
   id: 1,
@@ -40,6 +253,7 @@ let currentUser: GetMyUserResponse = {
   introduce: '오늘도 같이 먹을 사람을 찾고 있어요.',
   birthDate: '2000-05-15',
   gender: 'MALE',
+  role: 'ADMIN',
   createdAt: '2025-03-01T09:00:00.000Z',
 };
 
@@ -63,6 +277,7 @@ const mockUsers: GetMyUserResponse[] = [
     introduce: '학생회관 맛집 위주로 다녀요.',
     birthDate: '1999-11-20',
     gender: 'MALE',
+    role: 'USER',
     createdAt: '2025-03-10T09:00:00.000Z',
   },
   {
@@ -75,6 +290,7 @@ const mockUsers: GetMyUserResponse[] = [
     introduce: '조용한 점심 좋아해요.',
     birthDate: '2001-08-02',
     gender: 'FEMALE',
+    role: 'USER',
     createdAt: '2025-03-12T09:00:00.000Z',
   },
   {
@@ -87,6 +303,7 @@ const mockUsers: GetMyUserResponse[] = [
     introduce: '매운 음식 환영!',
     birthDate: '1998-01-09',
     gender: 'MALE',
+    role: 'USER',
     createdAt: '2025-03-20T09:00:00.000Z',
   },
 ];
@@ -538,11 +755,22 @@ let comments: CommentListItemResponse[] = [
 
 const wait = () => delay(250);
 
-const isAuthorized = (request: Request) =>
-  request.headers.get('Authorization') === `Bearer ${MOCK_ACCESS_TOKEN}` && !isAccountDeleted;
+const getBearerToken = (request: Request) => {
+  const header = request.headers.get('Authorization');
+
+  return header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null;
+};
+
+const isAuthorized = (request: Request) => Boolean(getBearerToken(request)) && !isAccountDeleted;
+
+const isAdminAuthorized = (request: Request) =>
+  isAuthorized(request) && currentUser.role === 'ADMIN';
 
 const unauthorizedResponse = () =>
   HttpResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 });
+
+const forbiddenResponse = () =>
+  HttpResponse.json({ message: '관리자만 이용할 수 있어요.' }, { status: 403 });
 
 const findUserById = (userId: number) => mockUsers.find((user) => user.id === userId);
 
@@ -617,7 +845,7 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => {
 };
 
 export const handlers = [
-  http.post('/auth/login', async ({ request }) => {
+  http.post('/api/v1/auth/login', async ({ request }) => {
     await wait();
     if (isAccountDeleted) {
       return HttpResponse.json({ message: '탈퇴한 계정입니다.' }, { status: 410 });
@@ -631,12 +859,12 @@ export const handlers = [
 
     return HttpResponse.json<LoginResponse>({
       user: currentUser,
-      accessToken: MOCK_ACCESS_TOKEN,
+      accessToken: createMockAccessToken(currentUser),
       refreshToken: MOCK_REFRESH_TOKEN,
     });
   }),
 
-  http.post('/auth/logout', async ({ request }) => {
+  http.post('/api/v1/auth/logout', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
@@ -647,7 +875,7 @@ export const handlers = [
     });
   }),
 
-  http.post('/auth/signup', async ({ request }) => {
+  http.post('/api/v1/auth/signup', async ({ request }) => {
     await wait();
 
     const payload = (await request.json()) as SignUpRequest;
@@ -677,6 +905,7 @@ export const handlers = [
       introduce: payload.introduce ?? '',
       birthDate: payload.birthDate,
       gender: payload.gender,
+      role: 'USER',
       createdAt: new Date().toISOString(),
     };
 
@@ -685,7 +914,7 @@ export const handlers = [
 
     return HttpResponse.json<SignUpResponse>({
       user: newUser,
-      accessToken: MOCK_ACCESS_TOKEN,
+      accessToken: createMockAccessToken(newUser),
       refreshToken: MOCK_REFRESH_TOKEN,
     });
   }),
@@ -1125,4 +1354,47 @@ export const handlers = [
     return HttpResponse.json({ liked: comment.liked, likeCount: comment.likeCount });
   }),
 
+  http.get('/api/v1/lunch-menus', async () => {
+    await wait();
+
+    return HttpResponse.json(lunchMenus);
+  }),
+
+  http.post('/api/v1/lunch-menus', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) return unauthorizedResponse();
+    if (!isAdminAuthorized(request)) return forbiddenResponse();
+
+    const payload = (await request.json()) as MockLunchMenuPayload;
+    lunchMenuIdCounter += 1;
+
+    const created: MainLunchMenu = {
+      id: lunchMenuIdCounter,
+      ...payload,
+      likeCount: 0,
+      dislikeCount: 0,
+    };
+    lunchMenus = [created, ...lunchMenus];
+
+    return HttpResponse.json(created, { status: 201 });
+  }),
+
+  http.patch('/api/v1/lunch-menus/:menuId', async ({ request, params }) => {
+    await wait();
+    if (!isAuthorized(request)) return unauthorizedResponse();
+    if (!isAdminAuthorized(request)) return forbiddenResponse();
+
+    const payload = (await request.json()) as MockLunchMenuPayload;
+    const menuId = Number(params.menuId);
+    const existingMenu = lunchMenus.find((menu) => menu.id === menuId);
+
+    if (!existingMenu) {
+      return HttpResponse.json({ message: '메뉴를 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    const updated: MainLunchMenu = { ...existingMenu, ...payload };
+    lunchMenus = lunchMenus.map((menu) => (menu.id === menuId ? updated : menu));
+
+    return HttpResponse.json(updated);
+  }),
 ];
