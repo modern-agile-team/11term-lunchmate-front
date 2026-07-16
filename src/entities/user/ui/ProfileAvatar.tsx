@@ -22,7 +22,7 @@ const ProfileAvatar = ({
       type="button"
       onClick={onClick}
       aria-label="프로필 이미지 수정"
-      className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-semibold text-slate-500 shadow-sm transition hover:scale-[1.02] hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:h-32 sm:w-32"
+      className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-semibold text-slate-500 shadow-sm transition hover:scale-[1.02] hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:h-32 sm:w-32"
     >
       {showProfileImage ? (
         <img

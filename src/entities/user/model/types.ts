@@ -1,6 +1,5 @@
-import type { MbtiType } from './profile';
+import type { Gender, MbtiType } from './profile';
 
-export type Gender = 'MALE' | 'FEMALE';
 export type Role = 'ADMIN' | 'USER';
 
 export interface User {
@@ -56,7 +55,6 @@ export interface UpdateMyUserRequest {
   name: string;
   email: string;
   birthDate: string;
-  gender: Gender;
 }
 
 export type UpdateMyUserResponse = User;

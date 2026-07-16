@@ -5,7 +5,6 @@ import {
   logout,
   myUserQueryOptions,
   updateMyUser,
-  type Gender,
   type UpdateMyUserRequest,
 } from '@/entities/user';
 import { clearAuthSession } from '@/shared/lib/auth/session';
@@ -14,10 +13,13 @@ const EMPTY_FORM: UpdateMyUserRequest = {
   name: '',
   email: '',
   birthDate: '',
-  gender: 'MALE',
 };
 
-export const useAccountSettings = () => {
+interface UseAccountSettingsParams {
+  onSaveSuccess?: () => void;
+}
+
+export const useAccountSettings = ({ onSaveSuccess }: UseAccountSettingsParams = {}) => {
   const queryClient = useQueryClient();
   const myUserQuery = useQuery(myUserQueryOptions());
   const [form, setForm] = useState<UpdateMyUserRequest>(EMPTY_FORM);
@@ -31,7 +33,6 @@ export const useAccountSettings = () => {
       name: myUserQuery.data.name,
       email: myUserQuery.data.email,
       birthDate: myUserQuery.data.birthDate,
-      gender: myUserQuery.data.gender,
     });
   }
 
@@ -41,6 +42,7 @@ export const useAccountSettings = () => {
       queryClient.setQueryData(myUserQueryOptions().queryKey, updatedUser);
       setMessage('계정 정보가 저장되었어요.');
       setMessageTone('success');
+      onSaveSuccess?.();
     },
     onError: () => {
       setMessage('계정 정보를 저장하지 못했어요.');
@@ -74,18 +76,26 @@ export const useAccountSettings = () => {
     }));
   };
 
-  const handleGenderChange = (gender: Gender) => {
-    handleFieldChange('gender', gender);
-  };
-
   const handleSave = () => {
     setMessage('');
     updateMutation.mutate({
       name: form.name.trim(),
       email: form.email.trim(),
       birthDate: form.birthDate,
-      gender: form.gender,
     });
+  };
+
+  const resetForm = () => {
+    if (!myUserQuery.data) {
+      return;
+    }
+
+    setForm({
+      name: myUserQuery.data.name,
+      email: myUserQuery.data.email,
+      birthDate: myUserQuery.data.birthDate,
+    });
+    setMessage('');
   };
 
   return {
@@ -101,8 +111,8 @@ export const useAccountSettings = () => {
     isLogoutPending: logoutMutation.isPending,
     isDeletePending: deleteMutation.isPending,
     handleFieldChange,
-    handleGenderChange,
     handleSave,
+    resetForm,
     handleLogout: () => logoutMutation.mutate(),
     handleDeleteAccount: () => deleteMutation.mutate(),
   };

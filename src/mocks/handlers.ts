@@ -13,7 +13,6 @@ import type {
 } from '@/entities/post/model/types';
 import type {
   DeleteMyUserResponse,
-  Gender,
   GetMyProfileResponse,
   GetMyUserResponse,
   LoginRequest,
@@ -258,10 +257,10 @@ let currentUser: GetMyUserResponse = {
 };
 
 let profile: GetMyProfileResponse = {
-  name: currentUser.name,
   nickname: currentUser.nickname,
   introduce: currentUser.introduce,
   mbti: currentUser.mbti || 'ENFP',
+  gender: currentUser.gender,
   profileImageUrl: currentUser.profileImageUrl,
 };
 
@@ -790,11 +789,11 @@ function toRoomMember(userId: number): GetRoomMembersResponse['items'][number] {
 const syncCurrentUserProfile = () => {
   currentUser = {
     ...currentUser,
-    name: profile.name,
     nickname: profile.nickname,
     profileImageUrl: profile.profileImageUrl,
     introduce: profile.introduce,
     mbti: profile.mbti,
+    gender: profile.gender,
   };
 
   const userIndex = mockUsers.findIndex((user) => user.id === currentUser.id);
@@ -940,9 +939,7 @@ export const handlers = [
       name: payload.name ?? currentUser.name,
       email: payload.email ?? currentUser.email,
       birthDate: payload.birthDate ?? currentUser.birthDate,
-      gender: (payload.gender as Gender | undefined) ?? currentUser.gender,
     };
-    profile.name = currentUser.name;
     syncCurrentUserProfile();
 
     return HttpResponse.json<GetMyUserResponse>(currentUser);
@@ -1013,7 +1010,6 @@ export const handlers = [
       .filter((friend): friend is GetMyUserResponse => Boolean(friend))
       .map((friend) => ({
         id: friend.id,
-        name: friend.name,
         nickname: friend.nickname,
         mbti: friend.mbti,
         introduce: friend.introduce,

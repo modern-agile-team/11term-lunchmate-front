@@ -42,7 +42,7 @@ const AppDialog = ({
         <div className="flex items-start justify-between gap-4">
           <div>
             {eyebrow ? <p className="text-sm font-semibold text-indigo-500">{eyebrow}</p> : null}
-            <h2 className="mt-1 text-[24px] font-bold tracking-[-0.03em] text-slate-900">
+            <h2 className="mt-1 text-xl font-bold tracking-[-0.03em] text-slate-900 sm:text-[24px]">
               {title}
             </h2>
             {subtitle ? <p className="mt-2 text-sm text-slate-500">{subtitle}</p> : null}
