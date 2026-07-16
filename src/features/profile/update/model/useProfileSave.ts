@@ -11,14 +11,12 @@ import { normalizeProfile } from './normalizeProfile';
 interface UseProfileSaveParams {
   profile: UserProfile;
   setProfileDraft: React.Dispatch<React.SetStateAction<UserProfile | null>>;
-  setImageInputValue: (value: string) => void;
   setImageError: (value: boolean) => void;
 }
 
 export const useProfileSave = ({
   profile,
   setProfileDraft,
-  setImageInputValue,
   setImageError,
 }: UseProfileSaveParams) => {
   const queryClient = useQueryClient();
@@ -30,7 +28,6 @@ export const useProfileSave = ({
     onSuccess: (updatedProfile) => {
       const normalizedUpdatedProfile = normalizeProfile(updatedProfile);
       setProfileDraft(normalizedUpdatedProfile);
-      setImageInputValue(normalizedUpdatedProfile.profileImageUrl);
       setImageError(false);
       setSaveMessage('프로필이 저장되었어요.');
       setSaveMessageTone('success');
