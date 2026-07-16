@@ -29,9 +29,6 @@ const FriendManagerSection = () => {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-indigo-500">친구 관리</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            친구 목록과 친구 신청 관리
-          </h2>
           <p className="mt-2 text-sm text-slate-500">
             친구 조회, 신청, 수락/거절, 신청 취소, 삭제까지 한 화면에서 처리할 수 있어요.
           </p>
@@ -42,7 +39,7 @@ const FriendManagerSection = () => {
         </div>
       </div>
 
-      <div className="mt-8 rounded-[24px] border border-slate-100 bg-slate-50/70 p-5">
+      <div className="mt-6 rounded-[24px] border border-slate-100 bg-slate-50/70 p-5">
         <div className="grid gap-4 md:grid-cols-[1.4fr_1fr_auto]">
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">
@@ -91,9 +88,9 @@ const FriendManagerSection = () => {
       {isLoading ? <p className="mt-6 text-sm text-slate-500">친구 정보를 불러오는 중입니다.</p> : null}
       {isError ? <p className="mt-6 text-sm text-red-500">친구 정보를 불러오지 못했습니다.</p> : null}
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-3">
+      <div className="mt-8 grid gap-6">
         <div className="rounded-[24px] border border-slate-100 p-5">
-          <h3 className="text-lg font-bold text-slate-900">친구 목록</h3>
+          <h3 className="text-base font-bold text-slate-900 sm:text-lg">친구 목록</h3>
           <div className="mt-4 space-y-3">
             {friends.length ? (
               friends.map((friend) => (
@@ -105,7 +102,7 @@ const FriendManagerSection = () => {
                     <div>
                       <p className="font-semibold text-slate-900">{friend.nickname}</p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {friend.name} · {friend.mbti || 'MBTI 미설정'}
+                        {friend.mbti || 'MBTI 미설정'}
                       </p>
                       <p className="mt-2 text-sm text-slate-600">
                         {friend.introduce || '한 줄 소개가 아직 없어요.'}
@@ -129,7 +126,7 @@ const FriendManagerSection = () => {
         </div>
 
         <div className="rounded-[24px] border border-slate-100 p-5">
-          <h3 className="text-lg font-bold text-slate-900">받은 신청</h3>
+          <h3 className="text-base font-bold text-slate-900 sm:text-lg">받은 신청</h3>
           <div className="mt-4 space-y-3">
             {incomingRequests.length ? (
               incomingRequests.map((request) => (
@@ -166,7 +163,7 @@ const FriendManagerSection = () => {
         </div>
 
         <div className="rounded-[24px] border border-slate-100 p-5">
-          <h3 className="text-lg font-bold text-slate-900">보낸 신청</h3>
+          <h3 className="text-base font-bold text-slate-900 sm:text-lg">보낸 신청</h3>
           <div className="mt-4 space-y-3">
             {outgoingRequests.length ? (
               outgoingRequests.map((request) => (

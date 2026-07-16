@@ -19,34 +19,36 @@ export const MBTI_OPTIONS = [
 
 export type MbtiType = (typeof MBTI_OPTIONS)[number];
 
+export type Gender = 'MALE' | 'FEMALE';
+
 export interface UserProfile {
-  name: string;
   nickname: string;
   introduce: string;
   mbti: MbtiType | '';
+  gender: Gender | '';
   profileImageUrl: string;
 }
 
 export interface GetMyProfileResponse {
-  name: string;
   nickname: string;
   introduce: string;
   mbti: MbtiType;
+  gender: Gender;
   profileImageUrl: string;
 }
 
 export interface UpdateMyProfileRequest {
-  name: string;
   nickname: string;
   introduce: string;
   mbti: MbtiType;
+  gender: Gender;
   profileImageUrl: string;
 }
 
 export interface UpdateMyProfileResponse {
-  name: string;
   nickname: string;
   introduce: string;
   mbti: MbtiType;
+  gender: Gender;
   profileImageUrl: string;
 }

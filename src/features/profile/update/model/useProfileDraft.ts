@@ -14,10 +14,15 @@ export const useProfileDraft = ({ profileData }: UseProfileDraftParams) => {
     setProfileDraft((current) => ({ ...profile, ...current, [field]: value }));
   };
 
+  const resetDraft = () => {
+    setProfileDraft(null);
+  };
+
   return {
     profile,
     profileDraft,
     setProfileDraft,
     handleFieldChange,
+    resetDraft,
   };
 };

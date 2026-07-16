@@ -1,13 +1,11 @@
-import { LogOut, ShieldAlert } from 'lucide-react';
+import { useState } from 'react';
+import { LogOut, PencilLine, ShieldAlert, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import InfoRow from '@/shared/ui/InfoRow';
 import { useAccountSettings } from '../model/useAccountSettings';
 
-const GENDER_OPTIONS = [
-  { value: 'MALE', label: '남성' },
-  { value: 'FEMALE', label: '여성' },
-] as const;
-
 const AccountSettingsSection = () => {
+  const [isEditMode, setIsEditMode] = useState(false);
   const navigate = useNavigate();
   const {
     user,
@@ -22,11 +20,11 @@ const AccountSettingsSection = () => {
     isLogoutPending,
     isDeletePending,
     handleFieldChange,
-    handleGenderChange,
     handleSave,
+    resetForm,
     handleLogout,
     handleDeleteAccount,
-  } = useAccountSettings();
+  } = useAccountSettings({ onSaveSuccess: () => setIsEditMode(false) });
 
   if (isLoading) {
     return (
@@ -53,76 +51,75 @@ const AccountSettingsSection = () => {
     );
   }
 
+  const handleToggleEdit = () => {
+    if (isEditMode) {
+      resetForm();
+    }
+    setIsEditMode((current) => !current);
+  };
+
   return (
     <section className="rounded-[28px] bg-white p-6 shadow-sm sm:p-8">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-indigo-500">계정 관리</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            로그인, 로그아웃, 회원 정보 관리
-          </h2>
-          <p className="mt-2 text-sm text-slate-500">
-            이메일, 생년월일, 성별 같은 계정 정보를 여기서 수정할 수 있어요.
-          </p>
+          <p className="mt-2 text-sm text-slate-500">다른 사용자에게 보이지 않는 계정 정보예요.</p>
         </div>
-        <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          가입일 {new Date(user.createdAt).toLocaleDateString('ko-KR')}
-        </div>
+        <button
+          type="button"
+          onClick={handleToggleEdit}
+          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+        >
+          {isEditMode ? <X className="h-4 w-4" /> : <PencilLine className="h-4 w-4" />}
+          {isEditMode ? '취소' : '수정'}
+        </button>
       </div>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">이름</span>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(event) => handleFieldChange('name', event.target.value)}
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-300 focus:bg-white"
-          />
-        </label>
+      <div className="mt-8">
+        <InfoRow label="이름">
+          {isEditMode ? (
+            <input
+              type="text"
+              value={form.name}
+              onChange={(event) => handleFieldChange('name', event.target.value)}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-300 focus:bg-white"
+            />
+          ) : (
+            <p className="text-sm text-slate-700">{user.name || '이름이 아직 없어요.'}</p>
+          )}
+        </InfoRow>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">이메일</span>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(event) => handleFieldChange('email', event.target.value)}
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-300 focus:bg-white"
-          />
-        </label>
+        <InfoRow label="이메일">
+          {isEditMode ? (
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) => handleFieldChange('email', event.target.value)}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-300 focus:bg-white"
+            />
+          ) : (
+            <p className="text-sm text-slate-700">{user.email}</p>
+          )}
+        </InfoRow>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">생년월일</span>
-          <input
-            type="date"
-            value={form.birthDate}
-            onChange={(event) => handleFieldChange('birthDate', event.target.value)}
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-300 focus:bg-white"
-          />
-        </label>
+        <InfoRow label="생년월일">
+          {isEditMode ? (
+            <input
+              type="date"
+              value={form.birthDate}
+              onChange={(event) => handleFieldChange('birthDate', event.target.value)}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-300 focus:bg-white"
+            />
+          ) : (
+            <p className="text-sm text-slate-700">{user.birthDate || '미입력'}</p>
+          )}
+        </InfoRow>
 
-        <div className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">성별</span>
-          <div className="grid grid-cols-2 gap-2">
-            {GENDER_OPTIONS.map((option) => {
-              const isSelected = form.gender === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleGenderChange(option.value)}
-                  className={`h-12 rounded-2xl border text-sm font-semibold transition ${
-                    isSelected
-                      ? 'border-slate-900 bg-slate-900 text-white'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-200 hover:bg-white'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <InfoRow label="가입일" withBorder={false}>
+          <p className="text-sm text-slate-700">
+            {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+          </p>
+        </InfoRow>
       </div>
 
       {message ? (
@@ -135,15 +132,19 @@ const AccountSettingsSection = () => {
         </p>
       ) : null}
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSavePending}
-          className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
-        >
-          {isSavePending ? '저장 중...' : '계정 정보 저장'}
-        </button>
+      <div
+        className={`mt-8 flex flex-col gap-3 sm:flex-row sm:items-center ${isEditMode ? 'sm:justify-between' : 'sm:justify-end'}`}
+      >
+        {isEditMode ? (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSavePending}
+            className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
+          >
+            {isSavePending ? '저장 중...' : '계정 정보 저장'}
+          </button>
+        ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button

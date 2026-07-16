@@ -1,6 +1,5 @@
 export interface FriendSummary {
   id: number;
-  name: string;
   nickname: string;
   mbti: string;
   introduce: string;

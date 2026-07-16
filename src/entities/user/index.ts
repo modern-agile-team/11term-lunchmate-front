@@ -6,6 +6,7 @@ export { uploadMyProfileImage } from './api/profileImage';
 export { myProfileQueryOptions } from './api/profileQueries';
 export { MBTI_OPTIONS } from './model/profile';
 export type {
+  Gender,
   GetMyProfileResponse,
   MbtiType,
   UpdateMyProfileRequest,
@@ -14,7 +15,6 @@ export type {
 } from './model/profile';
 export type {
   DeleteMyUserResponse,
-  Gender,
   GetMyUserResponse,
   Role,
   SignUpRequest,

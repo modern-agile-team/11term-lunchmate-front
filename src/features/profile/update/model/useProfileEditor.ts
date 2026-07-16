@@ -4,7 +4,11 @@ import { useProfileDraft } from './useProfileDraft';
 import { useProfileImageEditor } from './useProfileImageEditor';
 import { useProfileSave } from './useProfileSave';
 
-export const useProfileEditor = () => {
+interface UseProfileEditorParams {
+  onSaveSuccess?: () => void;
+}
+
+export const useProfileEditor = ({ onSaveSuccess }: UseProfileEditorParams = {}) => {
   const profileQuery = useQuery(myProfileQueryOptions());
   const draft = useProfileDraft({
     profileData: profileQuery.data,
@@ -17,6 +21,7 @@ export const useProfileEditor = () => {
     profile: draft.profile,
     setProfileDraft: draft.setProfileDraft,
     setImageError: imageEditor.setImageError,
+    onSaveSuccess,
   });
 
   return {
@@ -37,5 +42,6 @@ export const useProfileEditor = () => {
     handleImageButtonClick: imageEditor.handleImageButtonClick,
     handleImageFileChange: imageEditor.handleImageFileChange,
     handleSave: save.handleSave,
+    resetDraft: draft.resetDraft,
   };
 };
