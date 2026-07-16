@@ -1,3 +1,4 @@
+import type { ChangeEvent, RefObject } from 'react';
 import { ProfileAvatar } from '@/entities/user';
 import { ProfileImageEditor } from '@/features/profile/update';
 import type { UserProfile } from '@/entities/user';
@@ -5,27 +6,25 @@ import type { UserProfile } from '@/entities/user';
 interface ProfileEditorHeroProps {
   profile: UserProfile;
   displayNickname: string;
-  imageInputValue: string;
-  isImageEditorOpen: boolean;
   imageError: boolean;
-  setImageInputValue: (value: string) => void;
   setImageError: (value: boolean) => void;
-  onImageApply: () => void;
-  onImageEditorToggle: () => void;
-  onImageEditorClose: () => void;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  isUploadPending: boolean;
+  uploadErrorMessage: string;
+  onImageButtonClick: () => void;
+  onImageFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 const ProfileEditorHero = ({
   profile,
   displayNickname,
-  imageInputValue,
-  isImageEditorOpen,
   imageError,
-  setImageInputValue,
   setImageError,
-  onImageApply,
-  onImageEditorToggle,
-  onImageEditorClose,
+  fileInputRef,
+  isUploadPending,
+  uploadErrorMessage,
+  onImageButtonClick,
+  onImageFileChange,
 }: ProfileEditorHeroProps) => (
   <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
     <div className="flex flex-col items-center gap-3 sm:items-start">
@@ -34,16 +33,14 @@ const ProfileEditorHero = ({
         profileImageUrl={profile.profileImageUrl}
         imageError={imageError}
         onError={() => setImageError(true)}
-        onClick={onImageEditorToggle}
+        onClick={onImageButtonClick}
       />
-      <span className="text-xs font-medium text-slate-400">이미지를 클릭해 URL 변경</span>
+      <span className="text-xs font-medium text-slate-400">이미지를 클릭해 사진 변경</span>
       <ProfileImageEditor
-        isOpen={isImageEditorOpen}
-        imageInputValue={imageInputValue}
-        imageError={imageError}
-        onImageInputChange={setImageInputValue}
-        onApply={onImageApply}
-        onClose={onImageEditorClose}
+        fileInputRef={fileInputRef}
+        isUploadPending={isUploadPending}
+        uploadErrorMessage={uploadErrorMessage}
+        onFileChange={onImageFileChange}
       />
     </div>
 

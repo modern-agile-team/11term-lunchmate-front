@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { UserProfile } from '@/entities/user';
+import { useMutation } from '@tanstack/react-query';
+import { useRef, useState, type ChangeEvent } from 'react';
+import { uploadMyProfileImage, type UserProfile } from '@/entities/user';
 
 interface UseProfileImageEditorParams {
   profile: UserProfile;
@@ -10,42 +11,41 @@ export const useProfileImageEditor = ({
   profile,
   setProfileDraft,
 }: UseProfileImageEditorParams) => {
-  const [imageInputValue, setImageInputValue] = useState('');
-  const [isImageEditorOpen, setIsImageEditorOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState(false);
 
-  const handleImageApply = () => {
-    const nextImageUrl = imageInputValue.trim();
-    setImageError(false);
-    setProfileDraft((current) => ({ ...profile, ...current, profileImageUrl: nextImageUrl }));
-    if (!nextImageUrl) {
-      setIsImageEditorOpen(false);
+  const uploadMutation = useMutation({
+    mutationFn: uploadMyProfileImage,
+    onSuccess: ({ profileImageUrl }) => {
+      setImageError(false);
+      setProfileDraft((current) => ({ ...profile, ...current, profileImageUrl }));
+    },
+  });
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
     }
-  };
 
-  const handleImageEditorToggle = () => {
-    setIsImageEditorOpen((current) => {
-      const nextOpen = !current;
-      if (nextOpen) {
-        setImageInputValue(profile.profileImageUrl);
-      }
-      return nextOpen;
-    });
-  };
-
-  const handleImageEditorClose = () => {
-    setImageInputValue(profile.profileImageUrl);
-    setIsImageEditorOpen(false);
+    uploadMutation.mutate(file);
   };
 
   return {
-    imageInputValue,
-    setImageInputValue,
-    isImageEditorOpen,
+    fileInputRef,
     imageError,
     setImageError,
-    handleImageApply,
-    handleImageEditorToggle,
-    handleImageEditorClose,
+    isUploadPending: uploadMutation.isPending,
+    uploadErrorMessage: uploadMutation.isError
+      ? '이미지 업로드에 실패했어요. 다시 시도해 주세요.'
+      : '',
+    handleImageButtonClick,
+    handleImageFileChange,
   };
 };

@@ -10,18 +10,17 @@ const ProfileEditorSection = () => {
     isError,
     error,
     refetch,
-    imageInputValue,
-    isImageEditorOpen,
     imageError,
+    fileInputRef,
+    isUploadPending,
+    uploadErrorMessage,
     saveMessage,
     saveMessageTone,
     isSavePending,
-    setImageInputValue,
     setImageError,
     handleFieldChange,
-    handleImageApply,
-    handleImageEditorToggle,
-    handleImageEditorClose,
+    handleImageButtonClick,
+    handleImageFileChange,
     handleSave,
   } = useProfileEditor();
 
@@ -43,14 +42,13 @@ const ProfileEditorSection = () => {
       <ProfileEditorHero
         profile={profile}
         displayNickname={displayNickname}
-        imageInputValue={imageInputValue}
-        isImageEditorOpen={isImageEditorOpen}
         imageError={imageError}
-        setImageInputValue={setImageInputValue}
         setImageError={setImageError}
-        onImageApply={handleImageApply}
-        onImageEditorToggle={handleImageEditorToggle}
-        onImageEditorClose={handleImageEditorClose}
+        fileInputRef={fileInputRef}
+        isUploadPending={isUploadPending}
+        uploadErrorMessage={uploadErrorMessage}
+        onImageButtonClick={handleImageButtonClick}
+        onImageFileChange={handleImageFileChange}
       />
       <ProfileEditorForm
         profile={profile}

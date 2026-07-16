@@ -16,7 +16,6 @@ export const useProfileEditor = () => {
   const save = useProfileSave({
     profile: draft.profile,
     setProfileDraft: draft.setProfileDraft,
-    setImageInputValue: imageEditor.setImageInputValue,
     setImageError: imageEditor.setImageError,
   });
 
@@ -26,18 +25,17 @@ export const useProfileEditor = () => {
     isError: profileQuery.isError,
     error: profileQuery.error,
     refetch: profileQuery.refetch,
-    imageInputValue: imageEditor.imageInputValue,
-    isImageEditorOpen: imageEditor.isImageEditorOpen,
     imageError: imageEditor.imageError,
+    fileInputRef: imageEditor.fileInputRef,
+    isUploadPending: imageEditor.isUploadPending,
+    uploadErrorMessage: imageEditor.uploadErrorMessage,
     saveMessage: save.saveMessage,
     saveMessageTone: save.saveMessageTone,
     isSavePending: save.isSavePending,
-    setImageInputValue: imageEditor.setImageInputValue,
     setImageError: imageEditor.setImageError,
     handleFieldChange: draft.handleFieldChange,
-    handleImageApply: imageEditor.handleImageApply,
-    handleImageEditorToggle: imageEditor.handleImageEditorToggle,
-    handleImageEditorClose: imageEditor.handleImageEditorClose,
+    handleImageButtonClick: imageEditor.handleImageButtonClick,
+    handleImageFileChange: imageEditor.handleImageFileChange,
     handleSave: save.handleSave,
   };
 };

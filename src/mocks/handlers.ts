@@ -984,6 +984,24 @@ export const handlers = [
     return HttpResponse.json(profile);
   }),
 
+  http.post('/api/v1/users/me/profile-image', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('image');
+
+    if (!(file instanceof File)) {
+      return HttpResponse.json({ message: '이미지 파일이 필요해요.' }, { status: 400 });
+    }
+
+    const profileImageUrl = URL.createObjectURL(file);
+
+    return HttpResponse.json({ profileImageUrl });
+  }),
+
   http.get('/api/v1/friends', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {

@@ -2,6 +2,7 @@ export { login, logout, signup } from './api/auth';
 export { deleteMyUser, getMyUser, updateMyUser } from './api/me';
 export { myUserQueryOptions } from './api/meQueries';
 export { getMyProfile, updateMyProfile } from './api/profile';
+export { uploadMyProfileImage } from './api/profileImage';
 export { myProfileQueryOptions } from './api/profileQueries';
 export { MBTI_OPTIONS } from './model/profile';
 export type {
