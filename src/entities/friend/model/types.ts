@@ -12,7 +12,6 @@ export interface FriendRequestItem {
   toUserId: number;
   senderNickname: string;
   receiverNickname: string;
-  message: string;
   createdAt: string;
   direction: 'INCOMING' | 'OUTGOING';
   status: 'PENDING';
@@ -28,7 +27,6 @@ export interface GetFriendRequestsResponse {
 
 export interface CreateFriendRequestRequest {
   target: string;
-  message: string;
 }
 
 export type CreateFriendRequestResponse = FriendRequestItem;

@@ -8,12 +8,10 @@ const FriendManagerSection = () => {
     isLoading,
     isError,
     target,
-    message,
     feedback,
     feedbackTone,
     isCreating,
     handleTargetChange,
-    handleMessageChange,
     handleSubmitRequest,
     handleAccept,
     handleReject,
@@ -40,7 +38,7 @@ const FriendManagerSection = () => {
       </div>
 
       <div className="mt-6 rounded-[24px] border border-slate-100 bg-slate-50/70 p-5">
-        <div className="grid gap-4 md:grid-cols-[1.4fr_1fr_auto]">
+        <div className="grid gap-4 md:grid-cols-[1fr_auto]">
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">
               친구 신청 대상
@@ -50,16 +48,6 @@ const FriendManagerSection = () => {
               value={target}
               onChange={(event) => handleTargetChange(event.target.value)}
               placeholder="닉네임 또는 이메일"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-indigo-300"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-slate-700">메시지</span>
-            <input
-              type="text"
-              value={message}
-              onChange={(event) => handleMessageChange(event.target.value)}
-              placeholder="같이 점심 먹어요!"
               className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-indigo-300"
             />
           </label>
@@ -134,25 +122,24 @@ const FriendManagerSection = () => {
                   key={request.id}
                   className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
                 >
-                  <p className="font-semibold text-slate-900">{request.senderNickname}</p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    {request.message || '메시지 없이 친구 신청을 보냈어요.'}
-                  </p>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleAccept(request.id)}
-                      className="h-10 rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white"
-                    >
-                      수락
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleReject(request.id)}
-                      className="h-10 rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-700"
-                    >
-                      거절
-                    </button>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-semibold text-slate-900">{request.senderNickname}</p>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAccept(request.id)}
+                        className="h-10 rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white"
+                      >
+                        수락
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleReject(request.id)}
+                        className="h-10 rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-700"
+                      >
+                        거절
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -171,17 +158,16 @@ const FriendManagerSection = () => {
                   key={request.id}
                   className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
                 >
-                  <p className="font-semibold text-slate-900">{request.receiverNickname}</p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    {request.message || '메시지 없이 친구 신청을 보냈어요.'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => handleCancel(request.id)}
-                    className="mt-4 h-10 rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-700"
-                  >
-                    신청 취소
-                  </button>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-semibold text-slate-900">{request.receiverNickname}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleCancel(request.id)}
+                      className="h-10 shrink-0 rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-700"
+                    >
+                      신청 취소
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
