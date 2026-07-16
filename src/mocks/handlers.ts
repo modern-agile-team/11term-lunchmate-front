@@ -1397,4 +1397,21 @@ export const handlers = [
 
     return HttpResponse.json(updated);
   }),
+
+  http.delete('/api/v1/lunch-menus/:menuId', async ({ request, params }) => {
+    await wait();
+    if (!isAuthorized(request)) return unauthorizedResponse();
+    if (!isAdminAuthorized(request)) return forbiddenResponse();
+
+    const menuId = Number(params.menuId);
+    const existingMenu = lunchMenus.find((menu) => menu.id === menuId);
+
+    if (!existingMenu) {
+      return HttpResponse.json({ message: '메뉴를 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    lunchMenus = lunchMenus.filter((menu) => menu.id !== menuId);
+
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

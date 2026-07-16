@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import LunchMenuEditorModal, { type LunchMenuEditorFormValues } from '@/features/lunch/editor';
+import DeleteLunchMenuConfirmModal, { useDeleteLunchMenuAction } from '@/features/lunch/delete';
 import { useLunchSelection } from '../model/useLunchSelection';
 import type { MainLunchMenu } from '../model/types';
 import LunchMenuCard from './LunchMenuCard';
@@ -23,12 +25,22 @@ const toEditorFormValues = (menu: MainLunchMenu): LunchMenuEditorFormValues => (
 });
 
 const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionProps) => {
+  const queryClient = useQueryClient();
   const { selectedLunchMenuId, setSelectedLunchMenuId, selectedLunchMenu } = useLunchSelection({
     lunchMenus,
   });
   const [editorTarget, setEditorTarget] = useState<MainLunchMenu | 'create' | null>(null);
   const isEditorOpen = editorTarget !== null;
   const isEditMode = editorTarget !== null && editorTarget !== 'create';
+
+  const [deleteTarget, setDeleteTarget] = useState<MainLunchMenu | null>(null);
+  const deleteAction = useDeleteLunchMenuAction({
+    targetMenu: deleteTarget,
+    queryClient,
+    selectedLunchMenuId,
+    setSelectedLunchMenuId,
+    closeDeleteConfirm: () => setDeleteTarget(null),
+  });
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -58,6 +70,7 @@ const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionPr
           onSelect={setSelectedLunchMenuId}
           isAdmin={isAdmin}
           onEdit={setEditorTarget}
+          onDelete={setDeleteTarget}
         />
       ))}
 
@@ -71,6 +84,18 @@ const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionPr
         mode={isEditMode ? 'edit' : 'create'}
         menuId={isEditMode ? editorTarget.id : undefined}
         initialValues={isEditMode ? toEditorFormValues(editorTarget) : undefined}
+      />
+
+      <DeleteLunchMenuConfirmModal
+        isOpen={deleteTarget !== null}
+        isPending={deleteAction.isDeleteLunchMenuPending}
+        errorMessage={deleteAction.deleteErrorMessage}
+        menuName={deleteTarget?.menuName}
+        onClose={() => {
+          setDeleteTarget(null);
+          deleteAction.setDeleteErrorMessage('');
+        }}
+        onConfirm={deleteAction.handleDeleteLunchMenu}
       />
     </section>
   );
