@@ -14,7 +14,6 @@ export const useFriendManager = () => {
   const friendsQuery = useQuery(friendsQueryOptions());
   const requestsQuery = useQuery(friendRequestsQueryOptions());
   const [target, setTarget] = useState('');
-  const [message, setMessage] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>('success');
 
@@ -29,7 +28,6 @@ export const useFriendManager = () => {
     mutationFn: createFriendRequest,
     onSuccess: async () => {
       setTarget('');
-      setMessage('');
       setFeedback('친구 신청을 보냈어요.');
       setFeedbackTone('success');
       await refreshFriendData();
@@ -89,7 +87,6 @@ export const useFriendManager = () => {
 
     createMutation.mutate({
       target: target.trim(),
-      message: message.trim(),
     });
   };
 
@@ -99,12 +96,10 @@ export const useFriendManager = () => {
     isLoading: friendsQuery.isLoading || requestsQuery.isLoading,
     isError: friendsQuery.isError || requestsQuery.isError,
     target,
-    message,
     feedback,
     feedbackTone,
     isCreating: createMutation.isPending,
     handleTargetChange: setTarget,
-    handleMessageChange: setMessage,
     handleSubmitRequest,
     handleAccept: (requestId: number) => respondMutation.mutate({ requestId, accepted: true }),
     handleReject: (requestId: number) => respondMutation.mutate({ requestId, accepted: false }),

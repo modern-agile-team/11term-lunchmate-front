@@ -391,7 +391,6 @@ let friendRequests = [
     toUserId: 1,
     senderNickname: '도서관러',
     receiverNickname: '점심대장',
-    message: '도서관 근처에서 자주 점심 드시면 친구해요.',
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     direction: 'INCOMING' as const,
     status: 'PENDING' as const,
@@ -402,7 +401,6 @@ let friendRequests = [
     toUserId: 4,
     senderNickname: '점심대장',
     receiverNickname: '제육파',
-    message: '다음에 제육 같이 먹어요.',
     createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
     direction: 'OUTGOING' as const,
     status: 'PENDING' as const,
@@ -1036,7 +1034,7 @@ export const handlers = [
       return unauthorizedResponse();
     }
 
-    const payload = (await request.json()) as { target?: string; message?: string };
+    const payload = (await request.json()) as { target?: string };
     const target = payload.target?.trim().toLowerCase();
     const targetUser = mockUsers.find(
       (user) =>
@@ -1059,7 +1057,6 @@ export const handlers = [
       toUserId: targetUser.id,
       senderNickname: profile.nickname,
       receiverNickname: targetUser.nickname,
-      message: payload.message?.trim() ?? '',
       createdAt: new Date().toISOString(),
       direction: 'OUTGOING' as const,
       status: 'PENDING' as const,
