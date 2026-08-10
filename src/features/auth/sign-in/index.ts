@@ -1,1 +1,1 @@
-export { default } from './ui/SignInForm';
+export { useLoginForm } from './model/useLoginForm';

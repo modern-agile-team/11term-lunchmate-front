@@ -1,12 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 import { LogIn, LogOut, UserCircle2, UsersRound } from 'lucide-react';
-import { logout, myUserQueryOptions } from '@/entities/user';
-import {
-  authSessionSelectors,
-  clearAuthSession,
-  useAuthSessionStore,
-} from '@/shared/lib/auth/session';
+import { useLogout } from '@/features/auth/sign-out';
+import { authSessionSelectors, useAuthSessionStore } from '@/shared/lib/auth/session';
 
 interface AppHeaderProps {
   onLoginClick?: () => void;
@@ -14,17 +9,8 @@ interface AppHeaderProps {
 
 const AppHeader = ({ onLoginClick }: AppHeaderProps) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isAuthenticated = useAuthSessionStore(authSessionSelectors.isAuthenticated);
-
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSettled: async () => {
-      clearAuthSession();
-      await queryClient.invalidateQueries({ queryKey: myUserQueryOptions().queryKey });
-      navigate('/');
-    },
-  });
+  const { handleLogout, isLogoutPending } = useLogout();
 
   return (
     <header className="border-b border-slate-200/80 bg-white/95 backdrop-blur">
@@ -58,14 +44,17 @@ const AppHeader = ({ onLoginClick }: AppHeaderProps) => {
             </Link>
             <button
               type="button"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
+              onClick={() => {
+                handleLogout();
+                navigate('/');
+              }}
+              disabled={isLogoutPending}
               aria-label="로그아웃"
               className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl border border-indigo-200 bg-white px-2.5 py-2 text-sm font-semibold text-indigo-500 transition hover:bg-indigo-50 disabled:opacity-70 sm:gap-2 sm:px-4 sm:py-2.5"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">
-                {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
+                {isLogoutPending ? '로그아웃 중...' : '로그아웃'}
               </span>
             </button>
           </div>

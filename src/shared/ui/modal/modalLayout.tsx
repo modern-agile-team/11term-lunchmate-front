@@ -1,56 +1,20 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { login, myProfileQueryOptions, myUserQueryOptions } from '@/entities/user';
-import { setAuthAccessToken } from '@/shared/lib/auth/session';
+import { useLoginForm } from '@/features/auth/sign-in';
+import { getSocialLoginUrl } from '@/entities/user';
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface LoginInput {
-  email: string;
-  password: string;
-}
-
 function AuthDialog({ isOpen, onClose }: ModalProps) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const {
-    handleSubmit,
-    register,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    defaultValues: { email: '', password: '' },
-  });
-
-  const { mutate, isPending, isError } = useMutation({
-    mutationFn: login,
-    onSuccess: async (data) => {
-      setAuthAccessToken(data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
-      return queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
-    },
-    onError: (err: unknown) => {
-      if (axios.isAxiosError(err)) {
-        const errMsg =
-          err.response?.status === 401
-            ? '이메일 또는 비밀번호가 틀렸습니다.'
-            : '로그인 중 오류가 발생했습니다.';
-        alert(errMsg);
-      }
-    },
+  const { emailField, passwordField, errors, isPending, errorMessage, onSubmit } = useLoginForm({
+    onSuccess: onClose,
   });
 
   if (!isOpen) return null;
-
-  const onSubmit = (data: LoginInput) => {
-    mutate(data, { onSuccess: () => onClose() });
-  };
 
   return (
     <div
@@ -72,7 +36,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
           점심메이트 추천
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-3">
+        <form onSubmit={onSubmit} className="w-full flex flex-col gap-3">
           <div className="space-y-1">
             <input
               type="email"
@@ -80,13 +44,7 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
               className={`w-full h-12 rounded-xl border px-4 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400 ${
                 errors.email ? 'border-red-400' : 'border-gray-300'
               }`}
-              {...register('email', {
-                required: '이메일을 입력해 주세요.',
-                pattern: {
-                  value: /\S+@\S+\.\S+/,
-                  message: '이메일 형식이 올바르지 않습니다.',
-                },
-              })}
+              {...emailField}
             />
             {errors.email && <p className="pl-1 text-xs text-red-500">{errors.email.message}</p>}
           </div>
@@ -98,17 +56,15 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
               className={`w-full h-12 rounded-xl border px-4 text-[15px] placeholder-gray-400 focus:outline-none focus:border-indigo-400 ${
                 errors.password ? 'border-red-400' : 'border-gray-300'
               }`}
-              {...register('password', { required: '비밀번호를 입력해 주세요.' })}
+              {...passwordField}
             />
             {errors.password && (
               <p className="pl-1 text-xs text-red-500">{errors.password.message}</p>
             )}
           </div>
 
-          {isError && (
-            <p className="text-xs text-red-500 text-center font-medium">
-              인증 정보가 일치하지 않습니다.
-            </p>
+          {errorMessage && (
+            <p className="text-xs text-red-500 text-center font-medium">{errorMessage}</p>
           )}
 
           <button
@@ -144,7 +100,13 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
         </div>
 
         <div className="flex flex-col gap-3 w-full">
-          <button className="h-12 w-full bg-[#FEE500] text-[#191919] rounded-xl font-bold text-[15px] flex justify-center items-center gap-2.5 transition hover:opacity-95 shadow-sm">
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = getSocialLoginUrl('kakao');
+            }}
+            className="h-12 w-full bg-[#FEE500] text-[#191919] rounded-xl font-bold text-[15px] flex justify-center items-center gap-2.5 transition hover:opacity-95 shadow-sm"
+          >
             <svg
               width="18"
               height="18"
@@ -162,7 +124,13 @@ function AuthDialog({ isOpen, onClose }: ModalProps) {
             카카오로 로그인
           </button>
 
-          <button className="h-12 w-full bg-white text-[#3c4043] rounded-xl font-bold text-[15px] border border-[#dadce0] flex justify-center items-center gap-2.5 transition hover:bg-gray-50 shadow-sm">
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = getSocialLoginUrl('google');
+            }}
+            className="h-12 w-full bg-white text-[#3c4043] rounded-xl font-bold text-[15px] border border-[#dadce0] flex justify-center items-center gap-2.5 transition hover:bg-gray-50 shadow-sm"
+          >
             <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path
                 fill="#EA4335"

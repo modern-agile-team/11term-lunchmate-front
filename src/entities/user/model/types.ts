@@ -41,6 +41,19 @@ export interface LoginRequest {
   password: string;
 }
 
+export type SocialProvider = 'google' | 'kakao';
+
+export interface SocialRegisterRequest {
+  nickname: string;
+  birthDate: string;
+  gender: Gender;
+  schoolInfo?: string;
+  introduce?: string;
+  mbti?: string;
+}
+
+export type SocialRegisterResponse = LoginResponse;
+
 export interface LogoutResponse {
   message: string;
 }
