@@ -15,18 +15,12 @@ import type {
   DeleteMyUserResponse,
   GetMyProfileResponse,
   GetMyUserResponse,
-  LoginRequest,
-  LoginResponse,
-  LogoutResponse,
-  SignUpRequest,
-  SignUpResponse,
   UpdateMyUserRequest,
 } from '@/entities/user';
 import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
 import type { MainLunchMenu } from '@/entities/lunch-menu';
 
 const currentUserId = 1;
-const MOCK_REFRESH_TOKEN = 'mock-refresh-token-67890';
 let isAccountDeleted = false;
 let lunchMenuIdCounter = 1000;
 
@@ -239,8 +233,6 @@ let lunchMenus: MainLunchMenu[] = [
     dislikeCount: 9,
   },
 ];
-
-const createMockAccessToken = (user: GetMyUserResponse) => `mock-access-token-${user.id}`;
 
 let currentUser: GetMyUserResponse = {
   id: 1,
@@ -842,79 +834,6 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => {
 };
 
 export const handlers = [
-  http.post('/api/v1/auth/login', async ({ request }) => {
-    await wait();
-    if (isAccountDeleted) {
-      return HttpResponse.json({ message: '탈퇴한 계정입니다.' }, { status: 410 });
-    }
-
-    const payload = (await request.json()) as LoginRequest;
-
-    if (!payload.email?.trim() || !payload.password?.trim()) {
-      return HttpResponse.json({ message: '이메일 또는 비밀번호가 필요합니다.' }, { status: 401 });
-    }
-
-    return HttpResponse.json<LoginResponse>({
-      user: currentUser,
-      accessToken: createMockAccessToken(currentUser),
-      refreshToken: MOCK_REFRESH_TOKEN,
-    });
-  }),
-
-  http.post('/api/v1/auth/logout', async ({ request }) => {
-    await wait();
-    if (!isAuthorized(request)) {
-      return unauthorizedResponse();
-    }
-
-    return HttpResponse.json<LogoutResponse>({
-      message: '로그아웃되었습니다.',
-    });
-  }),
-
-  http.post('/api/v1/auth/signup', async ({ request }) => {
-    await wait();
-
-    const payload = (await request.json()) as SignUpRequest;
-
-    if (
-      !payload.name?.trim() ||
-      !payload.nickname?.trim() ||
-      !payload.email?.trim() ||
-      !payload.password?.trim() ||
-      !payload.birthDate?.trim() ||
-      !payload.gender
-    ) {
-      return HttpResponse.json({ message: '필수 정보를 모두 입력해 주세요.' }, { status: 400 });
-    }
-
-    if (mockUsers.some((user) => user.email === payload.email)) {
-      return HttpResponse.json({ message: '이미 가입된 이메일입니다.' }, { status: 409 });
-    }
-
-    const newUser: GetMyUserResponse = {
-      id: mockUsers.length + 1,
-      name: payload.name,
-      email: payload.email,
-      nickname: payload.nickname,
-      profileImageUrl: '',
-      mbti: (payload.mbti as GetMyUserResponse['mbti']) ?? '',
-      introduce: payload.introduce ?? '',
-      birthDate: payload.birthDate,
-      gender: payload.gender,
-      role: 'USER',
-      createdAt: new Date().toISOString(),
-    };
-
-    mockUsers.push(newUser);
-    currentUser = newUser;
-
-    return HttpResponse.json<SignUpResponse>({
-      user: newUser,
-      accessToken: createMockAccessToken(newUser),
-      refreshToken: MOCK_REFRESH_TOKEN,
-    });
-  }),
 
   http.get('/api/v1/users/me', async ({ request }) => {
     await wait();

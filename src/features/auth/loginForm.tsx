@@ -1,53 +1,13 @@
-import { useForm } from 'react-hook-form';
 import { LogIn, Loader2 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
-import { login, myProfileQueryOptions, myUserQueryOptions } from '@/entities/user';
-import { setAuthAccessToken } from '@/shared/lib/auth/session';
-import axios from 'axios';
-
-interface LoginInput {
-  email: string;
-  password: string;
-}
+import { useLoginForm } from './sign-in';
+import { getSocialLoginUrl } from '@/entities/user';
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const {
-    handleSubmit,
-    register,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+  const { emailField, passwordField, errors, isPending, errorMessage, onSubmit } = useLoginForm({
+    onSuccess: () => navigate('/profile'),
   });
-
-  const { mutate, isPending, isError } = useMutation({
-    mutationFn: login,
-    onSuccess: async (data) => {
-      setAuthAccessToken(data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
-      await queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
-      navigate('/profile');
-    },
-    onError: (err: unknown) => {
-      if (axios.isAxiosError(err)) {
-        const errMsg =
-          err.response?.status === 401
-            ? '이메일 또는 비밀번호가 틀렸습니다.'
-            : '로그인 중 오류가 발생했습니다.';
-        alert(errMsg);
-      }
-    },
-  });
-
-  const onSubmit = (data: LoginInput) => {
-    mutate(data);
-  };
 
   return (
     <section className="w-full max-w-md rounded-[32px] border border-white/70 bg-white/90 p-7 shadow-lg backdrop-blur sm:p-8">
@@ -61,8 +21,7 @@ const LoginForm = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
-        {/* 이메일 필드 (명세서의 email) */}
+      <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <div className="space-y-1">
           <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
             이메일
@@ -70,13 +29,7 @@ const LoginForm = () => {
           <input
             id="email"
             type="email"
-            {...register('email', {
-              required: '이메일을 입력해 주세요.',
-              pattern: {
-                value: /\S+@\S+\.\S+/,
-                message: '이메일 형식이 올바르지 않습니다.',
-              },
-            })}
+            {...emailField}
             className={`h-12 w-full rounded-2xl border px-4 text-sm transition outline-none ${
               errors.email
                 ? 'border-red-400 bg-red-50'
@@ -84,12 +37,9 @@ const LoginForm = () => {
             }`}
             placeholder="example@email.com"
           />
-          {errors.email && (
-            <p className="text-xs text-red-500 pl-1">{errors.email.message as string}</p>
-          )}
+          {errors.email && <p className="text-xs text-red-500 pl-1">{errors.email.message}</p>}
         </div>
 
-        {/* 비밀번호 필드 */}
         <div className="space-y-1">
           <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
             비밀번호
@@ -97,7 +47,7 @@ const LoginForm = () => {
           <input
             id="password"
             type="password"
-            {...register('password', { required: '비밀번호를 입력해 주세요.' })}
+            {...passwordField}
             className={`h-12 w-full rounded-2xl border px-4 text-sm transition outline-none ${
               errors.password
                 ? 'border-red-400 bg-red-50'
@@ -106,14 +56,12 @@ const LoginForm = () => {
             placeholder="비밀번호를 입력하세요"
           />
           {errors.password && (
-            <p className="text-xs text-red-500 pl-1">{errors.password.message as string}</p>
+            <p className="text-xs text-red-500 pl-1">{errors.password.message}</p>
           )}
         </div>
 
-        {isError && (
-          <p className="text-xs text-red-500 text-center font-medium">
-            인증 정보가 일치하지 않습니다.
-          </p>
+        {errorMessage && (
+          <p className="text-xs text-red-500 text-center font-medium">{errorMessage}</p>
         )}
 
         <button
@@ -125,6 +73,77 @@ const LoginForm = () => {
           {isPending ? '확인 중...' : '로그인'}
         </button>
       </form>
+
+      <p className="mt-4 text-center text-sm text-slate-500">
+        아직 계정이 없으신가요?{' '}
+        <button
+          type="button"
+          onClick={() => navigate('/signup')}
+          className="font-semibold text-indigo-600 underline-offset-2 hover:underline"
+        >
+          회원가입
+        </button>
+      </p>
+
+      <div className="mt-6 flex items-center gap-3 text-xs text-slate-400">
+        <div className="h-px flex-1 bg-slate-200" />
+        간편 로그인
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = getSocialLoginUrl('kakao');
+          }}
+          className="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-[#FEE500] text-sm font-bold text-[#191919] shadow-sm transition hover:opacity-95"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M9 2.5C5.13401 2.5 2 4.8505 2 7.75C2 9.6105 3.28427 11.238 5.22802 12.1865L4.40602 15.1975C4.35902 15.371 4.45977 15.551 4.63077 15.5995C4.69377 15.6175 4.76002 15.6145 4.82102 15.5915L8.51402 13.0675C8.67402 13.0805 8.83602 13.0875 9 13.0875C12.866 13.0875 16 10.737 16 7.8375C16 4.938 12.866 2.5875 9 2.5875V2.5Z"
+              fill="#191919"
+            />
+          </svg>
+          카카오로 로그인
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = getSocialLoginUrl('google');
+          }}
+          className="flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl border border-[#dadce0] bg-white text-sm font-bold text-[#3c4043] shadow-sm transition hover:bg-gray-50"
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path
+              fill="#EA4335"
+              d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"
+            />
+            <path
+              fill="#34A853"
+              d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+            />
+          </svg>
+          구글로 로그인
+        </button>
+      </div>
     </section>
   );
 };

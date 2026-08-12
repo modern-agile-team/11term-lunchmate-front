@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  deleteMyUser,
-  logout,
-  myUserQueryOptions,
-  updateMyUser,
-  type UpdateMyUserRequest,
-} from '@/entities/user';
+import { deleteMyUser, myUserQueryOptions, updateMyUser, type UpdateMyUserRequest } from '@/entities/user';
+import { useLogout } from '@/features/auth/sign-out';
 import { clearAuthSession } from '@/shared/lib/auth/session';
 
 const EMPTY_FORM: UpdateMyUserRequest = {
@@ -50,13 +45,7 @@ export const useAccountSettings = ({ onSaveSuccess }: UseAccountSettingsParams =
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSettled: async () => {
-      clearAuthSession();
-      await queryClient.invalidateQueries({ queryKey: myUserQueryOptions().queryKey });
-    },
-  });
+  const { handleLogout, isLogoutPending } = useLogout();
 
   const deleteMutation = useMutation({
     mutationFn: deleteMyUser,
@@ -108,12 +97,12 @@ export const useAccountSettings = ({ onSaveSuccess }: UseAccountSettingsParams =
     message,
     messageTone,
     isSavePending: updateMutation.isPending,
-    isLogoutPending: logoutMutation.isPending,
+    isLogoutPending,
     isDeletePending: deleteMutation.isPending,
     handleFieldChange,
     handleSave,
     resetForm,
-    handleLogout: () => logoutMutation.mutate(),
+    handleLogout,
     handleDeleteAccount: () => deleteMutation.mutate(),
   };
 };
