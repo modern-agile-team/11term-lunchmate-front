@@ -1,13 +1,12 @@
 import type { ChangeEvent, RefObject } from 'react';
 import { ProfileAvatar } from '@/entities/user';
 import { ProfileImageEditor } from '@/features/profile/update';
-import type { UserProfile } from '@/entities/user';
 import InfoRow from '@/shared/ui/InfoRow';
 
 interface ProfileEditorHeroProps {
-  profile: UserProfile;
+  nickname: string;
+  profileImageUrl: string | null;
   displayNickname: string;
-  isEditMode: boolean;
   imageError: boolean;
   setImageError: (value: boolean) => void;
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -18,9 +17,8 @@ interface ProfileEditorHeroProps {
 }
 
 const ProfileEditorHero = ({
-  profile,
+  profileImageUrl,
   displayNickname,
-  isEditMode,
   imageError,
   setImageError,
   fileInputRef,
@@ -33,22 +31,20 @@ const ProfileEditorHero = ({
     <div className="flex items-center gap-3 sm:gap-4">
       <ProfileAvatar
         nickname={displayNickname}
-        profileImageUrl={profile.profileImageUrl}
+        profileImageUrl={profileImageUrl ?? ''}
         imageError={imageError}
         onError={() => setImageError(true)}
-        onClick={isEditMode ? onImageButtonClick : undefined}
+        onClick={onImageButtonClick}
       />
-      {isEditMode ? (
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-slate-400">이미지를 클릭해 사진 변경</span>
-          <ProfileImageEditor
-            fileInputRef={fileInputRef}
-            isUploadPending={isUploadPending}
-            uploadErrorMessage={uploadErrorMessage}
-            onFileChange={onImageFileChange}
-          />
-        </div>
-      ) : null}
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-medium text-slate-400">이미지를 클릭해 사진 변경</span>
+        <ProfileImageEditor
+          fileInputRef={fileInputRef}
+          isUploadPending={isUploadPending}
+          uploadErrorMessage={uploadErrorMessage}
+          onFileChange={onImageFileChange}
+        />
+      </div>
     </div>
   </InfoRow>
 );

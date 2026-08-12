@@ -4,12 +4,13 @@ export type Role = 'ADMIN' | 'USER';
 
 export interface User {
   id: number;
-  name: string;
+  name?: string;
   email: string;
-  profileImageUrl: string;
-  mbti: MbtiType | '';
-  introduce: string;
+  profileImageUrl: string | null;
+  mbti: MbtiType | null;
+  introduce: string | null;
   nickname: string;
+  schoolInfo: string | null;
   birthDate: string;
   gender: Gender;
   role: Role;
@@ -65,9 +66,13 @@ export interface LoginResponse {
 }
 
 export interface UpdateMyUserRequest {
-  name: string;
-  email: string;
-  birthDate: string;
+  nickname?: string;
+  birthDate?: string;
+  gender?: Gender;
+  schoolInfo?: string;
+  introduce?: string;
+  mbti?: MbtiType;
+  profileImageUrl?: string;
 }
 
 export type UpdateMyUserResponse = User;

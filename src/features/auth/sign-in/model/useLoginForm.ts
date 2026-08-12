@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { login, myProfileQueryOptions, myUserQueryOptions } from '@/entities/user';
+import { login, myUserQueryOptions } from '@/entities/user';
 import { setAuthTokens } from '@/shared/lib/auth/session';
 
 interface LoginFormValues {
@@ -41,7 +41,6 @@ export const useLoginForm = ({ onSuccess }: UseLoginFormParams = {}) => {
       setErrorMessage('');
       setAuthTokens(data.accessToken, data.refreshToken);
       queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
-      queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
       onSuccess?.();
     },
     onError: (error: unknown) => {
