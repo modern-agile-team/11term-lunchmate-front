@@ -1,24 +1,21 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState, type ChangeEvent } from 'react';
-import { uploadMyProfileImage, type UserProfile } from '@/entities/user';
+import { myUserQueryOptions, updateMyUser, uploadMyProfileImage } from '@/entities/user';
 
-interface UseProfileImageEditorParams {
-  profile: UserProfile;
-  setProfileDraft: React.Dispatch<React.SetStateAction<UserProfile | null>>;
-}
-
-export const useProfileImageEditor = ({
-  profile,
-  setProfileDraft,
-}: UseProfileImageEditorParams) => {
+export const useProfileImageEditor = () => {
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState(false);
 
   const uploadMutation = useMutation({
-    mutationFn: uploadMyProfileImage,
-    onSuccess: ({ profileImageUrl }) => {
+    mutationFn: async (file: File) => {
+      const { imageURL } = await uploadMyProfileImage(file);
+
+      return updateMyUser({ profileImageUrl: imageURL });
+    },
+    onSuccess: (updatedUser) => {
       setImageError(false);
-      setProfileDraft((current) => ({ ...profile, ...current, profileImageUrl }));
+      queryClient.setQueryData(myUserQueryOptions().queryKey, updatedUser);
     },
   });
 

@@ -1,7 +1,7 @@
 import client from '@/shared/api/client';
 
 export interface UploadMyProfileImageResponse {
-  profileImageUrl: string;
+  imageURL: string;
 }
 
 export async function uploadMyProfileImage(file: File): Promise<UploadMyProfileImageResponse> {

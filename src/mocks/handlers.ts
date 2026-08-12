@@ -11,12 +11,7 @@ import type {
   PostDetailResponse,
   PostListItemResponse,
 } from '@/entities/post/model/types';
-import type {
-  DeleteMyUserResponse,
-  GetMyProfileResponse,
-  GetMyUserResponse,
-  UpdateMyUserRequest,
-} from '@/entities/user';
+import type { DeleteMyUserResponse, GetMyUserResponse, UpdateMyUserRequest } from '@/entities/user';
 import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
 import type { MainLunchMenu } from '@/entities/lunch-menu';
 
@@ -236,36 +231,28 @@ let lunchMenus: MainLunchMenu[] = [
 
 let currentUser: GetMyUserResponse = {
   id: 1,
-  name: '홍길동',
   email: 'hong@example.com',
   nickname: '점심대장',
-  profileImageUrl: '',
+  profileImageUrl: null,
   mbti: 'ENFP',
   introduce: '오늘도 같이 먹을 사람을 찾고 있어요.',
+  schoolInfo: '인덕대학교',
   birthDate: '2000-05-15',
   gender: 'MALE',
   role: 'ADMIN',
   createdAt: '2025-03-01T09:00:00.000Z',
 };
 
-let profile: GetMyProfileResponse = {
-  nickname: currentUser.nickname,
-  introduce: currentUser.introduce,
-  mbti: currentUser.mbti || 'ENFP',
-  gender: currentUser.gender,
-  profileImageUrl: currentUser.profileImageUrl,
-};
-
 const mockUsers: GetMyUserResponse[] = [
   currentUser,
   {
     id: 2,
-    name: '김대건',
     email: 'daegeon@example.com',
     nickname: '든든한밥친구',
-    profileImageUrl: '',
+    profileImageUrl: null,
     mbti: 'ISTJ',
     introduce: '학생회관 맛집 위주로 다녀요.',
+    schoolInfo: '인덕대학교',
     birthDate: '1999-11-20',
     gender: 'MALE',
     role: 'USER',
@@ -273,12 +260,12 @@ const mockUsers: GetMyUserResponse[] = [
   },
   {
     id: 3,
-    name: '이수진',
     email: 'sujin@example.com',
     nickname: '도서관러',
-    profileImageUrl: '',
+    profileImageUrl: null,
     mbti: 'INTP',
     introduce: '조용한 점심 좋아해요.',
+    schoolInfo: '인덕대학교',
     birthDate: '2001-08-02',
     gender: 'FEMALE',
     role: 'USER',
@@ -286,12 +273,12 @@ const mockUsers: GetMyUserResponse[] = [
   },
   {
     id: 4,
-    name: '박민호',
     email: 'minho@example.com',
     nickname: '제육파',
-    profileImageUrl: '',
+    profileImageUrl: null,
     mbti: 'ESTP',
     introduce: '매운 음식 환영!',
+    schoolInfo: '인덕대학교',
     birthDate: '1998-01-09',
     gender: 'MALE',
     role: 'USER',
@@ -496,7 +483,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 1,
     category: 'FREE',
     title: '새내기 환영 점심 모임 어때요?',
-    content: '이번 주에 새내기들 환영하는 의미로 다같이 점심 먹을 사람 구합니다. 편하게 신청해주세요.',
+    content:
+      '이번 주에 새내기들 환영하는 의미로 다같이 점심 먹을 사람 구합니다. 편하게 신청해주세요.',
     likeCount: 21,
     commentCount: 0,
     liked: false,
@@ -508,7 +496,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 2,
     category: 'REVIEW',
     title: '공대 식당 돈까스 정식 후기',
-    content: '바삭한 튀김옷에 소스가 진해서 좋았어요. 다만 웨이팅이 좀 길어서 12시 이전에 가시는 걸 추천합니다.',
+    content:
+      '바삭한 튀김옷에 소스가 진해서 좋았어요. 다만 웨이팅이 좀 길어서 12시 이전에 가시는 걸 추천합니다.',
     likeCount: 15,
     commentCount: 0,
     liked: false,
@@ -532,7 +521,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 4,
     category: 'TALK',
     title: '혼밥 vs 같이 밥, 여러분은?',
-    content: '저는 혼밥이 마음 편한데 다들 어떠신가요. 같이 먹는 게 더 좋다는 분들 이유가 궁금해요.',
+    content:
+      '저는 혼밥이 마음 편한데 다들 어떠신가요. 같이 먹는 게 더 좋다는 분들 이유가 궁금해요.',
     likeCount: 9,
     commentCount: 0,
     liked: false,
@@ -556,7 +546,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 2,
     category: 'REVIEW',
     title: '후문 파스타집 크림파스타 극호',
-    content: '크림 소스가 느끼하지 않고 고소해서 계속 생각나요. 가격도 학생 입장에서 나쁘지 않아요.',
+    content:
+      '크림 소스가 느끼하지 않고 고소해서 계속 생각나요. 가격도 학생 입장에서 나쁘지 않아요.',
     likeCount: 18,
     commentCount: 0,
     liked: false,
@@ -592,7 +583,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 1,
     category: 'FREE',
     title: '동아리방 앞에서 치킨 시켜드실 분',
-    content: '오늘 저녁에 동아리방에서 치킨 시켜먹으려는데 인원 모집합니다. 같이 드실 분 댓글 남겨주세요.',
+    content:
+      '오늘 저녁에 동아리방에서 치킨 시켜먹으려는데 인원 모집합니다. 같이 드실 분 댓글 남겨주세요.',
     likeCount: 13,
     commentCount: 0,
     liked: false,
@@ -616,7 +608,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 3,
     category: 'INFO',
     title: '학식 가격 인상 소식 들으셨나요',
-    content: '다음 학기부터 학식 가격이 소폭 인상된다는 이야기가 있어서 공유합니다. 확정되면 다시 안내할게요.',
+    content:
+      '다음 학기부터 학식 가격이 소폭 인상된다는 이야기가 있어서 공유합니다. 확정되면 다시 안내할게요.',
     likeCount: 52,
     commentCount: 0,
     liked: false,
@@ -676,7 +669,8 @@ let posts: PostDetailResponse[] = [
     categoryId: 4,
     category: 'TALK',
     title: '다들 점심값 한 달에 얼마나 쓰세요?',
-    content: '요즘 물가가 올라서 그런지 점심값 부담이 커진 것 같아요. 다들 한 달에 얼마나 쓰시나요.',
+    content:
+      '요즘 물가가 올라서 그런지 점심값 부담이 커진 것 같아요. 다들 한 달에 얼마나 쓰시나요.',
     likeCount: 11,
     commentCount: 0,
     liked: false,
@@ -776,16 +770,7 @@ function toRoomMember(userId: number): GetRoomMembersResponse['items'][number] {
   };
 }
 
-const syncCurrentUserProfile = () => {
-  currentUser = {
-    ...currentUser,
-    nickname: profile.nickname,
-    profileImageUrl: profile.profileImageUrl,
-    introduce: profile.introduce,
-    mbti: profile.mbti,
-    gender: profile.gender,
-  };
-
+const syncCurrentUserIntoMockData = () => {
   const userIndex = mockUsers.findIndex((user) => user.id === currentUser.id);
   if (userIndex >= 0) {
     mockUsers[userIndex] = currentUser;
@@ -793,9 +778,9 @@ const syncCurrentUserProfile = () => {
 
   memberMetaByUserId[currentUser.id] = {
     ...memberMetaByUserId[currentUser.id],
-    nickname: profile.nickname,
-    mbti: profile.mbti,
-    profileImageUrl: profile.profileImageUrl,
+    nickname: currentUser.nickname,
+    mbti: currentUser.mbti ?? '미설정',
+    profileImageUrl: currentUser.profileImageUrl ?? '',
   };
 };
 
@@ -827,14 +812,15 @@ const toPostListItem = (post: PostDetailResponse): PostListItemResponse => {
     commentCount: comments.filter((comment) => comment.postId === post.id).length,
     createdAt: post.createdAt,
     authorNickname:
-      post.userId === currentUserId ? profile.nickname : (authorMeta?.nickname ?? '점심친구'),
+      post.userId === currentUserId ? currentUser.nickname : (authorMeta?.nickname ?? '점심친구'),
     profileImageUrl:
-      post.userId === currentUserId ? profile.profileImageUrl : (authorMeta?.profileImageUrl ?? ''),
+      post.userId === currentUserId
+        ? (currentUser.profileImageUrl ?? '')
+        : (authorMeta?.profileImageUrl ?? ''),
   };
 };
 
 export const handlers = [
-
   http.get('/api/v1/users/me', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {
@@ -853,11 +839,15 @@ export const handlers = [
     const payload = (await request.json()) as Partial<UpdateMyUserRequest>;
     currentUser = {
       ...currentUser,
-      name: payload.name ?? currentUser.name,
-      email: payload.email ?? currentUser.email,
+      nickname: payload.nickname ?? currentUser.nickname,
       birthDate: payload.birthDate ?? currentUser.birthDate,
+      gender: payload.gender ?? currentUser.gender,
+      schoolInfo: payload.schoolInfo ?? currentUser.schoolInfo,
+      introduce: payload.introduce ?? currentUser.introduce,
+      mbti: payload.mbti ?? currentUser.mbti,
+      profileImageUrl: payload.profileImageUrl ?? currentUser.profileImageUrl,
     };
-    syncCurrentUserProfile();
+    syncCurrentUserIntoMockData();
 
     return HttpResponse.json<GetMyUserResponse>(currentUser);
   }),
@@ -877,27 +867,6 @@ export const handlers = [
     });
   }),
 
-  http.get('/api/v1/users/me/profile', async ({ request }) => {
-    await wait();
-    if (!isAuthorized(request)) {
-      return unauthorizedResponse();
-    }
-
-    return HttpResponse.json(profile);
-  }),
-
-  http.patch('/api/v1/users/me/profile', async ({ request }) => {
-    await wait();
-    if (!isAuthorized(request)) {
-      return unauthorizedResponse();
-    }
-
-    const payload = (await request.json()) as Partial<GetMyProfileResponse>;
-    profile = { ...profile, ...payload };
-    syncCurrentUserProfile();
-    return HttpResponse.json(profile);
-  }),
-
   http.post('/api/v1/users/me/profile-image', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {
@@ -911,9 +880,9 @@ export const handlers = [
       return HttpResponse.json({ message: '이미지 파일이 필요해요.' }, { status: 400 });
     }
 
-    const profileImageUrl = URL.createObjectURL(file);
+    const imageURL = URL.createObjectURL(file);
 
-    return HttpResponse.json({ profileImageUrl });
+    return HttpResponse.json({ imageURL });
   }),
 
   http.get('/api/v1/friends', async ({ request }) => {
@@ -928,9 +897,9 @@ export const handlers = [
       .map((friend) => ({
         id: friend.id,
         nickname: friend.nickname,
-        mbti: friend.mbti,
-        introduce: friend.introduce,
-        profileImageUrl: friend.profileImageUrl,
+        mbti: friend.mbti ?? '미설정',
+        introduce: friend.introduce ?? '',
+        profileImageUrl: friend.profileImageUrl ?? '',
       }));
 
     return HttpResponse.json<GetFriendsResponse>({ items });
@@ -974,7 +943,7 @@ export const handlers = [
       id: Math.max(0, ...friendRequests.map((item) => item.id)) + 1,
       fromUserId: currentUserId,
       toUserId: targetUser.id,
-      senderNickname: profile.nickname,
+      senderNickname: currentUser.nickname,
       receiverNickname: targetUser.nickname,
       createdAt: new Date().toISOString(),
       direction: 'OUTGOING' as const,
@@ -1094,10 +1063,7 @@ export const handlers = [
     const room = getRoom(roomId);
     if (!room) return HttpResponse.json({ message: '방을 찾을 수 없어요.' }, { status: 404 });
 
-    membersByRoomId[roomId] = [
-      ...(membersByRoomId[roomId] ?? []),
-      toRoomMember(currentUserId),
-    ];
+    membersByRoomId[roomId] = [...(membersByRoomId[roomId] ?? []), toRoomMember(currentUserId)];
     room.currentMembersCount = Math.min(room.maxMembersCount, room.currentMembersCount + 1);
     room.status = room.currentMembersCount >= room.maxMembersCount ? 'FULL' : 'OPEN';
 
@@ -1217,7 +1183,7 @@ export const handlers = [
       likeCount: 0,
       liked: false,
       createdAt: new Date().toISOString(),
-      nickname: profile.nickname,
+      nickname: currentUser.nickname,
       isMine: true,
     };
     comments = [comment, ...comments];

@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 import {
-  myProfileQueryOptions,
   myUserQueryOptions,
   registerSocial,
   type Gender,
@@ -64,7 +63,6 @@ const SocialSignUpForm = ({ onSuccess }: SocialSignUpFormProps) => {
     onSuccess: (data) => {
       setAuthTokens(data.accessToken, data.refreshToken);
       queryClient.setQueryData(myUserQueryOptions().queryKey, data.user);
-      queryClient.invalidateQueries({ queryKey: myProfileQueryOptions().queryKey });
       onSuccess();
     },
     onError: (err: unknown) => {
