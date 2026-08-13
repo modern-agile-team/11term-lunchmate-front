@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import type { PostSyncRequest } from '@/entities/post';
+import type { RoomSyncRequest } from '@/entities/room';
 import { myUserQueryOptions } from '@/entities/user';
 import { lunchMenuListQueryOptions, lunchMenuQueryKeys, type MainLunchMenu } from '@/entities/lunch-menu';
 import type { MainTab } from '../../main-tabs/model/types';
@@ -17,6 +18,8 @@ interface MainTabSectionProps {
   onCreatePostClick: () => void;
   postSyncRequest: PostSyncRequest | null;
   onPostSyncHandled: () => void;
+  roomSyncRequest: RoomSyncRequest | null;
+  onRoomSyncHandled: () => void;
   onRequireLogin: () => void;
 }
 
@@ -40,6 +43,8 @@ const MainTabSection = ({
   onCreatePostClick,
   postSyncRequest,
   onPostSyncHandled,
+  roomSyncRequest,
+  onRoomSyncHandled,
   onRequireLogin,
 }: MainTabSectionProps) => {
   const queryClient = useQueryClient();
@@ -138,7 +143,13 @@ const MainTabSection = ({
         ) : null}
       </div>
 
-      {activeTab === 'ROOM' ? <RoomSection onRequireLogin={onRequireLogin} /> : null}
+      {activeTab === 'ROOM' ? (
+        <RoomSection
+          onRequireLogin={onRequireLogin}
+          roomSyncRequest={roomSyncRequest}
+          onRoomSyncHandled={onRoomSyncHandled}
+        />
+      ) : null}
       {activeTab === 'LUNCH' ? (
         <LunchSection
           lunchMenus={lunchMenus}

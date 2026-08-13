@@ -5,4 +5,5 @@ export const invalidateRoomCaches = (queryClient: QueryClient, roomId: number) =
   Promise.all([
     queryClient.invalidateQueries({ queryKey: roomQueryKeys.lists() }),
     queryClient.invalidateQueries({ queryKey: roomQueryKeys.detail(roomId) }),
+    queryClient.invalidateQueries({ queryKey: roomQueryKeys.members(roomId) }),
   ]);

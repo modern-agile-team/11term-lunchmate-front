@@ -299,7 +299,8 @@ const memberMetaByUserId: Record<
     nickname: string;
     mbti: string;
     profileImageUrl: string;
-    schoolName: string;
+    schoolInfo: string;
+    gender: 'MALE' | 'FEMALE';
     age: number;
   }
 > = {
@@ -308,7 +309,8 @@ const memberMetaByUserId: Record<
     mbti: 'ENFP',
     profileImageUrl:
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 컴퓨터공학과',
+    schoolInfo: '한국대학교 컴퓨터공학과',
+    gender: 'MALE',
     age: 25,
   },
   2: {
@@ -316,7 +318,8 @@ const memberMetaByUserId: Record<
     mbti: 'ISTJ',
     profileImageUrl:
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 경영학과',
+    schoolInfo: '한국대학교 경영학과',
+    gender: 'MALE',
     age: 26,
   },
   3: {
@@ -324,7 +327,8 @@ const memberMetaByUserId: Record<
     mbti: 'INTP',
     profileImageUrl:
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 국어국문학과',
+    schoolInfo: '한국대학교 국어국문학과',
+    gender: 'FEMALE',
     age: 24,
   },
   4: {
@@ -332,7 +336,8 @@ const memberMetaByUserId: Record<
     mbti: 'ESFP',
     profileImageUrl:
       'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 시각디자인학과',
+    schoolInfo: '한국대학교 시각디자인학과',
+    gender: 'FEMALE',
     age: 23,
   },
   5: {
@@ -340,7 +345,8 @@ const memberMetaByUserId: Record<
     mbti: 'ISFJ',
     profileImageUrl:
       'https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 생명과학과',
+    schoolInfo: '한국대학교 생명과학과',
+    gender: 'FEMALE',
     age: 20,
   },
   6: {
@@ -348,7 +354,8 @@ const memberMetaByUserId: Record<
     mbti: 'ENTJ',
     profileImageUrl:
       'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 화학과',
+    schoolInfo: '한국대학교 화학과',
+    gender: 'MALE',
     age: 22,
   },
   7: {
@@ -356,7 +363,8 @@ const memberMetaByUserId: Record<
     mbti: 'ISTP',
     profileImageUrl:
       'https://images.unsplash.com/photo-1502767089025-6572583495b0?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 기계공학과',
+    schoolInfo: '한국대학교 기계공학과',
+    gender: 'MALE',
     age: 27,
   },
   8: {
@@ -364,7 +372,8 @@ const memberMetaByUserId: Record<
     mbti: 'ESTP',
     profileImageUrl:
       'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=300&q=80',
-    schoolName: '한국대학교 전자공학과',
+    schoolInfo: '한국대학교 전자공학과',
+    gender: 'MALE',
     age: 28,
   },
 };
@@ -789,11 +798,12 @@ function toRoomMember(userId: number): GetRoomMembersResponse['items'][number] {
   const memberMeta = memberMetaByUserId[userId];
 
   return {
-    userId,
+    id: userId,
     nickname: memberMeta?.nickname ?? `사용자${userId}`,
     mbti: memberMeta?.mbti ?? '미설정',
     profileImageUrl: memberMeta?.profileImageUrl ?? '',
-    schoolName: memberMeta?.schoolName ?? '학교 정보 미등록',
+    schoolInfo: memberMeta?.schoolInfo ?? '학교 정보 미등록',
+    gender: memberMeta?.gender ?? 'MALE',
     age: memberMeta?.age ?? 0,
   };
 }
@@ -821,7 +831,7 @@ const toRoomListItem = (room: RoomDetailResponse): RoomListItemResponse => ({
   maxAge: room.maxAge,
   place: room.place,
   lunchAt: room.lunchAt,
-  currentCount: room.currentMembersCount,
+  currentMembersCount: room.currentMembersCount,
 });
 
 const getRoom = (roomId: number) => rooms.find((room) => room.id === roomId);
@@ -1141,7 +1151,7 @@ export const handlers = [
     const status = url.searchParams.get('status');
     const minAge = Number(url.searchParams.get('minAge') ?? NaN);
     const maxAge = Number(url.searchParams.get('maxAge') ?? NaN);
-    const size = Number(url.searchParams.get('size') ?? 10);
+    const limit = Number(url.searchParams.get('limit') ?? 10);
     const cursor = Number(url.searchParams.get('cursor') ?? 0);
 
     const filteredRooms = rooms.filter((room) => {
@@ -1151,12 +1161,14 @@ export const handlers = [
       if (Number.isFinite(maxAge) && room.minAge > maxAge) return false;
       return true;
     });
-    const pageItems = filteredRooms.slice(cursor, cursor + size);
-    const nextCursor = cursor + size < filteredRooms.length ? String(cursor + size) : null;
+    const pageItems = filteredRooms.slice(cursor, cursor + limit);
+    const hasNext = cursor + limit < filteredRooms.length;
+    const nextCursor = hasNext ? String(cursor + limit) : null;
 
     return HttpResponse.json<GetRoomsResponse>({
       items: pageItems.map(toRoomListItem),
       nextCursor,
+      hasNext,
     });
   }),
 
@@ -1192,6 +1204,33 @@ export const handlers = [
     });
   }),
 
+  http.delete('/api/v1/rooms/:roomId/members/:userId', async ({ params, request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const roomId = Number(params.roomId);
+    const userId = Number(params.userId);
+    const room = getRoom(roomId);
+
+    if (!room) {
+      return HttpResponse.json({ message: '방을 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    if (room.hostUserId !== currentUserId) {
+      return forbiddenResponse();
+    }
+
+    membersByRoomId[roomId] = (membersByRoomId[roomId] ?? []).filter(
+      (member) => member.id !== userId,
+    );
+    room.currentMembersCount = Math.max(1, room.currentMembersCount - 1);
+    room.status = 'OPEN';
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.post('/api/v1/rooms/:roomId/join', async ({ params }) => {
     await wait();
     const roomId = Number(params.roomId);
@@ -1202,14 +1241,17 @@ export const handlers = [
     room.currentMembersCount = Math.min(room.maxMembersCount, room.currentMembersCount + 1);
     room.status = room.currentMembersCount >= room.maxMembersCount ? 'FULL' : 'OPEN';
 
-    return HttpResponse.json({
-      roomId,
-      userId: currentUserId,
-      createdAt: new Date().toISOString(),
-    });
+    return HttpResponse.json(
+      {
+        roomId,
+        userId: currentUserId,
+        createdAt: new Date().toISOString(),
+      },
+      { status: 201 },
+    );
   }),
 
-  http.post('/api/v1/rooms/:roomId/leave', async ({ params }) => {
+  http.delete('/api/v1/rooms/:roomId/leave', async ({ params }) => {
     await wait();
     const roomId = Number(params.roomId);
     const room = getRoom(roomId);
@@ -1218,7 +1260,7 @@ export const handlers = [
       room.status = 'OPEN';
     }
     membersByRoomId[roomId] = (membersByRoomId[roomId] ?? []).filter(
-      (member) => member.userId !== currentUserId,
+      (member) => member.id !== currentUserId,
     );
     return new HttpResponse(null, { status: 204 });
   }),

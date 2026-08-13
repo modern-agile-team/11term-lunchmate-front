@@ -17,7 +17,7 @@ export interface RoomEditorModalProps {
   mode?: 'create' | 'edit';
   roomId?: number;
   initialValues?: RoomEditorFormValues;
-  onSuccess?: () => void;
+  onSuccess?: (room: RoomDetailResponse) => void;
   onError?: (message: string) => void;
   onRequireLogin?: () => void;
 }

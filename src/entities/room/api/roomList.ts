@@ -9,7 +9,7 @@ export async function getRooms(params: GetRoomsParams = {}): Promise<GetRoomsRes
       minAge: params.minAge,
       maxAge: params.maxAge,
       cursor: params.cursor,
-      size: params.size,
+      limit: params.limit,
     },
   });
 

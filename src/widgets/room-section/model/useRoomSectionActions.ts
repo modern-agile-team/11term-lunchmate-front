@@ -4,7 +4,7 @@ import { useRoomActions } from './useRoomActions';
 interface UseRoomSectionActionsParams {
   selectedRoomId: number | null;
   currentUserId: number | null;
-  roomMembers: { userId: number }[];
+  roomMembers: { id: number }[];
   isHostUser: boolean;
   onRequireLogin: () => void;
   setSelectedRoomId: (roomId: number | null) => void;

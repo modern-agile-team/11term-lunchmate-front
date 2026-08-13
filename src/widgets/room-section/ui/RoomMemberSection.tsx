@@ -1,7 +1,4 @@
-import type {
-  RoomMember,
-  RoomMembersQueryState,
-} from './RoomDetailPanel.types';
+import type { RoomMember, RoomMembersQueryState } from './RoomDetailPanel.types';
 
 interface RoomMemberSectionProps {
   roomMembersQuery: RoomMembersQueryState;
@@ -24,15 +21,19 @@ const RoomMemberSection = ({
       <span className="text-xs text-slate-400">{roomMembers.length}명</span>
     </div>
     {roomMembersQuery.isLoading ? (
-      <div className="rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500">멤버 목록을 불러오는 중...</div>
+      <div className="rounded-2xl bg-slate-50 px-4 py-5 text-sm text-slate-500">
+        멤버 목록을 불러오는 중...
+      </div>
     ) : null}
     {roomMembersQuery.isError ? (
-      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-5 text-sm text-rose-600">멤버 목록을 불러오지 못했어요.</div>
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-5 text-sm text-rose-600">
+        멤버 목록을 불러오지 못했어요.
+      </div>
     ) : null}
     {!roomMembersQuery.isLoading && !roomMembersQuery.isError
       ? roomMembers.map((member) => (
           <div
-            key={member.userId}
+            key={member.id}
             className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 px-4 py-4"
           >
             <div className="flex min-w-0 items-center gap-4">
@@ -59,13 +60,13 @@ const RoomMemberSection = ({
                     {member.age}세
                   </span>
                 </div>
-                <p className="mt-1 truncate text-sm text-slate-500">{member.schoolName}</p>
+                <p className="mt-1 truncate text-sm text-slate-500">{member.schoolInfo}</p>
               </div>
             </div>
-            {isHostUser && currentUserId !== member.userId ? (
+            {isHostUser && currentUserId !== member.id ? (
               <button
                 type="button"
-                onClick={() => void onKickMember(member.userId)}
+                onClick={() => void onKickMember(member.id)}
                 className="shrink-0 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
               >
                 강퇴

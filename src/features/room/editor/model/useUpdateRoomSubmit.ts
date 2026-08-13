@@ -30,13 +30,13 @@ export const useUpdateRoomSubmit = ({
       targetRoomId: number;
       payload: Parameters<typeof updateRoom>[1];
     }) => updateRoom(targetRoomId, payload),
-    onSuccess: async (_, variables) => {
+    onSuccess: async (room, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.lists() }),
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.detail(variables.targetRoomId) }),
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.members(variables.targetRoomId) }),
       ]);
-      onSuccess?.();
+      onSuccess?.(room);
     },
   });
 

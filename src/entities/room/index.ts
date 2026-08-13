@@ -9,6 +9,7 @@ export type {
   RoomListFilters,
   RoomListItemResponse,
   RoomMemberResponse,
+  RoomSyncRequest,
   UpdateRoomRequest,
 } from './model/types';
 export { getRoomDetail } from './api/roomDetail';

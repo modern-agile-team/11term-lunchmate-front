@@ -6,7 +6,7 @@ import MainPageDialogs from './MainPageDialogs';
 import { useMainPage } from '../model/useMainPage';
 
 const MainPage = () => {
-  const { dialogs, tabs, postSync } = useMainPage();
+  const { dialogs, tabs, postSync, roomSync } = useMainPage();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -21,6 +21,8 @@ const MainPage = () => {
           onCreatePostClick={() => dialogs.setIsCreatePostModalOpen(true)}
           postSyncRequest={postSync.postSyncRequest}
           onPostSyncHandled={() => postSync.setPostSyncRequest(null)}
+          roomSyncRequest={roomSync.roomSyncRequest}
+          onRoomSyncHandled={() => roomSync.setRoomSyncRequest(null)}
           onRequireLogin={() => dialogs.setIsLoginModalOpen(true)}
         />
       </main>
@@ -33,6 +35,7 @@ const MainPage = () => {
         isCreatePostModalOpen={dialogs.isCreatePostModalOpen}
         setIsCreatePostModalOpen={dialogs.setIsCreatePostModalOpen}
         setPostSyncRequest={postSync.setPostSyncRequest}
+        setRoomSyncRequest={roomSync.setRoomSyncRequest}
       />
     </div>
   );

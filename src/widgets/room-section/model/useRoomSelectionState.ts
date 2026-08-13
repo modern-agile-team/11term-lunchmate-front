@@ -8,19 +8,9 @@ interface UseRoomSelectionStateParams {
 export const useRoomSelectionState = ({ rooms }: UseRoomSelectionStateParams) => {
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
-  const effectiveSelectedRoomId = useMemo(() => {
-    if (rooms.length === 0) {
-      return null;
-    }
-
-    const hasSelected = selectedRoomId !== null && rooms.some((room) => room.id === selectedRoomId);
-
-    return hasSelected ? selectedRoomId : rooms[0].id;
-  }, [rooms, selectedRoomId]);
-
   const selectedRoom = useMemo(
-    () => rooms.find((room) => room.id === effectiveSelectedRoomId) ?? null,
-    [rooms, effectiveSelectedRoomId],
+    () => rooms.find((room) => room.id === selectedRoomId) ?? null,
+    [rooms, selectedRoomId],
   );
 
   const handleSelectRoom = (roomId: number) => {
@@ -28,7 +18,7 @@ export const useRoomSelectionState = ({ rooms }: UseRoomSelectionStateParams) =>
   };
 
   return {
-    selectedRoomId: effectiveSelectedRoomId,
+    selectedRoomId,
     setSelectedRoomId,
     selectedRoom,
     handleSelectRoom,

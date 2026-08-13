@@ -1,5 +1,7 @@
+import type { RoomSyncRequest } from '@/entities/room';
 import { RoomSummary } from '@/entities/room';
 import RoomEditorModal from '@/features/room/editor';
+import AppDialog from '@/shared/ui/modal/AppDialog';
 import { useRoomSection } from '../model/useRoomSection';
 import EmptyRoomState from './EmptyRoomState';
 import RoomActionBar from './RoomActionBar';
@@ -9,10 +11,16 @@ import RoomList from './RoomList';
 
 interface RoomSectionProps {
   onRequireLogin: () => void;
+  roomSyncRequest: RoomSyncRequest | null;
+  onRoomSyncHandled: () => void;
 }
 
-const RoomSection = ({ onRequireLogin }: RoomSectionProps) => {
-  const { filter, list, detail, dialogs, meta } = useRoomSection({ onRequireLogin });
+const RoomSection = ({ onRequireLogin, roomSyncRequest, onRoomSyncHandled }: RoomSectionProps) => {
+  const { filter, list, detail, dialogs, meta } = useRoomSection({
+    onRequireLogin,
+    roomSyncRequest,
+    onRoomSyncHandled,
+  });
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -39,7 +47,12 @@ const RoomSection = ({ onRequireLogin }: RoomSectionProps) => {
         />
       ) : null}
 
-      {meta.shouldShowDetail ? (
+      <AppDialog
+        isOpen={meta.shouldShowDetail}
+        onClose={() => list.setSelectedRoomId(null)}
+        title={detail.roomDetailQuery.data?.title ?? '점심 방 상세'}
+        maxWidthClassName="max-w-2xl"
+      >
         <RoomDetailPanel
           roomDetailQuery={detail.roomDetailQuery}
           roomMembersQuery={detail.roomMembersQuery}
@@ -51,7 +64,7 @@ const RoomSection = ({ onRequireLogin }: RoomSectionProps) => {
           onDelete={detail.onDelete}
           onKickMember={detail.onKickMember}
         />
-      ) : null}
+      </AppDialog>
 
       {meta.shouldShowEditModal ? (
         <RoomEditorModal

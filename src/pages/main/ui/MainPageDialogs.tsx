@@ -1,4 +1,5 @@
 import type { PostSyncRequest } from '@/entities/post';
+import type { RoomSyncRequest } from '@/entities/room';
 import PostEditorModal from '@/features/post/editor';
 import RoomEditorModal from '@/features/room/editor';
 import AuthDialog from '@/widgets/auth-dialog';
@@ -10,6 +11,7 @@ interface MainPageDialogsProps {
   isCreatePostModalOpen: boolean;
   setIsCreatePostModalOpen: (isOpen: boolean) => void;
   setPostSyncRequest: (value: PostSyncRequest | null) => void;
+  setRoomSyncRequest: (value: RoomSyncRequest | null) => void;
 }
 
 const MainPageDialogs = ({
@@ -20,6 +22,7 @@ const MainPageDialogs = ({
   isCreatePostModalOpen,
   setIsCreatePostModalOpen,
   setPostSyncRequest,
+  setRoomSyncRequest,
 }: MainPageDialogsProps) => (
   <>
     <AuthDialog isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
@@ -27,6 +30,10 @@ const MainPageDialogs = ({
       isOpen={isCreateRoomModalOpen}
       onClose={() => setIsCreateRoomModalOpen(false)}
       onRequireLogin={() => setIsLoginModalOpen(true)}
+      onSuccess={(room) => {
+        setIsCreateRoomModalOpen(false);
+        setRoomSyncRequest({ roomId: room.id });
+      }}
     />
     <PostEditorModal
       isOpen={isCreatePostModalOpen}
