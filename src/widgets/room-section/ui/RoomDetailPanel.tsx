@@ -1,3 +1,4 @@
+import { PencilLine, Trash2 } from 'lucide-react';
 import RoomDetailError from './RoomDetailError';
 import RoomDetailHeader from './RoomDetailHeader';
 import RoomDetailLoading from './RoomDetailLoading';
@@ -16,23 +17,15 @@ const RoomDetailPanel = ({
   onDelete,
   onKickMember,
 }: RoomDetailPanelProps) => (
-  <article className="rounded-[32px] border border-slate-200/80 bg-white px-6 py-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:px-7">
+  <div>
     {roomDetailQuery.isLoading ? <RoomDetailLoading /> : null}
-    {roomDetailQuery.isError ? (
-      <RoomDetailError error={roomDetailQuery.error} />
-    ) : null}
+    {roomDetailQuery.isError ? <RoomDetailError error={roomDetailQuery.error} /> : null}
     {roomDetailQuery.data &&
     detailDisplay &&
     !roomDetailQuery.isLoading &&
     !roomDetailQuery.isError ? (
       <>
-        <RoomDetailHeader
-          roomDetailQuery={roomDetailQuery}
-          isHostUser={isHostUser}
-          detailDisplay={detailDisplay}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <RoomDetailHeader roomDetailQuery={roomDetailQuery} detailDisplay={detailDisplay} />
         <RoomDetailMeta roomDetailQuery={roomDetailQuery} detailDisplay={detailDisplay} />
         <RoomMemberSection
           roomMembersQuery={roomMembersQuery}
@@ -41,9 +34,30 @@ const RoomDetailPanel = ({
           currentUserId={currentUserId}
           onKickMember={onKickMember}
         />
+
+        {isHostUser ? (
+          <div className="mt-8 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              <PencilLine className="h-4 w-4" />
+              수정
+            </button>
+            <button
+              type="button"
+              onClick={() => void onDelete()}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-rose-500 px-5 text-sm font-semibold text-white transition hover:bg-rose-600"
+            >
+              <Trash2 className="h-4 w-4" />
+              삭제
+            </button>
+          </div>
+        ) : null}
       </>
     ) : null}
-  </article>
+  </div>
 );
 
 export default RoomDetailPanel;

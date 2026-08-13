@@ -1,3 +1,5 @@
+import type { Gender } from '@/entities/user';
+
 export interface RoomListItemResponse {
   id: number;
   title: string;
@@ -7,12 +9,13 @@ export interface RoomListItemResponse {
   maxAge: number;
   place: string;
   lunchAt: string;
-  currentCount: number;
+  currentMembersCount: number;
 }
 
 export interface GetRoomsResponse {
   items: RoomListItemResponse[];
   nextCursor?: string | null;
+  hasNext: boolean;
 }
 
 export interface RoomListFilters {
@@ -24,7 +27,7 @@ export interface RoomListFilters {
 
 export interface GetRoomsParams extends RoomListFilters {
   cursor?: string;
-  size?: number;
+  limit?: number;
 }
 
 export interface RoomDetailResponse {
@@ -71,11 +74,12 @@ export interface RoomJoinResponse {
 }
 
 export interface RoomMemberResponse {
-  userId: number;
+  id: number;
   nickname: string;
   mbti: string;
   profileImageUrl: string;
-  schoolName: string;
+  schoolInfo: string;
+  gender: Gender;
   age: number;
 }
 
@@ -86,4 +90,8 @@ export interface GetRoomMembersResponse {
 export interface KickRoomMemberRequest {
   roomId: number;
   userId: number;
+}
+
+export interface RoomSyncRequest {
+  roomId: number;
 }

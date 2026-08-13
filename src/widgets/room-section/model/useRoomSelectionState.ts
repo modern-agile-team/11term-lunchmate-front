@@ -9,13 +9,11 @@ export const useRoomSelectionState = ({ rooms }: UseRoomSelectionStateParams) =>
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
   const effectiveSelectedRoomId = useMemo(() => {
-    if (rooms.length === 0) {
+    if (selectedRoomId === null) {
       return null;
     }
 
-    const hasSelected = selectedRoomId !== null && rooms.some((room) => room.id === selectedRoomId);
-
-    return hasSelected ? selectedRoomId : rooms[0].id;
+    return rooms.some((room) => room.id === selectedRoomId) ? selectedRoomId : null;
   }, [rooms, selectedRoomId]);
 
   const selectedRoom = useMemo(

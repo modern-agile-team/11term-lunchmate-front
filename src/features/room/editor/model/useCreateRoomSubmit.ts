@@ -24,12 +24,12 @@ export const useCreateRoomSubmit = ({
 
   const createRoomMutation = useMutation({
     mutationFn: createRoom,
-    onSuccess: async () => {
+    onSuccess: async (room) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.lists() }),
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.details() }),
       ]);
-      onSuccess?.();
+      onSuccess?.(room);
     },
   });
 

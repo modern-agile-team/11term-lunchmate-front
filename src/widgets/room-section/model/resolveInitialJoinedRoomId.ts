@@ -1,7 +1,7 @@
 interface ResolveInitialJoinedRoomIdParams {
   selectedRoomId: number | null;
   currentUserId: number | null;
-  roomMembers: Array<{ userId: number }>;
+  roomMembers: Array<{ id: number }>;
 }
 
 export const resolveInitialJoinedRoomId = ({
@@ -13,7 +13,5 @@ export const resolveInitialJoinedRoomId = ({
     return null;
   }
 
-  return roomMembers.some((member) => member.userId === currentUserId)
-    ? selectedRoomId
-    : null;
+  return roomMembers.some((member) => member.id === currentUserId) ? selectedRoomId : null;
 };

@@ -1,7 +1,9 @@
 import type { RoomDetailResponse, RoomListFilters, RoomListItemResponse } from './types';
 import type { MainRoom } from './mainRoom';
 
-export const toMainRoomType = (roomType: RoomListItemResponse['roomType']): MainRoom['roomType'] => {
+export const toMainRoomType = (
+  roomType: RoomListItemResponse['roomType'],
+): MainRoom['roomType'] => {
   if (roomType === 'MALE' || roomType === 'FEMALE') {
     return roomType;
   }
@@ -25,13 +27,15 @@ export const toMainRoom = (room: RoomListItemResponse): MainRoom => ({
   roomType: toMainRoomType(room.roomType),
   minAge: room.minAge,
   maxAge: room.maxAge,
-  currentCount: room.currentCount,
+  currentCount: room.currentMembersCount,
   capacity: room.maxMembersCount,
   place: room.place,
   lunchAt: formatLunchAt(room.lunchAt),
 });
 
-export const toDetailRoomType = (roomType: RoomDetailResponse['roomType']): MainRoom['roomType'] => {
+export const toDetailRoomType = (
+  roomType: RoomDetailResponse['roomType'],
+): MainRoom['roomType'] => {
   if (roomType === 'MALE' || roomType === 'FEMALE') {
     return roomType;
   }

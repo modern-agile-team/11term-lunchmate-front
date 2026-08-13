@@ -9,15 +9,15 @@ export const roomListQueryOptions = (filters: RoomListFilters = {}) =>
     queryFn: () => getRooms(filters),
   });
 
-export const roomInfiniteListQueryOptions = (filters: RoomListFilters = {}, size = 10) =>
+export const roomInfiniteListQueryOptions = (filters: RoomListFilters = {}, limit = 10) =>
   infiniteQueryOptions({
-    queryKey: roomQueryKeys.infiniteList(filters, size),
+    queryKey: roomQueryKeys.infiniteList(filters, limit),
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       getRooms({
         ...filters,
         cursor: pageParam,
-        size,
+        limit,
       }),
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined),
   });

@@ -3,7 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { roomInfiniteListQueryOptions, toMainRoom, toRoomListFilters } from '@/entities/room';
 import { INITIAL_ROOM_FILTER_STATE, type RoomFilterState } from './constants';
 
-const ROOM_LIST_DEFAULT_SIZE = 10;
+const ROOM_LIST_DEFAULT_LIMIT = 10;
 
 export const useInfiniteRooms = () => {
   const roomListLoadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -13,7 +13,7 @@ export const useInfiniteRooms = () => {
 
   const roomFilters = toRoomListFilters(roomFilterState);
   const roomsQuery = useInfiniteQuery(
-    roomInfiniteListQueryOptions(roomFilters, ROOM_LIST_DEFAULT_SIZE),
+    roomInfiniteListQueryOptions(roomFilters, ROOM_LIST_DEFAULT_LIMIT),
   );
 
   const rooms = useMemo(

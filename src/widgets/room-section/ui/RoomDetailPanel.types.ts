@@ -1,13 +1,11 @@
-import type { MainRoom, RoomDetailResponse, RoomDetailStatus } from '@/entities/room';
+import type {
+  MainRoom,
+  RoomDetailResponse,
+  RoomDetailStatus,
+  RoomMemberResponse,
+} from '@/entities/room';
 
-export interface RoomMember {
-  userId: number;
-  nickname: string;
-  mbti: string;
-  profileImageUrl: string;
-  schoolName: string;
-  age: number;
-}
+export type RoomMember = RoomMemberResponse;
 
 export interface RoomMembersQueryState {
   isLoading: boolean;
