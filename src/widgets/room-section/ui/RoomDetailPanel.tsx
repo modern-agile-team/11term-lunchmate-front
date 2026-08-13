@@ -42,7 +42,7 @@ const RoomDetailPanel = ({
           />
 
           <div className="mt-8 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            {joinedRoomId !== null ? (
+            {joinedRoomId === roomDetailQuery.data.id ? (
               <button
                 type="button"
                 onClick={onRequestLeave}
@@ -51,7 +51,7 @@ const RoomDetailPanel = ({
                 <LogOut className="h-4 w-4" />
                 나가기
               </button>
-            ) : (
+            ) : joinedRoomId === null ? (
               <button
                 type="button"
                 onClick={onJoin}
@@ -60,6 +60,14 @@ const RoomDetailPanel = ({
               >
                 <LogIn className="h-4 w-4" />
                 {isJoinPending ? '참여 중...' : '참여하기'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 text-sm font-semibold text-slate-400"
+              >
+                다른 방에 참여 중
               </button>
             )}
           </div>
