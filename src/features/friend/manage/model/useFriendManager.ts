@@ -114,7 +114,7 @@ export const useFriendManager = () => {
     keyword,
     handleKeywordChange: setKeyword,
     searchResults: searchQuery.data?.items ?? [],
-    isSearching: searchQuery.isFetching,
+    isSearching: keyword.trim() !== debouncedKeyword || searchQuery.isFetching,
     feedback,
     feedbackTone,
     isCreatingRequestId: createMutation.isPending ? createMutation.variables?.receiverId : null,
