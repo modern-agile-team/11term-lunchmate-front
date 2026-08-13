@@ -14,6 +14,7 @@ export type {
   LoginRequest,
   LoginResponse,
   LogoutResponse,
+  PublicUser,
   SocialProvider,
   SocialRegisterRequest,
   SocialRegisterResponse,

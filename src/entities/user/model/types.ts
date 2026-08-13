@@ -19,6 +19,18 @@ export interface User {
 
 export type GetMyUserResponse = User;
 
+export interface PublicUser {
+  id: number;
+  nickname: string;
+  birthDate: string;
+  gender: Gender;
+  schoolInfo: string | null;
+  introduce: string | null;
+  mbti: MbtiType | null;
+  createdAt: string;
+  profileImageUrl: string | null;
+}
+
 export interface SignUpRequest {
   email: string;
   password: string;

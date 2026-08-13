@@ -12,7 +12,14 @@ import type {
   PostListItemResponse,
 } from '@/entities/post/model/types';
 import type { DeleteMyUserResponse, GetMyUserResponse, UpdateMyUserRequest } from '@/entities/user';
-import type { GetFriendRequestsResponse, GetFriendsResponse } from '@/entities/friend';
+import type {
+  FriendRequestItem,
+  FriendSummary,
+  GetFriendRequestsResponse,
+  GetFriendsResponse,
+  RelationshipStatus,
+  SearchUsersResponse,
+} from '@/entities/friend';
 import type { MainLunchMenu } from '@/entities/lunch-menu';
 
 const currentUserId = 1;
@@ -362,29 +369,50 @@ const memberMetaByUserId: Record<
   },
 };
 
-let friendIds = [2];
-let friendRequests = [
+interface MockFriendship {
+  friendshipId: number;
+  requesterId: number;
+  receiverId: number;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  createdAt: string;
+}
+
+let friendships: MockFriendship[] = [
   {
-    id: 1,
-    fromUserId: 3,
-    toUserId: 1,
-    senderNickname: '도서관러',
-    receiverNickname: '점심대장',
+    friendshipId: 1,
+    requesterId: 3,
+    receiverId: 1,
+    status: 'PENDING',
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    direction: 'INCOMING' as const,
-    status: 'PENDING' as const,
   },
   {
-    id: 2,
-    fromUserId: 1,
-    toUserId: 4,
-    senderNickname: '점심대장',
-    receiverNickname: '제육파',
+    friendshipId: 2,
+    requesterId: 1,
+    receiverId: 4,
+    status: 'PENDING',
     createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    direction: 'OUTGOING' as const,
-    status: 'PENDING' as const,
+  },
+  {
+    friendshipId: 3,
+    requesterId: 1,
+    receiverId: 2,
+    status: 'ACCEPTED',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
+let friendshipIdCounter = 4;
+
+const toPublicUser = (user: GetMyUserResponse) => ({
+  id: user.id,
+  nickname: user.nickname,
+  birthDate: user.birthDate,
+  gender: user.gender,
+  schoolInfo: user.schoolInfo,
+  introduce: user.introduce,
+  mbti: user.mbti,
+  createdAt: user.createdAt,
+  profileImageUrl: user.profileImageUrl,
+});
 
 let rooms: RoomDetailResponse[] = [
   {
@@ -859,8 +887,7 @@ export const handlers = [
     }
 
     isAccountDeleted = true;
-    friendIds = [];
-    friendRequests = [];
+    friendships = [];
 
     return HttpResponse.json<DeleteMyUserResponse>({
       message: '회원탈퇴가 완료되었습니다.',
@@ -885,22 +912,77 @@ export const handlers = [
     return HttpResponse.json({ imageURL });
   }),
 
+  http.get('/api/v1/users/search', async ({ request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    const url = new URL(request.url);
+    const keyword = (url.searchParams.get('keyword') ?? '').trim().toLowerCase();
+
+    const items = mockUsers
+      .filter((user) => user.id !== currentUserId)
+      .filter(
+        (user) =>
+          Boolean(keyword) &&
+          (user.nickname.toLowerCase().includes(keyword) || user.email.toLowerCase() === keyword),
+      )
+      .slice(0, 20)
+      .map((user) => {
+        const friendship = friendships.find(
+          (item) =>
+            (item.requesterId === currentUserId && item.receiverId === user.id) ||
+            (item.receiverId === currentUserId && item.requesterId === user.id),
+        );
+
+        let relationshipStatus: RelationshipStatus = 'NONE';
+        if (friendship?.status === 'ACCEPTED') {
+          relationshipStatus = 'ACCEPTED';
+        } else if (friendship?.status === 'REJECTED') {
+          relationshipStatus = 'REJECTED';
+        } else if (friendship?.status === 'PENDING') {
+          relationshipStatus =
+            friendship.requesterId === currentUserId ? 'PENDING_SENT' : 'PENDING_RECEIVED';
+        }
+
+        return {
+          id: user.id,
+          nickname: user.nickname,
+          profileImageUrl: user.profileImageUrl,
+          schoolInfo: user.schoolInfo,
+          relationshipStatus,
+        };
+      });
+
+    return HttpResponse.json<SearchUsersResponse>({ items });
+  }),
+
   http.get('/api/v1/friends', async ({ request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
     }
 
-    const items = friendIds
-      .map((friendId) => findUserById(friendId))
-      .filter((friend): friend is GetMyUserResponse => Boolean(friend))
-      .map((friend) => ({
-        id: friend.id,
-        nickname: friend.nickname,
-        mbti: friend.mbti ?? '미설정',
-        introduce: friend.introduce ?? '',
-        profileImageUrl: friend.profileImageUrl ?? '',
-      }));
+    const items = friendships
+      .filter(
+        (item) =>
+          item.status === 'ACCEPTED' &&
+          (item.requesterId === currentUserId || item.receiverId === currentUserId),
+      )
+      .map((item) => {
+        const otherUserId = item.requesterId === currentUserId ? item.receiverId : item.requesterId;
+        const otherUser = findUserById(otherUserId);
+
+        return otherUser
+          ? {
+              friendshipId: item.friendshipId,
+              status: 'ACCEPTED' as const,
+              user: toPublicUser(otherUser),
+            }
+          : null;
+      })
+      .filter((item): item is FriendSummary => Boolean(item));
 
     return HttpResponse.json<GetFriendsResponse>({ items });
   }),
@@ -911,9 +993,32 @@ export const handlers = [
       return unauthorizedResponse();
     }
 
-    return HttpResponse.json<GetFriendRequestsResponse>({
-      items: friendRequests,
-    });
+    const items = friendships
+      .filter(
+        (item) =>
+          item.status === 'PENDING' &&
+          (item.requesterId === currentUserId || item.receiverId === currentUserId),
+      )
+      .map((item) => {
+        const direction: 'SENT' | 'RECEIVED' =
+          item.requesterId === currentUserId ? 'SENT' : 'RECEIVED';
+        const otherUserId = direction === 'SENT' ? item.receiverId : item.requesterId;
+        const otherUser = findUserById(otherUserId);
+
+        return otherUser
+          ? {
+              friendshipId: item.friendshipId,
+              requesterId: item.requesterId,
+              receiverId: item.receiverId,
+              direction,
+              user: toPublicUser(otherUser),
+              createdAt: item.createdAt,
+            }
+          : null;
+      })
+      .filter((item): item is FriendRequestItem => Boolean(item));
+
+    return HttpResponse.json<GetFriendRequestsResponse>({ items });
   }),
 
   http.post('/api/v1/friends/requests', async ({ request }) => {
@@ -922,79 +1027,109 @@ export const handlers = [
       return unauthorizedResponse();
     }
 
-    const payload = (await request.json()) as { target?: string };
-    const target = payload.target?.trim().toLowerCase();
-    const targetUser = mockUsers.find(
-      (user) =>
-        user.id !== currentUserId &&
-        (user.nickname.toLowerCase() === target || user.email.toLowerCase() === target),
-    );
+    const payload = (await request.json()) as { receiverId?: number };
+    const targetUser = payload.receiverId ? findUserById(payload.receiverId) : undefined;
 
-    if (!targetUser) {
+    if (!payload.receiverId || !targetUser) {
       return HttpResponse.json({ message: '대상 사용자를 찾을 수 없어요.' }, { status: 404 });
     }
 
-    const duplicated = friendRequests.some((item) => item.toUserId === targetUser.id);
-    if (duplicated || friendIds.includes(targetUser.id)) {
+    const duplicated = friendships.some(
+      (item) =>
+        (item.requesterId === currentUserId && item.receiverId === payload.receiverId) ||
+        (item.receiverId === currentUserId && item.requesterId === payload.receiverId),
+    );
+
+    if (duplicated) {
       return HttpResponse.json({ message: '이미 친구 또는 신청된 사용자예요.' }, { status: 409 });
     }
 
-    const nextRequest = {
-      id: Math.max(0, ...friendRequests.map((item) => item.id)) + 1,
-      fromUserId: currentUserId,
-      toUserId: targetUser.id,
-      senderNickname: currentUser.nickname,
-      receiverNickname: targetUser.nickname,
+    const nextFriendship: MockFriendship = {
+      friendshipId: friendshipIdCounter++,
+      requesterId: currentUserId,
+      receiverId: payload.receiverId,
+      status: 'PENDING',
       createdAt: new Date().toISOString(),
-      direction: 'OUTGOING' as const,
-      status: 'PENDING' as const,
     };
 
-    friendRequests = [nextRequest, ...friendRequests];
-    return HttpResponse.json(nextRequest, { status: 201 });
+    friendships = [nextFriendship, ...friendships];
+
+    return HttpResponse.json(
+      {
+        id: nextFriendship.friendshipId,
+        requesterId: nextFriendship.requesterId,
+        receiverId: nextFriendship.receiverId,
+        status: nextFriendship.status,
+        createdAt: nextFriendship.createdAt,
+      },
+      { status: 201 },
+    );
   }),
 
-  http.patch('/api/v1/friends/requests/:requestId', async ({ params, request }) => {
+  http.patch('/api/v1/friends/requests/:friendshipId/accept', async ({ params, request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
     }
 
-    const requestId = Number(params.requestId);
-    const payload = (await request.json()) as { accepted?: boolean };
-    const targetRequest = friendRequests.find((item) => item.id === requestId);
+    const target = friendships.find((item) => item.friendshipId === Number(params.friendshipId));
 
-    if (!targetRequest) {
+    if (!target) {
       return HttpResponse.json({ message: '친구 신청을 찾을 수 없어요.' }, { status: 404 });
     }
 
-    if (payload.accepted) {
-      friendIds = Array.from(new Set([...friendIds, targetRequest.fromUserId]));
-    }
+    target.status = 'ACCEPTED';
 
-    friendRequests = friendRequests.filter((item) => item.id !== requestId);
-
-    return new HttpResponse(null, { status: 204 });
+    return HttpResponse.json({
+      id: target.friendshipId,
+      requesterId: target.requesterId,
+      receiverId: target.receiverId,
+      status: target.status,
+      createdAt: target.createdAt,
+    });
   }),
 
-  http.delete('/api/v1/friends/requests/:requestId', async ({ params, request }) => {
+  http.patch('/api/v1/friends/requests/:friendshipId/reject', async ({ params, request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
     }
 
-    friendRequests = friendRequests.filter((item) => item.id !== Number(params.requestId));
+    const target = friendships.find((item) => item.friendshipId === Number(params.friendshipId));
 
-    return new HttpResponse(null, { status: 204 });
+    if (!target) {
+      return HttpResponse.json({ message: '친구 신청을 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    target.status = 'REJECTED';
+
+    return HttpResponse.json({
+      id: target.friendshipId,
+      requesterId: target.requesterId,
+      receiverId: target.receiverId,
+      status: target.status,
+      createdAt: target.createdAt,
+    });
   }),
 
-  http.delete('/api/v1/friends/:friendId', async ({ params, request }) => {
+  http.delete('/api/v1/friends/requests/:friendshipId', async ({ params, request }) => {
     await wait();
     if (!isAuthorized(request)) {
       return unauthorizedResponse();
     }
 
-    friendIds = friendIds.filter((friendId) => friendId !== Number(params.friendId));
+    friendships = friendships.filter((item) => item.friendshipId !== Number(params.friendshipId));
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.delete('/api/v1/friends/:friendshipId', async ({ params, request }) => {
+    await wait();
+    if (!isAuthorized(request)) {
+      return unauthorizedResponse();
+    }
+
+    friendships = friendships.filter((item) => item.friendshipId !== Number(params.friendshipId));
 
     return new HttpResponse(null, { status: 204 });
   }),

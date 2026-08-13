@@ -1,33 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  acceptFriendRequest,
   cancelFriendRequest,
   createFriendRequest,
   deleteFriend,
   friendRequestsQueryOptions,
   friendsQueryOptions,
-  respondFriendRequest,
+  rejectFriendRequest,
+  userSearchQueryOptions,
 } from '@/entities/friend';
+
+const SEARCH_DEBOUNCE_MS = 350;
 
 export const useFriendManager = () => {
   const queryClient = useQueryClient();
   const friendsQuery = useQuery(friendsQueryOptions());
   const requestsQuery = useQuery(friendRequestsQueryOptions());
-  const [target, setTarget] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>('success');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(keyword.trim()), SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
+  const searchQuery = useQuery(userSearchQueryOptions(debouncedKeyword));
 
   const refreshFriendData = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: friendsQueryOptions().queryKey }),
       queryClient.invalidateQueries({ queryKey: friendRequestsQueryOptions().queryKey }),
+      queryClient.invalidateQueries({ queryKey: ['userSearch'] }),
     ]);
   };
 
   const createMutation = useMutation({
     mutationFn: createFriendRequest,
     onSuccess: async () => {
-      setTarget('');
       setFeedback('친구 신청을 보냈어요.');
       setFeedbackTone('success');
       await refreshFriendData();
@@ -38,16 +51,28 @@ export const useFriendManager = () => {
     },
   });
 
-  const respondMutation = useMutation({
-    mutationFn: ({ requestId, accepted }: { requestId: number; accepted: boolean }) =>
-      respondFriendRequest(requestId, { accepted }),
-    onSuccess: async (_, variables) => {
-      setFeedback(variables.accepted ? '친구 신청을 수락했어요.' : '친구 신청을 거절했어요.');
+  const acceptMutation = useMutation({
+    mutationFn: acceptFriendRequest,
+    onSuccess: async () => {
+      setFeedback('친구 신청을 수락했어요.');
       setFeedbackTone('success');
       await refreshFriendData();
     },
     onError: () => {
-      setFeedback('친구 신청 처리에 실패했어요.');
+      setFeedback('친구 신청 수락에 실패했어요.');
+      setFeedbackTone('error');
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: rejectFriendRequest,
+    onSuccess: async () => {
+      setFeedback('친구 신청을 거절했어요.');
+      setFeedbackTone('success');
+      await refreshFriendData();
+    },
+    onError: () => {
+      setFeedback('친구 신청 거절에 실패했어요.');
       setFeedbackTone('error');
     },
   });
@@ -78,32 +103,25 @@ export const useFriendManager = () => {
     },
   });
 
-  const handleSubmitRequest = () => {
-    if (!target.trim()) {
-      setFeedback('닉네임 또는 이메일을 입력해 주세요.');
-      setFeedbackTone('error');
-      return;
-    }
-
-    createMutation.mutate({
-      target: target.trim(),
-    });
-  };
+  const requests = requestsQuery.data?.items ?? [];
 
   return {
     friends: friendsQuery.data?.items ?? [],
-    requests: requestsQuery.data?.items ?? [],
+    receivedRequests: requests.filter((item) => item.direction === 'RECEIVED'),
+    sentRequests: requests.filter((item) => item.direction === 'SENT'),
     isLoading: friendsQuery.isLoading || requestsQuery.isLoading,
     isError: friendsQuery.isError || requestsQuery.isError,
-    target,
+    keyword,
+    handleKeywordChange: setKeyword,
+    searchResults: searchQuery.data?.items ?? [],
+    isSearching: keyword.trim() !== debouncedKeyword || searchQuery.isFetching,
     feedback,
     feedbackTone,
-    isCreating: createMutation.isPending,
-    handleTargetChange: setTarget,
-    handleSubmitRequest,
-    handleAccept: (requestId: number) => respondMutation.mutate({ requestId, accepted: true }),
-    handleReject: (requestId: number) => respondMutation.mutate({ requestId, accepted: false }),
-    handleCancel: (requestId: number) => cancelMutation.mutate(requestId),
-    handleDeleteFriend: (friendId: number) => deleteMutation.mutate(friendId),
+    isCreatingRequestId: createMutation.isPending ? createMutation.variables?.receiverId : null,
+    handleSendRequest: (receiverId: number) => createMutation.mutate({ receiverId }),
+    handleAccept: (friendshipId: number) => acceptMutation.mutate(friendshipId),
+    handleReject: (friendshipId: number) => rejectMutation.mutate(friendshipId),
+    handleCancel: (friendshipId: number) => cancelMutation.mutate(friendshipId),
+    handleDeleteFriend: (friendshipId: number) => deleteMutation.mutate(friendshipId),
   };
 };

@@ -4,7 +4,8 @@ import type {
   CreateFriendRequestResponse,
   GetFriendRequestsResponse,
   GetFriendsResponse,
-  RespondFriendRequestRequest,
+  RespondFriendRequestResponse,
+  SearchUsersResponse,
 } from '../model/types';
 
 export async function getFriends(): Promise<GetFriendsResponse> {
@@ -19,25 +20,49 @@ export async function getFriendRequests(): Promise<GetFriendRequestsResponse> {
   return response.data;
 }
 
-export async function createFriendRequest(
-  payload: CreateFriendRequestRequest,
-): Promise<CreateFriendRequestResponse> {
-  const response = await client.post<CreateFriendRequestResponse>('/api/v1/friends/requests', payload);
+export async function searchUsers(keyword: string): Promise<SearchUsersResponse> {
+  const response = await client.get<SearchUsersResponse>('/api/v1/users/search', {
+    params: { keyword },
+  });
 
   return response.data;
 }
 
-export async function respondFriendRequest(
-  requestId: number,
-  payload: RespondFriendRequestRequest,
-): Promise<void> {
-  await client.patch(`/api/v1/friends/requests/${requestId}`, payload);
+export async function createFriendRequest(
+  payload: CreateFriendRequestRequest,
+): Promise<CreateFriendRequestResponse> {
+  const response = await client.post<CreateFriendRequestResponse>(
+    '/api/v1/friends/requests',
+    payload,
+  );
+
+  return response.data;
 }
 
-export async function cancelFriendRequest(requestId: number): Promise<void> {
-  await client.delete(`/api/v1/friends/requests/${requestId}`);
+export async function acceptFriendRequest(
+  friendshipId: number,
+): Promise<RespondFriendRequestResponse> {
+  const response = await client.patch<RespondFriendRequestResponse>(
+    `/api/v1/friends/requests/${friendshipId}/accept`,
+  );
+
+  return response.data;
 }
 
-export async function deleteFriend(friendId: number): Promise<void> {
-  await client.delete(`/api/v1/friends/${friendId}`);
+export async function rejectFriendRequest(
+  friendshipId: number,
+): Promise<RespondFriendRequestResponse> {
+  const response = await client.patch<RespondFriendRequestResponse>(
+    `/api/v1/friends/requests/${friendshipId}/reject`,
+  );
+
+  return response.data;
+}
+
+export async function cancelFriendRequest(friendshipId: number): Promise<void> {
+  await client.delete(`/api/v1/friends/requests/${friendshipId}`);
+}
+
+export async function deleteFriend(friendshipId: number): Promise<void> {
+  await client.delete(`/api/v1/friends/${friendshipId}`);
 }
