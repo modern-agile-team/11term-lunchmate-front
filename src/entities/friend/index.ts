@@ -1,18 +1,28 @@
 export {
+  acceptFriendRequest,
   cancelFriendRequest,
   createFriendRequest,
   deleteFriend,
   getFriendRequests,
   getFriends,
-  respondFriendRequest,
+  rejectFriendRequest,
+  searchUsers,
 } from './api/friends';
-export { friendRequestsQueryOptions, friendsQueryOptions } from './api/friendQueries';
+export {
+  friendRequestsQueryOptions,
+  friendsQueryOptions,
+  userSearchQueryOptions,
+} from './api/friendQueries';
 export type {
   CreateFriendRequestRequest,
   CreateFriendRequestResponse,
+  FriendRequestDirection,
   FriendRequestItem,
   FriendSummary,
   GetFriendRequestsResponse,
   GetFriendsResponse,
-  RespondFriendRequestRequest,
+  RelationshipStatus,
+  RespondFriendRequestResponse,
+  SearchUsersResponse,
+  UserSearchResultItem,
 } from './model/types';
