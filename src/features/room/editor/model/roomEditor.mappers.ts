@@ -1,13 +1,8 @@
+import { formatKSTTime } from '@/shared/lib/date/formatKST';
 import type { RoomEditorFormValues, RoomEditorSource } from './roomEditor.types';
 
 export function formatLunchAtForForm(lunchAt: string) {
-  const timeMatch = lunchAt.match(/(?:T|\s)?(\d{2}:\d{2})/);
-
-  if (timeMatch) {
-    return timeMatch[1];
-  }
-
-  return '12:00';
+  return formatKSTTime(lunchAt);
 }
 
 export const toRoomEditorFormValues = (room: RoomEditorSource): RoomEditorFormValues => ({

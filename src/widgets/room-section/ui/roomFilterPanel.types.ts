@@ -5,6 +5,8 @@ export interface RoomFilterPanelProps {
   setRoomFilterState: (
     updater: (current: RoomFilterState) => RoomFilterState,
   ) => void;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
 export interface RoomFilterChipOption<T extends string> {

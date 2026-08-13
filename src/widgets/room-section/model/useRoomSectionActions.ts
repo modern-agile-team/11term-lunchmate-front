@@ -1,34 +1,24 @@
-import { resolveInitialJoinedRoomId } from './resolveInitialJoinedRoomId';
 import { useRoomActions } from './useRoomActions';
 
 interface UseRoomSectionActionsParams {
   selectedRoomId: number | null;
-  currentUserId: number | null;
-  roomMembers: { id: number }[];
   isHostUser: boolean;
+  myRoomId: number | null;
   onRequireLogin: () => void;
   setSelectedRoomId: (roomId: number | null) => void;
 }
 
 export const useRoomSectionActions = ({
   selectedRoomId,
-  currentUserId,
-  roomMembers,
   isHostUser,
+  myRoomId,
   onRequireLogin,
   setSelectedRoomId,
-}: UseRoomSectionActionsParams) => {
-  const initialJoinedRoomId = resolveInitialJoinedRoomId({
-    selectedRoomId,
-    currentUserId,
-    roomMembers,
-  });
-
-  return useRoomActions({
+}: UseRoomSectionActionsParams) =>
+  useRoomActions({
     selectedRoomId,
     isHost: isHostUser,
     onRequireLogin,
     setSelectedRoomId,
-    initialJoinedRoomId,
+    initialJoinedRoomId: myRoomId,
   });
-};

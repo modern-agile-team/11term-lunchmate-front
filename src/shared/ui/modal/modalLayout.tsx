@@ -11,7 +11,10 @@ export interface ModalProps {
 function AuthDialog({ isOpen, onClose }: ModalProps) {
   const navigate = useNavigate();
   const { emailField, passwordField, errors, isPending, errorMessage, onSubmit } = useLoginForm({
-    onSuccess: onClose,
+    onSuccess: () => {
+      onClose();
+      window.location.reload();
+    },
   });
 
   if (!isOpen) return null;

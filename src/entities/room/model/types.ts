@@ -40,7 +40,7 @@ export interface RoomDetailResponse {
   maxAge: number;
   place: string;
   lunchAt: string;
-  status: 'OPEN' | 'FULL' | 'CLOSE' | string;
+  status: 'OPEN' | 'FULL' | 'CLOSE' | 'COMPLETE' | string;
   description: string | null;
   currentMembersCount: number;
 }

@@ -11,6 +11,7 @@ interface UseKickRoomMemberActionParams {
   invalidateRoomCaches: (roomId: number) => Promise<unknown>;
   setActionMessage: (message: string) => void;
   setActionTone: (tone: 'success' | 'error') => void;
+  closeConfirm: () => void;
   getApiMessage: (error: unknown, fallbackMessage: string) => string;
 }
 
@@ -21,6 +22,7 @@ export const useKickRoomMemberAction = ({
   invalidateRoomCaches,
   setActionMessage,
   setActionTone,
+  closeConfirm,
   getApiMessage,
 }: UseKickRoomMemberActionParams) => {
   const [kickingMemberId, setKickingMemberId] = useState<number | null>(null);
@@ -46,6 +48,7 @@ export const useKickRoomMemberAction = ({
     try {
       setKickingMemberId(memberId);
       await kickMemberMutation.mutateAsync({ roomId: selectedRoomId, memberId });
+      closeConfirm();
       setActionMessage('멤버를 강퇴했어요.');
       setActionTone('success');
       await invalidateRoomCaches(selectedRoomId);

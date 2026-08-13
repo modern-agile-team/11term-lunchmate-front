@@ -1,3 +1,4 @@
+import RoomMemberAvatar from './RoomMemberAvatar';
 import type { RoomMember, RoomMembersQueryState } from './RoomDetailPanel.types';
 
 interface RoomMemberSectionProps {
@@ -5,7 +6,7 @@ interface RoomMemberSectionProps {
   roomMembers: RoomMember[];
   isHostUser: boolean;
   currentUserId: number | null;
-  onKickMember: (userId: number) => Promise<void>;
+  onRequestKick: (userId: number, nickname: string) => void;
 }
 
 const RoomMemberSection = ({
@@ -13,7 +14,7 @@ const RoomMemberSection = ({
   roomMembers,
   isHostUser,
   currentUserId,
-  onKickMember,
+  onRequestKick,
 }: RoomMemberSectionProps) => (
   <section className="mt-6 space-y-3">
     <div className="flex items-center justify-between">
@@ -37,19 +38,7 @@ const RoomMemberSection = ({
             className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 px-4 py-4"
           >
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100">
-                {member.profileImageUrl ? (
-                  <img
-                    src={member.profileImageUrl}
-                    alt={`${member.nickname} profile`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-lg font-semibold text-slate-500">
-                    {member.nickname.charAt(0)}
-                  </span>
-                )}
-              </div>
+              <RoomMemberAvatar nickname={member.nickname} profileImageUrl={member.profileImageUrl} />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold text-slate-800">{member.nickname}</span>
@@ -66,7 +55,7 @@ const RoomMemberSection = ({
             {isHostUser && currentUserId !== member.id ? (
               <button
                 type="button"
-                onClick={() => void onKickMember(member.id)}
+                onClick={() => onRequestKick(member.id, member.nickname)}
                 className="shrink-0 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
               >
                 강퇴

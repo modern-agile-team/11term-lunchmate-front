@@ -33,7 +33,12 @@ export interface RoomDetailPanelProps {
   currentUserId: number | null;
   isHostUser: boolean;
   detailDisplay: RoomDetailDisplay | null;
+  joinedRoomId: number | null;
+  isJoinPending: boolean;
+  onJoin: () => void;
   onEdit: () => void;
-  onDelete: () => Promise<void>;
-  onKickMember: (userId: number) => Promise<void>;
+  onRequestDelete: () => void;
+  onRequestKick: (userId: number, nickname: string) => void;
+  onRequestComplete: () => void;
+  onRequestLeave: () => void;
 }
