@@ -1,5 +1,8 @@
+import { KST_TIME_ZONE } from './formatKST';
+
 const formatDatePart = (date: Date) =>
   date.toLocaleDateString('ko-KR', {
+    timeZone: KST_TIME_ZONE,
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -7,9 +10,10 @@ const formatDatePart = (date: Date) =>
 
 const formatTimePart = (date: Date) =>
   date.toLocaleTimeString('ko-KR', {
+    timeZone: KST_TIME_ZONE,
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
+    hourCycle: 'h23',
   });
 
 const getRelativeTime = (date: Date) => {

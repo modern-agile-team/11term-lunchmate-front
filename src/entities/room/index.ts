@@ -18,6 +18,8 @@ export { getRooms } from './api/roomList';
 export { roomInfiniteListQueryOptions, roomListQueryOptions } from './api/roomListQueries';
 export { getRoomMembers } from './api/roomMembers';
 export { roomMembersQueryOptions } from './api/roomMembersQueries';
+export { getMyRoom } from './api/myRoom';
+export { myRoomQueryOptions } from './api/myRoomQueries';
 export { roomQueryKeys } from './api/roomQueryKeys';
 export { invalidateRoomCaches } from './model/roomCache';
 export type { MainRoom } from './model/mainRoom';

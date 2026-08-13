@@ -6,7 +6,9 @@ import { getSocialLoginUrl } from '@/entities/user';
 const LoginForm = () => {
   const navigate = useNavigate();
   const { emailField, passwordField, errors, isPending, errorMessage, onSubmit } = useLoginForm({
-    onSuccess: () => navigate('/profile'),
+    onSuccess: () => {
+      window.location.href = '/profile';
+    },
   });
 
   return (

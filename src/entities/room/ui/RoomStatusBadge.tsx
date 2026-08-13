@@ -1,6 +1,6 @@
 import { cn } from '@/shared/lib/classnames';
 
-export type RoomDetailStatus = 'OPEN' | 'FULL' | 'CLOSE';
+export type RoomDetailStatus = 'OPEN' | 'FULL' | 'CLOSE' | 'COMPLETE';
 
 const roomStatusStyleMap: Record<
   RoomDetailStatus,
@@ -17,6 +17,10 @@ const roomStatusStyleMap: Record<
   CLOSE: {
     badgeClassName: 'bg-slate-200 text-slate-700',
     badgeLabel: '종료',
+  },
+  COMPLETE: {
+    badgeClassName: 'bg-sky-100 text-sky-700',
+    badgeLabel: '완료',
   },
 };
 

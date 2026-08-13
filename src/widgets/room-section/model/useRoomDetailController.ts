@@ -1,3 +1,4 @@
+import { useCompleteRoomAction } from '@/features/room/complete';
 import { useDeleteRoomAction } from '@/features/room/delete';
 import { useJoinRoomAction } from '@/features/room/join';
 import { useKickRoomMemberAction } from '@/features/room/kick-member';
@@ -13,7 +14,7 @@ interface UseRoomDetailControllerParams {
   setActionMessage: (message: string) => void;
   setActionTone: (tone: 'success' | 'error') => void;
   setJoinedRoomId: (roomId: number | null) => void;
-  closeDeleteConfirm: () => void;
+  closeConfirm: () => void;
 }
 
 export const useRoomDetailController = ({
@@ -25,7 +26,7 @@ export const useRoomDetailController = ({
   setActionMessage,
   setActionTone,
   setJoinedRoomId,
-  closeDeleteConfirm,
+  closeConfirm,
 }: UseRoomDetailControllerParams) => {
   const sharedParams = {
     onRequireLogin,
@@ -42,17 +43,25 @@ export const useRoomDetailController = ({
   const leaveAction = useLeaveRoomAction({
     ...sharedParams,
     setJoinedRoomId,
+    closeConfirm,
   });
   const deleteAction = useDeleteRoomAction({
     selectedRoomId,
     isHost,
     setSelectedRoomId,
-    closeDeleteConfirm,
+    closeConfirm,
     ...sharedParams,
   });
   const kickAction = useKickRoomMemberAction({
     selectedRoomId,
     isHost,
+    closeConfirm,
+    ...sharedParams,
+  });
+  const completeAction = useCompleteRoomAction({
+    selectedRoomId,
+    isHost,
+    closeConfirm,
     ...sharedParams,
   });
 
@@ -61,5 +70,6 @@ export const useRoomDetailController = ({
     leaveAction,
     deleteAction,
     kickAction,
+    completeAction,
   };
 };

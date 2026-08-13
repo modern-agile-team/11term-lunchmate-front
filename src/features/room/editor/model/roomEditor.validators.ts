@@ -1,3 +1,4 @@
+import { nextKSTDateTimeISOString } from '@/shared/lib/date/formatKST';
 import type { RoomEditorFormValues } from './roomEditor.types';
 
 interface ParsedRoomEditorValues {
@@ -51,16 +52,7 @@ export const toFutureLunchAt = (timeValue: string) => {
     return null;
   }
 
-  const now = new Date();
-  const lunchAt = new Date(now);
-
-  lunchAt.setHours(hours, minutes, 0, 0);
-
-  if (lunchAt.getTime() <= now.getTime()) {
-    lunchAt.setDate(lunchAt.getDate() + 1);
-  }
-
-  return lunchAt.toISOString();
+  return nextKSTDateTimeISOString(hours, minutes);
 };
 
 export const validateRoomEditorValues = (

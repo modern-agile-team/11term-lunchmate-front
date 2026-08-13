@@ -3,6 +3,7 @@ import { LogOut, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { myUserQueryOptions } from '@/entities/user';
 import { useAccountActions, useProfileImageEditor } from '@/features/profile/update';
+import { KST_TIME_ZONE } from '@/shared/lib/date/formatKST';
 import InfoRow from '@/shared/ui/InfoRow';
 import ProfileEditorForm from './ProfileEditorForm';
 import ProfileEditorHero from './ProfileEditorHero';
@@ -67,7 +68,7 @@ const ProfileEditorSection = () => {
       <div className="mt-2">
         <InfoRow label="가입일" withBorder={false}>
           <p className="text-sm text-slate-700 sm:text-base">
-            {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+            {new Date(user.createdAt).toLocaleDateString('ko-KR', { timeZone: KST_TIME_ZONE })}
           </p>
         </InfoRow>
       </div>

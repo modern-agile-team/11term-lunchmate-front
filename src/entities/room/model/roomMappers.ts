@@ -1,3 +1,4 @@
+import { formatKSTTime } from '@/shared/lib/date/formatKST';
 import type { RoomDetailResponse, RoomListFilters, RoomListItemResponse } from './types';
 import type { MainRoom } from './mainRoom';
 
@@ -11,15 +12,7 @@ export const toMainRoomType = (
   return 'MIXED';
 };
 
-export const formatLunchAt = (lunchAt: string): string => {
-  const timeMatch = lunchAt.match(/(?:T|\s)?(\d{2}:\d{2})/);
-
-  if (timeMatch) {
-    return timeMatch[1];
-  }
-
-  return lunchAt;
-};
+export const formatLunchAt = (lunchAt: string): string => formatKSTTime(lunchAt);
 
 export const toMainRoom = (room: RoomListItemResponse): MainRoom => ({
   id: room.id,
@@ -45,8 +38,8 @@ export const toDetailRoomType = (
 
 export const toDetailRoomStatus = (
   status: RoomDetailResponse['status'],
-): 'OPEN' | 'FULL' | 'CLOSE' => {
-  if (status === 'OPEN' || status === 'FULL' || status === 'CLOSE') {
+): 'OPEN' | 'FULL' | 'CLOSE' | 'COMPLETE' => {
+  if (status === 'OPEN' || status === 'FULL' || status === 'CLOSE' || status === 'COMPLETE') {
     return status;
   }
 

@@ -9,6 +9,7 @@ interface UseLeaveRoomActionParams {
   setActionMessage: (message: string) => void;
   setActionTone: (tone: 'success' | 'error') => void;
   setJoinedRoomId: (roomId: number | null) => void;
+  closeConfirm: () => void;
   getApiMessage: (error: unknown, fallbackMessage: string) => string;
 }
 
@@ -18,6 +19,7 @@ export const useLeaveRoomAction = ({
   setActionMessage,
   setActionTone,
   setJoinedRoomId,
+  closeConfirm,
   getApiMessage,
 }: UseLeaveRoomActionParams) => {
   const leaveRoomMutation = useMutation({ mutationFn: (roomId: number) => leaveRoom(roomId) });
@@ -33,6 +35,7 @@ export const useLeaveRoomAction = ({
     try {
       await leaveRoomMutation.mutateAsync(roomId);
       setJoinedRoomId(null);
+      closeConfirm();
       setActionMessage('방에서 나갔어요.');
       setActionTone('success');
       await invalidateRoomCaches(roomId);

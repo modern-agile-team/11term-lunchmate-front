@@ -1,64 +1,63 @@
 import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { isAuthenticated } from '@/shared/lib/auth/session';
-import { deleteRoom } from '../api';
+import { completeRoom } from '../api';
 
-interface UseDeleteRoomActionParams {
+interface UseCompleteRoomActionParams {
   selectedRoomId: number | null;
   isHost: boolean;
   onRequireLogin: () => void;
   invalidateRoomCaches: (roomId: number) => Promise<unknown>;
-  setSelectedRoomId: (roomId: number | null) => void;
   setActionMessage: (message: string) => void;
   setActionTone: (tone: 'success' | 'error') => void;
   closeConfirm: () => void;
   getApiMessage: (error: unknown, fallbackMessage: string) => string;
 }
 
-export const useDeleteRoomAction = ({
+export const useCompleteRoomAction = ({
   selectedRoomId,
   isHost,
   onRequireLogin,
   invalidateRoomCaches,
-  setSelectedRoomId,
   setActionMessage,
   setActionTone,
   closeConfirm,
   getApiMessage,
-}: UseDeleteRoomActionParams) => {
-  const deleteRoomMutation = useMutation({ mutationFn: (roomId: number) => deleteRoom(roomId) });
+}: UseCompleteRoomActionParams) => {
+  const completeRoomMutation = useMutation({
+    mutationFn: (roomId: number) => completeRoom(roomId),
+  });
 
-  const handleDeleteRoom = async () => {
+  const handleCompleteRoom = async () => {
     if (selectedRoomId === null) return;
     if (!isAuthenticated()) {
-      setActionMessage('로그인 후 방을 삭제할 수 있어요.');
+      setActionMessage('로그인 후 방을 완료 처리할 수 있어요.');
       setActionTone('error');
       onRequireLogin();
       return;
     }
     if (!isHost) {
-      setActionMessage('방장만 방을 삭제할 수 있어요.');
+      setActionMessage('방장만 방을 완료 처리할 수 있어요.');
       setActionTone('error');
       return;
     }
 
     try {
-      await deleteRoomMutation.mutateAsync(selectedRoomId);
+      await completeRoomMutation.mutateAsync(selectedRoomId);
       closeConfirm();
-      setSelectedRoomId(null);
-      setActionMessage('방을 삭제했어요.');
+      setActionMessage('방을 완료 처리했어요.');
       setActionTone('success');
       await invalidateRoomCaches(selectedRoomId);
     } catch (error) {
       setActionTone('error');
       if (isAxiosError(error) && error.response?.status === 401) {
-        setActionMessage('로그인 후 방을 삭제할 수 있어요.');
+        setActionMessage('로그인 후 방을 완료 처리할 수 있어요.');
         onRequireLogin();
         return;
       }
-      setActionMessage(getApiMessage(error, '방 삭제에 실패했어요.'));
+      setActionMessage(getApiMessage(error, '방 완료 처리에 실패했어요.'));
     }
   };
 
-  return { handleDeleteRoom, isDeletePending: deleteRoomMutation.isPending };
+  return { handleCompleteRoom, isCompletePending: completeRoomMutation.isPending };
 };

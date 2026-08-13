@@ -1196,6 +1196,70 @@ export const handlers = [
     return HttpResponse.json(nextRoom, { status: 201 });
   }),
 
+  http.get('/api/v1/rooms/me', async () => {
+    await wait();
+    const myRoomId = Object.entries(membersByRoomId).find(([, members]) =>
+      members.some((member) => member.id === currentUserId),
+    )?.[0];
+    const myRoom = myRoomId ? getRoom(Number(myRoomId)) : undefined;
+
+    return myRoom
+      ? HttpResponse.json(myRoom)
+      : HttpResponse.json({ message: '참여중인 방이 없어요.' }, { status: 400 });
+  }),
+
+  http.post('/api/v1/rooms/quick-join', async () => {
+    await wait();
+    const joinableRoom = rooms.find(
+      (room) =>
+        room.status === 'OPEN' &&
+        room.currentMembersCount < room.maxMembersCount &&
+        !(membersByRoomId[room.id] ?? []).some((member) => member.id === currentUserId),
+    );
+
+    if (!joinableRoom) {
+      return HttpResponse.json({ message: '조건에 맞는 방이 없어요.' }, { status: 404 });
+    }
+
+    membersByRoomId[joinableRoom.id] = [
+      ...(membersByRoomId[joinableRoom.id] ?? []),
+      toRoomMember(currentUserId),
+    ];
+    joinableRoom.currentMembersCount = Math.min(
+      joinableRoom.maxMembersCount,
+      joinableRoom.currentMembersCount + 1,
+    );
+    joinableRoom.status =
+      joinableRoom.currentMembersCount >= joinableRoom.maxMembersCount ? 'FULL' : 'OPEN';
+
+    return HttpResponse.json(
+      {
+        roomId: joinableRoom.id,
+        userId: currentUserId,
+        createdAt: new Date().toISOString(),
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.patch('/api/v1/rooms/:roomId/complete', async ({ params }) => {
+    await wait();
+    const roomId = Number(params.roomId);
+    const room = getRoom(roomId);
+
+    if (!room) {
+      return HttpResponse.json({ message: '방을 찾을 수 없어요.' }, { status: 404 });
+    }
+
+    if (room.hostUserId !== currentUserId) {
+      return forbiddenResponse();
+    }
+
+    room.status = 'COMPLETE';
+
+    return HttpResponse.json(room);
+  }),
+
   http.get('/api/v1/rooms/:roomId/members', async ({ params }) => {
     await wait();
     const roomId = Number(params.roomId);

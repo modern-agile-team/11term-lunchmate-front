@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { MainRoom } from '@/entities/room';
 import { invalidateRoomCaches } from '@/entities/room';
+import { useQuickJoinAction } from '@/features/room/quick-join';
+import { getApiMessage } from '@/shared/lib/api/getApiMessage';
 import { deriveRoomCardActionState } from './deriveRoomCardActionState';
 import { useRoomActionFeedback } from './useRoomActionFeedback';
 import { useRoomDetailController } from './useRoomDetailController';
@@ -30,7 +32,7 @@ export const useRoomActions = ({
     invalidateRoomCaches: invalidateCaches,
   });
   const participationState = useRoomParticipationState({ initialJoinedRoomId });
-  const { joinAction, leaveAction, deleteAction, kickAction } =
+  const { joinAction, leaveAction, deleteAction, kickAction, completeAction } =
     useRoomDetailController({
       selectedRoomId,
       isHost,
@@ -40,8 +42,17 @@ export const useRoomActions = ({
       setActionMessage: actionFeedback.setActionMessage,
       setActionTone: actionFeedback.setActionTone,
       setJoinedRoomId: participationState.setJoinedRoomId,
-      closeDeleteConfirm: () => actionFeedback.setIsDeleteConfirmOpen(false),
+      closeConfirm: actionFeedback.closeConfirmTarget,
     });
+  const quickJoinAction = useQuickJoinAction({
+    onRequireLogin,
+    invalidateRoomCaches: invalidateCaches,
+    setActionMessage: actionFeedback.setActionMessage,
+    setActionTone: actionFeedback.setActionTone,
+    setSelectedRoomId,
+    setJoinedRoomId: participationState.setJoinedRoomId,
+    getApiMessage,
+  });
 
   return {
     ...actionFeedback,
@@ -49,6 +60,8 @@ export const useRoomActions = ({
     ...leaveAction,
     ...deleteAction,
     ...kickAction,
+    ...completeAction,
+    ...quickJoinAction,
     ...participationState,
     ...editDialog,
     roomActionMessage: actionFeedback.actionMessage,

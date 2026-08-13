@@ -6,4 +6,5 @@ export const invalidateRoomCaches = (queryClient: QueryClient, roomId: number) =
     queryClient.invalidateQueries({ queryKey: roomQueryKeys.lists() }),
     queryClient.invalidateQueries({ queryKey: roomQueryKeys.detail(roomId) }),
     queryClient.invalidateQueries({ queryKey: roomQueryKeys.members(roomId) }),
+    queryClient.invalidateQueries({ queryKey: roomQueryKeys.me() }),
   ]);

@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
+import { myRoomQueryOptions } from '@/entities/room';
+import { isAuthenticated } from '@/shared/lib/auth/session';
 import { useInfiniteRooms } from './useInfiniteRooms';
 import { useRoomEditTarget } from './useRoomEditTarget';
 import { useRoomMembers } from './useRoomMembers';
@@ -19,6 +22,10 @@ export const useRoomSectionData = () => {
     selectedRoomId: roomSelectionState.selectedRoomId,
     selectedRoomDetail: selectedRoomDetailState.selectedRoomDetail,
   });
+  const myRoomQuery = useQuery({
+    ...myRoomQueryOptions(),
+    enabled: isAuthenticated(),
+  });
 
   return {
     infiniteRooms,
@@ -26,5 +33,6 @@ export const useRoomSectionData = () => {
     selectedRoomDetailState,
     roomEditTarget,
     roomMembers,
+    myRoomQuery,
   };
 };

@@ -10,4 +10,5 @@ export const roomQueryKeys = {
   detail: (roomId: number) => [...roomQueryKeys.details(), roomId] as const,
   membersAll: () => [...roomQueryKeys.all(), 'members'] as const,
   members: (roomId: number) => [...roomQueryKeys.membersAll(), roomId] as const,
+  me: () => [...roomQueryKeys.all(), 'me'] as const,
 };
