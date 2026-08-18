@@ -8,4 +8,5 @@ export interface MainRoom {
   capacity: number;
   place: string;
   lunchAt: string;
+  status: 'OPEN' | 'FULL' | 'CLOSE' | 'COMPLETE';
 }

@@ -22,6 +22,10 @@ const RoomDetailPanel = ({
   onRequestComplete,
   onRequestLeave,
 }: RoomDetailPanelProps) => {
+  const isMemberOfThisRoom = roomMembers.some((member) => member.id === currentUserId);
+  const isRoomActive =
+    detailDisplay?.detailStatus === 'OPEN' || detailDisplay?.detailStatus === 'FULL';
+
   return (
     <div>
       {roomDetailQuery.isLoading ? <RoomDetailLoading /> : null}
@@ -37,12 +41,25 @@ const RoomDetailPanel = ({
             roomMembersQuery={roomMembersQuery}
             roomMembers={roomMembers}
             isHostUser={isHostUser}
+            isRoomActive={isRoomActive}
             currentUserId={currentUserId}
             onRequestKick={onRequestKick}
           />
 
           <div className="mt-8 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-            {joinedRoomId !== null ? (
+            {!isRoomActive ? (
+              <button
+                type="button"
+                disabled
+                className={`inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm font-semibold ${
+                  detailDisplay.detailStatus === 'COMPLETE'
+                    ? 'bg-sky-100 text-sky-700'
+                    : 'bg-slate-200 text-slate-500'
+                }`}
+              >
+                {detailDisplay.detailStatus === 'COMPLETE' ? '완료된 방이에요' : '종료된 방이에요'}
+              </button>
+            ) : isMemberOfThisRoom ? (
               <button
                 type="button"
                 onClick={onRequestLeave}
@@ -51,7 +68,7 @@ const RoomDetailPanel = ({
                 <LogOut className="h-4 w-4" />
                 나가기
               </button>
-            ) : (
+            ) : joinedRoomId === null ? (
               <button
                 type="button"
                 onClick={onJoin}
@@ -61,20 +78,26 @@ const RoomDetailPanel = ({
                 <LogIn className="h-4 w-4" />
                 {isJoinPending ? '참여 중...' : '참여하기'}
               </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-200 px-5 text-sm font-semibold text-slate-500"
+              >
+                다른 방에 참여 중
+              </button>
             )}
           </div>
-          {isHostUser ? (
+          {isHostUser && isRoomActive ? (
             <div className="mt-8 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
-              {detailDisplay.detailStatus === 'OPEN' || detailDisplay.detailStatus === 'FULL' ? (
-                <button
-                  type="button"
-                  onClick={onRequestComplete}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-sky-200 px-5 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  완료 처리
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={onRequestComplete}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-sky-200 px-5 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                완료 처리
+              </button>
               <button
                 type="button"
                 onClick={onEdit}

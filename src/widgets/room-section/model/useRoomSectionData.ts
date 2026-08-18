@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { myRoomQueryOptions } from '@/entities/room';
-import { isAuthenticated } from '@/shared/lib/auth/session';
+import { authSessionSelectors, useAuthSessionStore } from '@/shared/lib/auth/session';
 import { useInfiniteRooms } from './useInfiniteRooms';
 import { useRoomEditTarget } from './useRoomEditTarget';
 import { useRoomMembers } from './useRoomMembers';
@@ -22,9 +22,10 @@ export const useRoomSectionData = () => {
     selectedRoomId: roomSelectionState.selectedRoomId,
     selectedRoomDetail: selectedRoomDetailState.selectedRoomDetail,
   });
+  const isAuthed = useAuthSessionStore(authSessionSelectors.isAuthenticated);
   const myRoomQuery = useQuery({
     ...myRoomQueryOptions(),
-    enabled: isAuthenticated(),
+    enabled: isAuthed,
   });
 
   return {

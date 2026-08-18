@@ -5,6 +5,7 @@ interface RoomCardActionButtonProps {
   roomId: number;
   label: string;
   isPending?: boolean;
+  isInactive?: boolean;
   disabled?: boolean;
   buttonClassName: string;
   onActionClick: (roomId: number) => void;
@@ -14,6 +15,7 @@ const RoomCardActionButton = ({
   roomId,
   label,
   isPending = false,
+  isInactive = false,
   disabled = false,
   buttonClassName,
   onActionClick,
@@ -30,7 +32,8 @@ const RoomCardActionButton = ({
       disabled={disabled || isPending}
       className={cn(
         'mt-4 w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition',
-        disabled || isPending ? 'cursor-not-allowed opacity-70' : '',
+        disabled || isPending ? 'cursor-not-allowed' : '',
+        disabled && !isInactive ? 'opacity-70' : '',
         buttonClassName,
       )}
     >

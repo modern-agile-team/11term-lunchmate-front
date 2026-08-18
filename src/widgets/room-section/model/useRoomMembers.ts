@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { roomMembersQueryOptions, type RoomDetailResponse } from '@/entities/room';
 import { myUserQueryOptions } from '@/entities/user';
-import { isAuthenticated } from '@/shared/lib/auth/session';
+import { authSessionSelectors, useAuthSessionStore } from '@/shared/lib/auth/session';
 
 interface UseRoomMembersParams {
   selectedRoomId: number | null;
@@ -12,7 +12,7 @@ export const useRoomMembers = ({
   selectedRoomId,
   selectedRoomDetail,
 }: UseRoomMembersParams) => {
-  const isLoggedIn = isAuthenticated();
+  const isLoggedIn = useAuthSessionStore(authSessionSelectors.isAuthenticated);
 
   const currentUserQuery = useQuery({
     ...myUserQueryOptions(),

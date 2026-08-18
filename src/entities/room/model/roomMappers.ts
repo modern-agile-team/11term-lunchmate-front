@@ -24,6 +24,7 @@ export const toMainRoom = (room: RoomListItemResponse): MainRoom => ({
   capacity: room.maxMembersCount,
   place: room.place,
   lunchAt: formatLunchAt(room.lunchAt),
+  status: toDetailRoomStatus(room.status),
 });
 
 export const toDetailRoomType = (

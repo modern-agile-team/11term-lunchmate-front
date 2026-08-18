@@ -11,6 +11,7 @@ interface RoomCardProps {
   onClick: () => void;
   onActionClick: (roomId: number) => void;
   isActionPending?: boolean;
+  isInactive?: boolean;
   actionDisabled?: boolean;
   actionLabel?: string;
 }
@@ -21,11 +22,17 @@ const RoomCard = ({
   onClick,
   onActionClick,
   isActionPending = false,
+  isInactive = false,
   actionDisabled = false,
   actionLabel = '참여하기',
 }: RoomCardProps) => {
   const { badgeClassName, badgeLabel, buttonClassName, cardClassName, progressClassName } =
     roomTypeStyleMap[room.roomType];
+  const isCompleted = room.status === 'COMPLETE';
+  const inactiveButtonClassName = isCompleted
+    ? 'bg-sky-100 text-sky-700'
+    : 'bg-slate-200 text-slate-500';
+  const inactiveProgressClassName = isCompleted ? 'bg-sky-300' : 'bg-slate-300';
 
   return (
     <article
@@ -43,13 +50,17 @@ const RoomCard = ({
             badgeClassName={badgeClassName}
             badgeLabel={badgeLabel}
           />
-          <RoomCardCapacity room={room} progressClassName={progressClassName} />
+          <RoomCardCapacity
+            room={room}
+            progressClassName={isInactive ? inactiveProgressClassName : progressClassName}
+          />
           <RoomCardActionButton
             roomId={room.id}
             label={actionLabel}
             isPending={isActionPending}
+            isInactive={isInactive}
             disabled={actionDisabled}
-            buttonClassName={buttonClassName}
+            buttonClassName={isInactive ? inactiveButtonClassName : buttonClassName}
             onActionClick={onActionClick}
           />
         </div>

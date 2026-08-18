@@ -5,6 +5,7 @@ interface RoomMemberSectionProps {
   roomMembersQuery: RoomMembersQueryState;
   roomMembers: RoomMember[];
   isHostUser: boolean;
+  isRoomActive: boolean;
   currentUserId: number | null;
   onRequestKick: (userId: number, nickname: string) => void;
 }
@@ -13,6 +14,7 @@ const RoomMemberSection = ({
   roomMembersQuery,
   roomMembers,
   isHostUser,
+  isRoomActive,
   currentUserId,
   onRequestKick,
 }: RoomMemberSectionProps) => (
@@ -52,7 +54,7 @@ const RoomMemberSection = ({
                 <p className="mt-1 truncate text-sm text-slate-500">{member.schoolInfo}</p>
               </div>
             </div>
-            {isHostUser && currentUserId !== member.id ? (
+            {isHostUser && isRoomActive && currentUserId !== member.id ? (
               <button
                 type="button"
                 onClick={() => onRequestKick(member.id, member.nickname)}
