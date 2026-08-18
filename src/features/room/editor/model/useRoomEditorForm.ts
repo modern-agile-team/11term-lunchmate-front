@@ -1,6 +1,6 @@
 import { useForm } from '@tanstack/react-form';
 import {
-  INITIAL_ROOM_EDITOR_FORM_VALUES,
+  getInitialRoomEditorFormValues,
   type RoomEditorModalProps,
 } from './roomEditor.types';
 import { useRoomEditorReset } from './useRoomEditorReset';
@@ -9,7 +9,7 @@ import { useRoomEditorSubmit } from './useRoomEditorSubmit';
 export const useRoomEditorForm = (props: RoomEditorModalProps) => {
   const submit = useRoomEditorSubmit(props);
   const roomEditorForm = useForm({
-    defaultValues: INITIAL_ROOM_EDITOR_FORM_VALUES,
+    defaultValues: getInitialRoomEditorFormValues(),
     onSubmit: async ({ value }) => {
       await submit.submitRoom(value);
     },

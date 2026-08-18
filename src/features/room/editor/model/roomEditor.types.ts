@@ -1,3 +1,4 @@
+import { getTodayKSTDateString } from '@/shared/lib/date/formatKST';
 import type { RoomDetailResponse } from '@/entities/room';
 
 export interface RoomEditorFormValues {
@@ -6,7 +7,8 @@ export interface RoomEditorFormValues {
   roomType: 'MIXED' | 'FEMALE' | 'MALE';
   capacity: string;
   place: string;
-  lunchAt: string;
+  lunchDate: string;
+  lunchTime: string;
   minAge: string;
   maxAge: string;
 }
@@ -22,15 +24,16 @@ export interface RoomEditorModalProps {
   onRequireLogin?: () => void;
 }
 
-export const INITIAL_ROOM_EDITOR_FORM_VALUES: RoomEditorFormValues = {
+export const getInitialRoomEditorFormValues = (): RoomEditorFormValues => ({
   title: '',
   description: '',
   roomType: 'MIXED',
   capacity: '4',
   place: '',
-  lunchAt: '12:00',
+  lunchDate: getTodayKSTDateString(),
+  lunchTime: '12:00',
   minAge: '20',
   maxAge: '24',
-};
+});
 
 export type RoomEditorSource = RoomDetailResponse;

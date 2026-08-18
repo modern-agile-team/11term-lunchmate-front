@@ -1,9 +1,12 @@
 import type { CreateRoomRequest, UpdateRoomRequest } from '@/entities/room';
 import type { RoomEditorFormValues } from './roomEditor.types';
-import { validateRoomEditorValues } from './roomEditor.validators';
+import { type RoomEditorCurrentUser, validateRoomEditorValues } from './roomEditor.validators';
 
-export const getRoomEditorPayload = (value: RoomEditorFormValues) => {
-  const validationResult = validateRoomEditorValues(value);
+export const getRoomEditorPayload = (
+  value: RoomEditorFormValues,
+  currentUser: RoomEditorCurrentUser,
+) => {
+  const validationResult = validateRoomEditorValues(value, currentUser);
 
   if (validationResult.error || !validationResult.parsed) {
     return validationResult;

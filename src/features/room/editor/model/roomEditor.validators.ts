@@ -1,5 +1,10 @@
-import { nextKSTDateTimeISOString } from '@/shared/lib/date/formatKST';
+import { combineKSTDateTimeISOString } from '@/shared/lib/date/formatKST';
 import type { RoomEditorFormValues } from './roomEditor.types';
+
+export interface RoomEditorCurrentUser {
+  gender: 'MALE' | 'FEMALE';
+  age: number;
+}
 
 interface ParsedRoomEditorValues {
   title: string;
@@ -32,38 +37,26 @@ export const parseRequiredNumber = (value: string) => {
   return parsedValue;
 };
 
-export const toFutureLunchAt = (timeValue: string) => {
-  const trimmedValue = timeValue.trim();
+export const toValidLunchAt = (dateValue: string, timeValue: string) => {
+  const combined = combineKSTDateTimeISOString(dateValue, timeValue);
 
-  if (!/^\d{2}:\d{2}$/.test(trimmedValue)) {
+  if (!combined || new Date(combined).getTime() <= Date.now()) {
     return null;
   }
 
-  const [hours, minutes] = trimmedValue.split(':').map(Number);
-
-  if (
-    !Number.isInteger(hours) ||
-    !Number.isInteger(minutes) ||
-    hours < 0 ||
-    hours > 23 ||
-    minutes < 0 ||
-    minutes > 59
-  ) {
-    return null;
-  }
-
-  return nextKSTDateTimeISOString(hours, minutes);
+  return combined;
 };
 
 export const validateRoomEditorValues = (
   value: RoomEditorFormValues,
+  currentUser: RoomEditorCurrentUser,
 ): RoomEditorValidationResult => {
   const title = value.title.trim();
   const place = value.place.trim();
   const maxMembersCount = parseRequiredNumber(value.capacity);
   const minAge = parseRequiredNumber(value.minAge);
   const maxAge = parseRequiredNumber(value.maxAge);
-  const lunchAt = toFutureLunchAt(value.lunchAt);
+  const lunchAt = toValidLunchAt(value.lunchDate, value.lunchTime);
 
   if (!title) {
     return { error: '방 제목을 입력해 주세요.' };
@@ -85,8 +78,16 @@ export const validateRoomEditorValues = (
     return { error: '최소 나이는 최대 나이보다 클 수 없어요.' };
   }
 
+  if (value.roomType !== 'MIXED' && value.roomType !== currentUser.gender) {
+    return { error: '본인 성별과 맞지 않는 방 조건은 설정할 수 없어요.' };
+  }
+
+  if (currentUser.age < minAge || currentUser.age > maxAge) {
+    return { error: '본인 나이가 설정한 나이대에 포함되어야 해요.' };
+  }
+
   if (!lunchAt) {
-    return { error: '모임 시간을 올바르게 입력해 주세요.' };
+    return { error: '모임 날짜와 시간을 올바르게 입력해 주세요.' };
   }
 
   return {
