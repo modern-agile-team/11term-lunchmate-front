@@ -9,40 +9,12 @@ const kstTimeFormatter = new Intl.DateTimeFormat('ko-KR', {
   hourCycle: 'h23',
 });
 
-const kstPartsFormatter = new Intl.DateTimeFormat('en-CA', {
+const kstDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: KST_TIME_ZONE,
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
 });
-
-interface KSTDateParts {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-}
-
-const getKSTParts = (date: Date): KSTDateParts => {
-  const lookup = Object.fromEntries(
-    kstPartsFormatter.formatToParts(date).map((part) => [part.type, part.value]),
-  );
-
-  return {
-    year: Number(lookup.year),
-    month: Number(lookup.month),
-    day: Number(lookup.day),
-    hour: Number(lookup.hour),
-    minute: Number(lookup.minute),
-  };
-};
-
-const kstPartsToUTCDate = ({ year, month, day, hour, minute }: KSTDateParts): Date =>
-  new Date(Date.UTC(year, month - 1, day, hour - KST_OFFSET_HOURS, minute, 0, 0));
 
 export const formatKSTTime = (isoString: string): string => {
   const date = new Date(isoString);
@@ -54,25 +26,54 @@ export const formatKSTTime = (isoString: string): string => {
   return kstTimeFormatter.format(date);
 };
 
-/**
- * Interprets `hours:minutes` as a KST wall-clock time and returns the ISO
- * string for its next occurrence (today if still ahead of now, otherwise
- * tomorrow) — independent of the browser's own timezone.
- */
-export const nextKSTDateTimeISOString = (hours: number, minutes: number): string => {
-  const now = new Date();
-  const nowKSTParts = getKSTParts(now);
+/** Returns the KST calendar date of an ISO instant as "YYYY-MM-DD". */
+export const formatKSTDate = (isoString: string): string => {
+  const date = new Date(isoString);
 
-  const todayTarget = kstPartsToUTCDate({ ...nowKSTParts, hour: hours, minute: minutes });
-
-  if (todayTarget.getTime() > now.getTime()) {
-    return todayTarget.toISOString();
+  if (Number.isNaN(date.getTime())) {
+    return isoString;
   }
 
-  return kstPartsToUTCDate({
-    ...nowKSTParts,
-    day: nowKSTParts.day + 1,
-    hour: hours,
-    minute: minutes,
-  }).toISOString();
+  return kstDateFormatter.format(date);
+};
+
+/** Today's KST calendar date as "YYYY-MM-DD" — for default form values. */
+export const getTodayKSTDateString = (): string => kstDateFormatter.format(new Date());
+
+/**
+ * Combines a "YYYY-MM-DD" date and "HH:MM" time — both interpreted as KST
+ * wall-clock values — into the equivalent ISO instant, independent of the
+ * browser's own timezone. Returns null when either input is malformed.
+ */
+export const combineKSTDateTimeISOString = (
+  dateString: string,
+  timeString: string,
+): string | null => {
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString.trim());
+  const timeMatch = /^(\d{2}):(\d{2})$/.exec(timeString.trim());
+
+  if (!dateMatch || !timeMatch) {
+    return null;
+  }
+
+  const [, year, month, day] = dateMatch;
+  const [, hour, minute] = timeMatch;
+
+  const date = new Date(
+    Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour) - KST_OFFSET_HOURS,
+      Number(minute),
+      0,
+      0,
+    ),
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
 };
