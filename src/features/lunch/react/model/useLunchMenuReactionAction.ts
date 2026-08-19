@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { useState } from 'react';
-import { patchLunchMenuReaction, type LunchReactionType, type MainLunchMenu } from '@/entities/lunch-menu';
+import {
+  lunchMenuQueryKeys,
+  patchLunchMenuReaction,
+  type LunchReactionType,
+  type MainLunchMenu,
+} from '@/entities/lunch-menu';
 import { getApiMessage } from '@/shared/lib/api/getApiMessage';
 import { cancelLunchMenuReaction, dislikeLunchMenu, likeLunchMenu } from '../api';
 
@@ -32,6 +37,8 @@ export const useLunchMenuReactionAction = ({ onRequireLogin }: UseLunchMenuReact
         likeCount: result.likeCount,
         dislikeCount: result.dislikeCount,
       });
+
+      await queryClient.invalidateQueries({ queryKey: lunchMenuQueryKeys.rankings('LIKE') });
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 401) {
         setReactionErrorMessage('로그인 후 반응을 남길 수 있어요.');
