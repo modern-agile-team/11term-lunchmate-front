@@ -31,8 +31,9 @@ export const useDeleteLunchMenuAction = ({
     try {
       await deleteLunchMenuMutation.mutateAsync(targetMenu.id);
 
-      queryClient.setQueryData<MainLunchMenu[]>(lunchMenuQueryKeys.lists(), (currentMenus) =>
-        (currentMenus ?? []).filter((menu) => menu.id !== targetMenu.id),
+      queryClient.setQueriesData<MainLunchMenu[]>(
+        { queryKey: lunchMenuQueryKeys.all() },
+        (currentMenus) => currentMenus?.filter((menu) => menu.id !== targetMenu.id),
       );
 
       if (selectedLunchMenuId === targetMenu.id) {
@@ -41,7 +42,7 @@ export const useDeleteLunchMenuAction = ({
 
       setDeleteErrorMessage('');
       closeDeleteConfirm();
-      await queryClient.invalidateQueries({ queryKey: lunchMenuQueryKeys.lists() });
+      await queryClient.invalidateQueries({ queryKey: lunchMenuQueryKeys.all() });
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 401) {
         setDeleteErrorMessage('로그인 후 이용할 수 있어요.');

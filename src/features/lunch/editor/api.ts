@@ -4,7 +4,7 @@ import type { LunchMenuEditorPayload, LunchMenuEditorResult } from './model/lunc
 export async function createLunchMenu(
   payload: LunchMenuEditorPayload,
 ): Promise<LunchMenuEditorResult> {
-  const response = await client.post<LunchMenuEditorResult>('/api/v1/lunch-menus', payload);
+  const response = await client.post<LunchMenuEditorResult>('/api/v1/meal-menus', payload);
 
   return response.data;
 }
@@ -14,7 +14,7 @@ export async function updateLunchMenu(
   payload: LunchMenuEditorPayload,
 ): Promise<LunchMenuEditorResult> {
   const response = await client.patch<LunchMenuEditorResult>(
-    `/api/v1/lunch-menus/${menuId}`,
+    `/api/v1/meal-menus/${menuId}`,
     payload,
   );
 

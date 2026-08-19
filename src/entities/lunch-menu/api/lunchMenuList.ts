@@ -1,8 +1,12 @@
 import client from '@/shared/api/client';
 import type { MainLunchMenu } from '../model/types';
 
-export async function getLunchMenus(): Promise<MainLunchMenu[]> {
-  const response = await client.get<MainLunchMenu[]>('/api/v1/lunch-menus');
+interface GetMealMenusResponse {
+  items: MainLunchMenu[];
+}
 
-  return response.data;
+export async function getLunchMenus(): Promise<MainLunchMenu[]> {
+  const response = await client.get<GetMealMenusResponse>('/api/v1/meal-menus');
+
+  return response.data.items;
 }
