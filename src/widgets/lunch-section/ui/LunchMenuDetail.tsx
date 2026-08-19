@@ -7,28 +7,24 @@ interface LunchMenuDetailProps {
   menu: MainLunchMenu;
   onLike: (menuId: number) => void;
   onDislike: (menuId: number) => void;
+  isReactionPending?: boolean;
 }
 
-const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
-  <article className="rounded-[32px] border border-emerald-100 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-7">
+const LunchMenuDetail = ({ menu, onLike, onDislike, isReactionPending }: LunchMenuDetailProps) => (
+  <div className="mt-6">
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <div className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
-          {menu.schoolInfo} · {lunchMealTypeLabelMap[menu.mealType]}
-        </div>
-        <h3 className="mt-4 text-[26px] font-bold tracking-[-0.03em] text-slate-900">
-          {menu.menuName}
-        </h3>
+      <div className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+        {menu.schoolInfo} · {lunchMealTypeLabelMap[menu.mealType]}
       </div>
 
       <div className="rounded-[24px] bg-emerald-50 px-5 py-4">
         <div className="text-xs font-semibold text-emerald-600">메뉴 정보</div>
         <div className="mt-2 text-xl font-bold text-slate-900">
-          {KRW_NUMBER_FORMAT.format(menu.price)}원
+          {menu.price !== null ? `${KRW_NUMBER_FORMAT.format(menu.price)}원` : '가격 미정'}
         </div>
         <div className="mt-2 flex items-center gap-1 text-sm text-slate-500">
           <Flame className="h-4 w-4 text-orange-400" />
-          {menu.calorie}kcal
+          {menu.calorie !== null ? `${menu.calorie}kcal` : '칼로리 미정'}
         </div>
       </div>
     </div>
@@ -53,8 +49,11 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
       <button
         type="button"
         onClick={() => onLike(menu.id)}
-        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.22)] transition ${
-          menu.likedByMe ? 'bg-indigo-700 hover:bg-indigo-800' : 'bg-indigo-500 hover:bg-indigo-600'
+        disabled={isReactionPending}
+        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.22)] transition disabled:cursor-not-allowed disabled:opacity-60 ${
+          menu.myReaction === 'LIKE'
+            ? 'bg-indigo-700 hover:bg-indigo-800'
+            : 'bg-indigo-500 hover:bg-indigo-600'
         }`}
       >
         <ThumbsUp className="h-4 w-4" />
@@ -63,8 +62,9 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
       <button
         type="button"
         onClick={() => onDislike(menu.id)}
-        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-          menu.dislikedByMe
+        disabled={isReactionPending}
+        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+          menu.myReaction === 'DISLIKE'
             ? 'bg-rose-600 text-white hover:bg-rose-700'
             : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
         }`}
@@ -73,7 +73,7 @@ const LunchMenuDetail = ({ menu, onLike, onDislike }: LunchMenuDetailProps) => (
         싫어요 {menu.dislikeCount}
       </button>
     </div>
-  </article>
+  </div>
 );
 
 export default LunchMenuDetail;

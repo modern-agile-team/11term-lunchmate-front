@@ -7,7 +7,7 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const { emailField, passwordField, errors, isPending, errorMessage, onSubmit } = useLoginForm({
     onSuccess: () => {
-      window.location.href = '/profile';
+      navigate('/profile');
     },
   });
 

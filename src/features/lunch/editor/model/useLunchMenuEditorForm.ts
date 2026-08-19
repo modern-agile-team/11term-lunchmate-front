@@ -38,7 +38,7 @@ export const useLunchMenuEditorForm = ({
   }, [isOpen]);
 
   const invalidateLunchMenus = () =>
-    queryClient.invalidateQueries({ queryKey: lunchMenuQueryKeys.lists() });
+    queryClient.invalidateQueries({ queryKey: lunchMenuQueryKeys.all() });
 
   const createMutation = useMutation({
     mutationFn: createLunchMenu,
@@ -82,7 +82,8 @@ export const useLunchMenuEditorForm = ({
       components: values.componentsText
         .split(',')
         .map((item) => item.trim())
-        .filter(Boolean),
+        .filter(Boolean)
+        .join(' '),
     };
 
     try {

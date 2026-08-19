@@ -6,10 +6,7 @@ interface UseLunchSelectionParams {
 }
 
 export const useLunchSelection = ({ lunchMenus }: UseLunchSelectionParams) => {
-  const initialSelectedLunchMenuId = lunchMenus[0]?.id ?? null;
-  const [selectedLunchMenuId, setSelectedLunchMenuId] = useState<number | null>(
-    initialSelectedLunchMenuId,
-  );
+  const [selectedLunchMenuId, setSelectedLunchMenuId] = useState<number | null>(null);
   const selectedLunchMenu = useMemo(
     () => lunchMenus.find((lunchMenu) => lunchMenu.id === selectedLunchMenuId) ?? null,
     [lunchMenus, selectedLunchMenuId],

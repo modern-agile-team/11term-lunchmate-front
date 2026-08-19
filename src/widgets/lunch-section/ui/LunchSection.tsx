@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import LunchMenuEditorModal, { type LunchMenuEditorFormValues } from '@/features/lunch/editor';
 import DeleteLunchMenuConfirmModal, { useDeleteLunchMenuAction } from '@/features/lunch/delete';
+import { useLunchMenuReactionAction } from '@/features/lunch/react';
+import AppDialog from '@/shared/ui/modal/AppDialog';
 import { useLunchSelection } from '../model/useLunchSelection';
 import type { MainLunchMenu } from '../model/types';
 import LunchMenuCard from './LunchMenuCard';
@@ -11,20 +13,19 @@ import LunchMenuDetail from './LunchMenuDetail';
 interface LunchSectionProps {
   lunchMenus: MainLunchMenu[];
   isAdmin: boolean;
-  onLike: (menuId: number) => void;
-  onDislike: (menuId: number) => void;
+  onRequireLogin: () => void;
 }
 
 const toEditorFormValues = (menu: MainLunchMenu): LunchMenuEditorFormValues => ({
   mealType: menu.mealType,
   menuName: menu.menuName,
-  price: menu.price,
-  calorie: menu.calorie,
+  price: menu.price ?? 0,
+  calorie: menu.calorie ?? 0,
   schoolInfo: menu.schoolInfo,
   componentsText: menu.components.join(', '),
 });
 
-const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionProps) => {
+const LunchSection = ({ lunchMenus, isAdmin, onRequireLogin }: LunchSectionProps) => {
   const queryClient = useQueryClient();
   const { selectedLunchMenuId, setSelectedLunchMenuId, selectedLunchMenu } = useLunchSelection({
     lunchMenus,
@@ -41,6 +42,8 @@ const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionPr
     setSelectedLunchMenuId,
     closeDeleteConfirm: () => setDeleteTarget(null),
   });
+
+  const reactionAction = useLunchMenuReactionAction({ onRequireLogin });
 
   return (
     <section className="space-y-4 md:space-y-5">
@@ -74,9 +77,27 @@ const LunchSection = ({ lunchMenus, isAdmin, onLike, onDislike }: LunchSectionPr
         />
       ))}
 
-      {selectedLunchMenu ? (
-        <LunchMenuDetail menu={selectedLunchMenu} onLike={onLike} onDislike={onDislike} />
-      ) : null}
+      <AppDialog
+        isOpen={selectedLunchMenu !== null}
+        onClose={() => setSelectedLunchMenuId(null)}
+        title={selectedLunchMenu?.menuName ?? '학식 메뉴 상세'}
+      >
+        {selectedLunchMenu ? (
+          <>
+            <LunchMenuDetail
+              menu={selectedLunchMenu}
+              onLike={() => void reactionAction.handleLike(selectedLunchMenu)}
+              onDislike={() => void reactionAction.handleDislike(selectedLunchMenu)}
+              isReactionPending={reactionAction.isReactionPending}
+            />
+            {reactionAction.reactionErrorMessage ? (
+              <p className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                {reactionAction.reactionErrorMessage}
+              </p>
+            ) : null}
+          </>
+        ) : null}
+      </AppDialog>
 
       <LunchMenuEditorModal
         isOpen={isEditorOpen}

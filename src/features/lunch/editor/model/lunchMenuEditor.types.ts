@@ -15,11 +15,19 @@ export interface LunchMenuEditorPayload {
   price: number;
   calorie: number;
   schoolInfo: string;
-  components: string[];
+  components: string;
 }
 
-export interface LunchMenuEditorResult extends LunchMenuEditorPayload {
+export interface LunchMenuEditorResult {
   id: number;
+  mealType: LunchMealType;
+  menuName: string;
+  price: number | null;
+  calorie: number | null;
+  schoolInfo: string;
+  components: string[];
+  likeCount: number;
+  dislikeCount: number;
 }
 
 export interface LunchMenuEditorModalProps {

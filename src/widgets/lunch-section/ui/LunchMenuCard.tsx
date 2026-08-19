@@ -74,23 +74,25 @@ const LunchMenuCard = ({
       <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-right">
         <div className="text-xs font-semibold text-emerald-600">한 끼 정보</div>
         <div className="mt-2 text-lg font-bold text-slate-900">
-          {KRW_NUMBER_FORMAT.format(menu.price)}원
+          {menu.price !== null ? `${KRW_NUMBER_FORMAT.format(menu.price)}원` : '가격 미정'}
         </div>
         <div className="mt-1 inline-flex items-center gap-1 text-sm text-slate-500">
           <Flame className="h-4 w-4 text-orange-400" />
-          {menu.calorie}kcal
+          {menu.calorie !== null ? `${menu.calorie}kcal` : '칼로리 미정'}
         </div>
       </div>
     </div>
 
     <div className="mt-5 flex flex-wrap gap-3 text-sm font-medium">
       <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-700">
-        <ThumbsUp className={`h-4 w-4 ${menu.likedByMe ? 'text-indigo-700' : 'text-indigo-500'}`} />
+        <ThumbsUp
+          className={`h-4 w-4 ${menu.myReaction === 'LIKE' ? 'text-indigo-700' : 'text-indigo-500'}`}
+        />
         좋아요 {menu.likeCount}
       </div>
       <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-700">
         <ThumbsDown
-          className={`h-4 w-4 ${menu.dislikedByMe ? 'text-rose-700' : 'text-rose-500'}`}
+          className={`h-4 w-4 ${menu.myReaction === 'DISLIKE' ? 'text-rose-700' : 'text-rose-500'}`}
         />
         싫어요 {menu.dislikeCount}
       </div>
