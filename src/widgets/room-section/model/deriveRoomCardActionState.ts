@@ -28,9 +28,21 @@ export const deriveRoomCardActionState = ({
     (isLeavePending && pendingLeaveRoomId === room.id);
   const isJoinedRoom = joinedRoomId === room.id;
   const isFullRoom = room.currentCount >= room.capacity;
+  const isRoomInactive = room.status === 'CLOSE' || room.status === 'COMPLETE';
+
+  if (isRoomInactive) {
+    return {
+      isActionPending: false,
+      isInactive: true,
+      actionDisabled: true,
+      actionLabel: room.status === 'COMPLETE' ? '완료된 방이에요' : '종료된 방이에요',
+      onActionClick: handleJoinRoom,
+    };
+  }
 
   return {
     isActionPending,
+    isInactive: false,
     actionDisabled: isJoinedRoom
       ? isActionPending
       : isFullRoom || isActionPending || hasJoinedActiveRoom,

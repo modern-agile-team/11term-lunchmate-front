@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import {
-  INITIAL_ROOM_EDITOR_FORM_VALUES,
+  getInitialRoomEditorFormValues,
   type RoomEditorFormValues,
   type RoomEditorModalProps,
 } from './roomEditor.types';
@@ -39,11 +39,11 @@ export const useRoomEditorReset = ({
       return;
     }
 
-    roomEditorForm.reset(initialValues ?? INITIAL_ROOM_EDITOR_FORM_VALUES);
+    roomEditorForm.reset(initialValues ?? getInitialRoomEditorFormValues());
   }, [initialValues, isOpen, roomEditorForm]);
 
   return () => {
-    roomEditorForm.reset(initialValues ?? INITIAL_ROOM_EDITOR_FORM_VALUES);
+    roomEditorForm.reset(initialValues ?? getInitialRoomEditorFormValues());
     createRoomMutation.reset();
     updateRoomMutation.reset();
     setSubmitMessage('');

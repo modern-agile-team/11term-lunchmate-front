@@ -10,6 +10,7 @@ export interface RoomListItemResponse {
   place: string;
   lunchAt: string;
   currentMembersCount: number;
+  status: 'OPEN' | 'FULL' | 'CLOSE' | 'COMPLETE' | string;
 }
 
 export interface GetRoomsResponse {

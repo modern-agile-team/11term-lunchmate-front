@@ -832,6 +832,7 @@ const toRoomListItem = (room: RoomDetailResponse): RoomListItemResponse => ({
   place: room.place,
   lunchAt: room.lunchAt,
   currentMembersCount: room.currentMembersCount,
+  status: room.status,
 });
 
 const getRoom = (roomId: number) => rooms.find((room) => room.id === roomId);

@@ -4,6 +4,7 @@ import SelectableRoomCard from './SelectableRoomCard';
 
 interface RoomCardActionState {
   isActionPending: boolean;
+  isInactive: boolean;
   actionDisabled: boolean;
   actionLabel: string;
   onActionClick: (roomId: number) => void;

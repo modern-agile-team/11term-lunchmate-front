@@ -2,6 +2,7 @@ import { RoomCard as EntityRoomCard, type MainRoom } from '@/entities/room';
 
 interface RoomCardActionState {
   isActionPending: boolean;
+  isInactive: boolean;
   actionDisabled: boolean;
   actionLabel: string;
   onActionClick: (roomId: number) => void;
@@ -26,6 +27,7 @@ const SelectableRoomCard = ({
     onClick={() => setSelectedRoomId(room.id)}
     onActionClick={roomCardActionState.onActionClick}
     isActionPending={roomCardActionState.isActionPending}
+    isInactive={roomCardActionState.isInactive}
     actionDisabled={roomCardActionState.actionDisabled}
     actionLabel={roomCardActionState.actionLabel}
   />

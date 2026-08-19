@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { myUserQueryOptions } from '@/entities/user';
+import { calculateKoreanAge } from '@/shared/lib/date/calculateKoreanAge';
 import type { RoomEditorFormValues, RoomEditorModalProps } from './roomEditor.types';
 import { getRoomEditorPayload } from './roomEditorSubmit.mappers';
 import { useCreateRoomSubmit } from './useCreateRoomSubmit';
@@ -19,6 +22,7 @@ export const useRoomEditorSubmit = ({
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitMessageTone, setSubmitMessageTone] = useState<'error' | 'success'>('success');
   const isEditMode = mode === 'edit';
+  const myUserQuery = useQuery(myUserQueryOptions());
   const createSubmit = useCreateRoomSubmit({
     onSuccess,
     onError,
@@ -31,7 +35,19 @@ export const useRoomEditorSubmit = ({
   });
 
   const submitRoom = async (value: RoomEditorFormValues) => {
-    const payloadResult = getRoomEditorPayload(value);
+    const currentUser = myUserQuery.data;
+
+    if (!currentUser) {
+      const message = '내 프로필 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+      setSubmitMessage(message);
+      setSubmitMessageTone('error');
+      return;
+    }
+
+    const payloadResult = getRoomEditorPayload(value, {
+      gender: currentUser.gender,
+      age: calculateKoreanAge(currentUser.birthDate),
+    });
 
     if (!('payload' in payloadResult)) {
       setSubmitMessage(payloadResult.error);

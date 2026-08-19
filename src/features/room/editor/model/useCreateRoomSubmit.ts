@@ -28,6 +28,7 @@ export const useCreateRoomSubmit = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.lists() }),
         queryClient.invalidateQueries({ queryKey: roomQueryKeys.details() }),
+        queryClient.invalidateQueries({ queryKey: roomQueryKeys.me() }),
       ]);
       onSuccess?.(room);
     },

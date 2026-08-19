@@ -2,9 +2,10 @@ import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import type { PostSyncRequest } from '@/entities/post';
-import type { RoomSyncRequest } from '@/entities/room';
+import { myRoomQueryOptions, type RoomSyncRequest } from '@/entities/room';
 import { myUserQueryOptions } from '@/entities/user';
 import { lunchMenuListQueryOptions, lunchMenuQueryKeys, type MainLunchMenu } from '@/entities/lunch-menu';
+import { authSessionSelectors, useAuthSessionStore } from '@/shared/lib/auth/session';
 import type { MainTab } from '../../main-tabs/model/types';
 import LunchSection from '@/widgets/lunch-section';
 import PostSection from '@/widgets/post-section';
@@ -52,6 +53,10 @@ const MainTabSection = ({
   const isPostTab = activeTab === 'POST';
   const myUserQuery = useQuery(myUserQueryOptions());
   const isAdmin = myUserQuery.data?.role === 'ADMIN';
+  const isAuthed = useAuthSessionStore(authSessionSelectors.isAuthenticated);
+  const myRoomQuery = useQuery({ ...myRoomQueryOptions(), enabled: isAuthed });
+  const hasJoinedRoom = myRoomQuery.isSuccess;
+  const isCreateRoomDisabled = isRoomTab && (!isAuthed || hasJoinedRoom);
   const lunchMenusQuery = useQuery(lunchMenuListQueryOptions());
   const lunchMenus = useMemo(() => lunchMenusQuery.data ?? [], [lunchMenusQuery.data]);
 
@@ -132,14 +137,22 @@ const MainTabSection = ({
         </div>
 
         {isRoomTab || isPostTab ? (
-          <button
-            type="button"
-            onClick={isRoomTab ? onCreateRoomClick : onCreatePostClick}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            <Plus className="h-4 w-4" />
-            {isRoomTab ? '방 만들기' : '게시글 작성'}
-          </button>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={isRoomTab ? onCreateRoomClick : onCreatePostClick}
+              disabled={isCreateRoomDisabled}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:hover:bg-slate-300"
+            >
+              <Plus className="h-4 w-4" />
+              {isRoomTab ? '방 만들기' : '게시글 작성'}
+            </button>
+            {isCreateRoomDisabled ? (
+              <p className="text-xs text-slate-400">
+                {!isAuthed ? '로그인 후 이용할 수 있어요.' : '이미 참여중인 방이 있어요.'}
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
