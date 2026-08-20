@@ -23,9 +23,14 @@ export const useSelectedPostDetail = ({ selectedPostId }: UseSelectedPostDetailP
   const viewCountMutation = useMutation({
     mutationFn: increasePostViewCount,
     onSuccess: (result, postId) => {
-      queryClient.setQueryData<PostDetailResponse>(postQueryKeys.detail(postId), (current) =>
-        current ? { ...current, viewCount: result.viewCount } : current,
+      queryClient.setQueryData<PostDetailResponse>(
+        postQueryKeys.detail(postId),
+        (current) => (current ? { ...current, viewCount: result.viewCount } : current),
       );
+
+      void queryClient.invalidateQueries({
+        queryKey: postQueryKeys.lists(),
+      });
     },
   });
 
