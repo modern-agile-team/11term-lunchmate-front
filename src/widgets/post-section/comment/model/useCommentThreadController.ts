@@ -43,6 +43,8 @@ export const useCommentThreadController = ({
   const composer: CommentComposerState = {
     inputValue: composerAction.commentInputValue,
     changeInputValue: composerAction.setCommentInputValue,
+    isAnonymous: composerAction.isCommentAnonymous,
+    changeIsAnonymous: composerAction.setIsCommentAnonymous,
     submit: composerAction.handleCommentSubmit,
     isPending: composerAction.isCommentSubmitPending,
     message: composerAction.commentActionMessage,

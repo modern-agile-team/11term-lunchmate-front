@@ -34,6 +34,9 @@ export const usePostCommentSectionState = ({
       composer: commentThread.composer,
       editor: commentThread.editor,
       reactions: commentThread.reactions,
+      loadMoreRef: selectedPostCommentsQuery.loadMoreRef,
+      hasNextPage: selectedPostCommentsQuery.hasNextPage,
+      isFetchingNextPage: selectedPostCommentsQuery.isFetchingNextPage,
     },
     actions: {
       resetTransientState: commentThread.resetCommentTransientState,

@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-import { myUserQueryOptions } from '@/entities/user';
 import type { PostSyncRequest } from '@/entities/post';
 import { useInfinitePosts } from './useInfinitePosts';
 import { useSelectedPostCommentsQuery } from './useSelectedPostCommentsQuery';
@@ -14,8 +12,6 @@ export const usePostSectionData = ({
   postSyncRequest,
   onPostSyncHandled,
 }: UsePostSectionDataParams) => {
-  const { data: myUserData } = useQuery(myUserQueryOptions());
-  const myUserId = myUserData?.id ?? null;
   const infinitePosts = useInfinitePosts();
   const postSelection = usePostSelection({
     postSyncRequest,
@@ -23,7 +19,6 @@ export const usePostSectionData = ({
   });
   const selectedPostCommentsQuery = useSelectedPostCommentsQuery({
     selectedPostId: postSelection.selectedPostId,
-    myUserId,
   });
 
   return {

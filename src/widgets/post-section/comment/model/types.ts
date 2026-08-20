@@ -33,6 +33,8 @@ export interface CommentItemActions {
 export interface CommentComposerState {
   inputValue: string;
   changeInputValue: (value: string) => void;
+  isAnonymous: boolean;
+  changeIsAnonymous: (value: boolean) => void;
   submit: () => Promise<void>;
   isPending: boolean;
   message: string;
@@ -71,6 +73,9 @@ export interface PostCommentSectionState {
   composer: CommentComposerState;
   editor: CommentEditorState;
   reactions: CommentReactionState;
+  loadMoreRef: React.RefObject<HTMLDivElement | null>;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
 export interface PostCommentSectionControllerState {

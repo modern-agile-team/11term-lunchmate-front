@@ -1,61 +1,44 @@
-export interface GetCommentsParams {
-  page?: number;
-  size?: number;
+export interface CommentAuthor {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
 }
 
-export interface CommentListUserResponse {
-  id?: number;
-  nickname?: string;
-  name?: string;
+export interface GetCommentsParams {
+  cursor?: number;
+  limit?: number;
 }
 
 export interface CommentListItemResponse {
   id: number;
-  postId?: number | null;
-  userId?: number | null;
-  authorId?: number | null;
   content: string;
-  likeCount?: number | null;
-  liked?: boolean | null;
   createdAt: string;
-  author?: string | null;
-  authorNickname?: string | null;
-  userNickname?: string | null;
-  nickname?: string | null;
-  isMine?: boolean | null;
-  user?: CommentListUserResponse | null;
+  likeCount: number;
+  user: CommentAuthor | null;
+  liked: boolean;
+  isMine: boolean;
 }
 
-export interface CommentListPaginationResponse {
-  page?: number;
-  size?: number;
-  totalCount?: number;
-  totalPages?: number;
-  hasNext?: boolean;
-}
+export type CommentDetailResponse = CommentListItemResponse;
 
 export interface GetCommentsResponse {
   items: CommentListItemResponse[];
-  pagination?: CommentListPaginationResponse;
+  nextCursor: number | null;
+  hasNext: boolean;
 }
 
 export interface CreateCommentRequest {
   content: string;
+  isAnonymous: boolean;
 }
 
-export interface CreateCommentResponse extends CommentListItemResponse {
-  postId: number;
-}
+export type UpdateCommentRequest = Partial<CreateCommentRequest>;
 
-export interface UpdateCommentRequest {
-  content: string;
-}
-
-export interface UpdateCommentResponse extends CommentListItemResponse {
-  postId: number;
-}
+export type CreateCommentResponse = CommentDetailResponse;
+export type UpdateCommentResponse = CommentDetailResponse;
 
 export interface LikeCommentResponse {
+  commentId: number;
   liked: boolean;
   likeCount: number;
 }

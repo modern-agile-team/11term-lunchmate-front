@@ -24,13 +24,13 @@ const PostDetailPanel = ({ detail, reactions, actions, comments }: PostDetailPan
 
           {!postDetailQuery.isLoading && !postDetailQuery.isError ? (
             <>
-              <PostDetailHeader
+              <PostDetailHeader selectedPostDetail={selectedPostDetail} />
+              <PostDetailBody
                 selectedPostDetail={selectedPostDetail}
                 canEditSelectedPost={canEditSelectedPost}
                 onEditOpen={actions.onEditOpen}
                 onDeleteOpen={actions.onDeleteOpen}
               />
-              <PostDetailBody selectedPostDetail={selectedPostDetail} />
               <PostReactionBar
                 selectedPostDetail={selectedPostDetail}
                 reactionErrorMessage={reactions.reactionErrorMessage}

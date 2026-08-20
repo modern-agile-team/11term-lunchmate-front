@@ -16,7 +16,16 @@ const CommentComposer = ({ composer }: CommentComposerProps) => (
         placeholder="댓글을 입력해주세요"
         className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
       />
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex items-center justify-between">
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={composer.isAnonymous}
+            onChange={(event) => composer.changeIsAnonymous(event.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-400"
+          />
+          익명으로 작성
+        </label>
         <button
           type="button"
           onClick={() => void composer.submit()}

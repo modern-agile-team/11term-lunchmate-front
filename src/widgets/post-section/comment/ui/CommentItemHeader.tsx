@@ -1,5 +1,5 @@
 import { PencilLine, Trash2 } from 'lucide-react';
-import type { MainPostComment } from '@/entities/comment';
+import { CommentAuthorAvatar, type MainPostComment } from '@/entities/comment';
 import { formatPostDetailDate } from '@/shared/lib/date/formatCreatedAt';
 
 interface CommentItemHeaderProps {
@@ -14,9 +14,15 @@ const CommentItemHeader = ({
   onDeleteStart,
 }: CommentItemHeaderProps) => (
   <div className="flex items-start justify-between gap-4">
-    <div>
-      <p className="font-semibold text-slate-800">{comment.author}</p>
-      <p className="mt-1 text-xs text-slate-400">{formatPostDetailDate(comment.createdAt)}</p>
+    <div className="flex items-center gap-2">
+      <CommentAuthorAvatar
+        nickname={comment.authorNickname}
+        profileImageUrl={comment.authorProfileImageUrl}
+      />
+      <div>
+        <p className="font-semibold text-slate-800">{comment.authorNickname}</p>
+        <p className="mt-1 text-xs text-slate-400">{formatPostDetailDate(comment.createdAt)}</p>
+      </div>
     </div>
     {comment.isMine ? (
       <div className="flex items-center gap-2">

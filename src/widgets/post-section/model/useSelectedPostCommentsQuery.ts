@@ -1,26 +1,20 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  COMMENTS_LIST_DEFAULT_PAGE,
-  COMMENTS_LIST_DEFAULT_SIZE,
-  postCommentsQueryOptions,
-  toMainPostComment,
-} from '@/entities/comment';
+import { useEffect, useMemo, useRef } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { commentInfiniteListQueryOptions, toMainPostComment } from '@/entities/comment';
+
+const COMMENT_LIST_DEFAULT_LIMIT = 10;
 
 interface UsePostCommentsParams {
   selectedPostId: number | null;
-  myUserId: number | null;
 }
 
 export const useSelectedPostCommentsQuery = ({
   selectedPostId,
-  myUserId,
 }: UsePostCommentsParams) => {
-  const commentsQuery = useQuery({
-    ...postCommentsQueryOptions(selectedPostId ?? 0, {
-      page: COMMENTS_LIST_DEFAULT_PAGE,
-      size: COMMENTS_LIST_DEFAULT_SIZE,
-    }),
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  const commentsQuery = useInfiniteQuery({
+    ...commentInfiniteListQueryOptions(selectedPostId ?? 0, {}, COMMENT_LIST_DEFAULT_LIMIT),
     enabled: selectedPostId !== null,
   });
 
@@ -28,14 +22,33 @@ export const useSelectedPostCommentsQuery = ({
     () =>
       selectedPostId === null
         ? []
-        : (commentsQuery.data?.items ?? []).map((comment) =>
-            toMainPostComment(comment, selectedPostId, myUserId),
+        : (commentsQuery.data?.pages.flatMap((page) => page.items) ?? []).map((comment) =>
+            toMainPostComment(comment, selectedPostId),
           ),
-    [commentsQuery.data?.items, myUserId, selectedPostId],
+    [commentsQuery.data, selectedPostId],
   );
+
+  const { fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading } = commentsQuery;
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || isLoading || isError || !hasNextPage) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (!entry?.isIntersecting || isFetchingNextPage || !hasNextPage) return;
+      void fetchNextPage();
+    });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading]);
 
   return {
     commentsQuery,
     selectedPostComments,
+    loadMoreRef,
+    hasNextPage: hasNextPage ?? false,
+    isFetchingNextPage,
   };
 };
