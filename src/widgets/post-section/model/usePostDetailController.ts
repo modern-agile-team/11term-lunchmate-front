@@ -3,7 +3,6 @@ import {
   invalidatePostCaches,
   syncEditedPost,
   type MainPostDetail,
-  type MainPostItem,
   type PostDetailResponse,
   type PostSyncRequest,
 } from '@/entities/post';
@@ -13,7 +12,6 @@ import { usePostReactionAction } from '@/features/post/react';
 interface UsePostDetailControllerParams {
   selectedPostDetail: MainPostDetail | null;
   postDetailQuery: { data: PostDetailResponse | undefined };
-  postItems: MainPostItem[];
   onRequireLogin: () => void;
   setSelectedPostId: (postId: number | null) => void;
   closeDeleteConfirm: () => void;
@@ -23,7 +21,6 @@ interface UsePostDetailControllerParams {
 export const usePostDetailController = ({
   selectedPostDetail,
   postDetailQuery,
-  postItems,
   onRequireLogin,
   setSelectedPostId,
   closeDeleteConfirm,
@@ -32,12 +29,12 @@ export const usePostDetailController = ({
   const queryClient = useQueryClient();
   const reactionAction = usePostReactionAction({
     postId: postDetailQuery.data?.id ?? null,
+    liked: postDetailQuery.data?.liked ?? false,
     onRequireLogin,
     invalidatePostCaches: (postId) => invalidatePostCaches(queryClient, postId),
   });
   const deleteAction = useDeletePostAction({
     selectedPostDetail,
-    postItems,
     queryClient,
     onRequireLogin,
     setSelectedPostId,

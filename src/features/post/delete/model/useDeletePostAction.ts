@@ -6,14 +6,12 @@ import {
   postQueryKeys,
   type GetPostsResponse,
   type MainPostDetail,
-  type MainPostItem,
 } from '@/entities/post';
 import { getApiMessage } from '@/shared/lib/api/getApiMessage';
 import { deletePost } from '../api';
 
 interface UseDeletePostActionParams {
   selectedPostDetail: MainPostDetail | null;
-  postItems: MainPostItem[];
   queryClient: QueryClient;
   onRequireLogin: () => void;
   setSelectedPostId: (postId: number | null) => void;
@@ -23,7 +21,6 @@ interface UseDeletePostActionParams {
 
 export const useDeletePostAction = ({
   selectedPostDetail,
-  postItems,
   queryClient,
   onRequireLogin,
   setSelectedPostId,
@@ -38,7 +35,6 @@ export const useDeletePostAction = ({
 
     try {
       await deletePostMutation.mutateAsync(selectedPostDetail.id);
-      const nextPost = postItems.find((postItem) => postItem.id !== selectedPostDetail.id);
       queryClient.setQueriesData({ queryKey: postQueryKeys.lists() }, (currentData: unknown) => {
         if (!isInfinitePostListData(currentData)) return currentData;
         return {
@@ -52,7 +48,7 @@ export const useDeletePostAction = ({
       setDeleteErrorMessage('');
       closeDeleteConfirm();
       closeEditModal();
-      setSelectedPostId(nextPost?.id ?? null);
+      setSelectedPostId(null);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: postQueryKeys.lists() }),
         queryClient.invalidateQueries({ queryKey: postQueryKeys.details() }),

@@ -1,40 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { postInfiniteListQueryOptions, toMainPostItem } from '@/entities/post';
 
-import {
-  POST_LIST_DEFAULT_PAGE,
-  POST_LIST_DEFAULT_SIZE,
-  postCategoryIdMap,
-  postInfiniteListQueryOptions,
-  toMainPostItem,
-} from '@/entities/post';
-
-import type { MainPostCategoryFilter } from './constants';
+const POST_LIST_DEFAULT_LIMIT = 10;
 
 export const useInfinitePosts = () => {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<MainPostCategoryFilter>('ALL');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
-  const categoryId = selectedCategory === 'ALL' ? undefined : postCategoryIdMap[selectedCategory];
   const postsQuery = useInfiniteQuery(
-    postInfiniteListQueryOptions({
-      page: POST_LIST_DEFAULT_PAGE,
-      size: POST_LIST_DEFAULT_SIZE,
-      categoryId,
-    }),
+    postInfiniteListQueryOptions(
+      { categoryId: selectedCategoryId ?? undefined },
+      POST_LIST_DEFAULT_LIMIT,
+    ),
   );
 
   const postItems = useMemo(
     () => postsQuery.data?.pages.flatMap((page) => page.items).map(toMainPostItem) ?? [],
     [postsQuery.data],
   );
-  const {
-    fetchNextPage,
-    hasNextPage,
-    isError,
-    isFetchingNextPage,
-    isLoading,
-  } = postsQuery;
+  const { fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading } = postsQuery;
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -52,8 +37,8 @@ export const useInfinitePosts = () => {
 
   return {
     loadMoreRef,
-    selectedCategory,
-    setSelectedCategory,
+    selectedCategoryId,
+    setSelectedCategoryId,
     postsQuery,
     postItems,
   };

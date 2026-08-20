@@ -1,4 +1,5 @@
-import { postCategoryOptions, type MainPostCategory } from '@/entities/post';
+import { useQuery } from '@tanstack/react-query';
+import { postCategoryListQueryOptions } from '@/entities/post';
 import { getPostEditorSubmitLabel } from '../model/postEditor.messages';
 import type { usePostEditorForm } from '../model/usePostEditorForm';
 
@@ -7,15 +8,11 @@ interface PostEditorFormProps {
   postEditor: ReturnType<typeof usePostEditorForm>;
 }
 
-const CATEGORY_SELECTED_STYLE: Record<MainPostCategory, string> = {
-  FREE: 'border-slate-600 bg-slate-600 text-white',
-  REVIEW: 'border-amber-500 bg-amber-500 text-white',
-  INFO: 'border-sky-500 bg-sky-500 text-white',
-  TALK: 'border-violet-500 bg-violet-500 text-white',
-};
-
 const PostEditorForm = ({ mode, postEditor }: PostEditorFormProps) => {
-  const category = postEditor.postEditorForm.watch('category');
+  const categoriesQuery = useQuery(postCategoryListQueryOptions());
+  const categories = categoriesQuery.data ?? [];
+  const categoryId = postEditor.postEditorForm.watch('categoryId');
+  const isAnonymous = postEditor.postEditorForm.watch('isAnonymous');
 
   return (
     <form className="mt-6" onSubmit={postEditor.handleSubmit}>
@@ -23,21 +20,21 @@ const PostEditorForm = ({ mode, postEditor }: PostEditorFormProps) => {
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-slate-700">카테고리</span>
           <div className="flex flex-wrap gap-2">
-            {postCategoryOptions.map((option) => {
-              const isSelected = category === option.value;
+            {categories.map((category) => {
+              const isSelected = categoryId === category.id;
               return (
                 <button
-                  key={option.value}
+                  key={category.id}
                   type="button"
-                  onClick={() => postEditor.postEditorForm.setValue('category', option.value)}
+                  onClick={() => postEditor.postEditorForm.setValue('categoryId', category.id)}
                   aria-pressed={isSelected}
                   className={`h-9 rounded-2xl border px-4 text-sm font-semibold transition ${
                     isSelected
-                      ? CATEGORY_SELECTED_STYLE[option.value]
+                      ? 'border-indigo-500 bg-indigo-500 text-white'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-slate-50'
                   }`}
                 >
-                  {option.label}
+                  {category.name}
                 </button>
               );
             })}
@@ -68,6 +65,18 @@ const PostEditorForm = ({ mode, postEditor }: PostEditorFormProps) => {
               validate: (value) => value.trim().length > 0,
             })}
           />
+        </label>
+
+        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <input
+            type="checkbox"
+            checked={isAnonymous}
+            onChange={(event) =>
+              postEditor.postEditorForm.setValue('isAnonymous', event.target.checked)
+            }
+            className="h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-300"
+          />
+          익명으로 작성
         </label>
       </div>
 

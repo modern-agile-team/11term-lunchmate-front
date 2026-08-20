@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 interface PostAuthorAvatarProps {
   nickname: string;
-  profileImageUrl: string;
+  profileImageUrl: string | null;
   size?: 'sm' | 'md';
 }
 
@@ -13,9 +13,9 @@ const sizeClassMap = {
 
 const PostAuthorAvatar = ({ nickname, profileImageUrl, size = 'sm' }: PostAuthorAvatarProps) => {
   const [imageError, setImageError] = useState(false);
-  const displayNickname = nickname.trim() || '익명 사용자';
+  const displayNickname = nickname.trim() || '익명';
   const showImage = Boolean(profileImageUrl) && !imageError;
-  const initial = displayNickname.charAt(0).toUpperCase() || '익';
+  const initial = displayNickname.charAt(0).toUpperCase();
 
   return (
     <span
@@ -23,7 +23,7 @@ const PostAuthorAvatar = ({ nickname, profileImageUrl, size = 'sm' }: PostAuthor
     >
       {showImage ? (
         <img
-          src={profileImageUrl}
+          src={profileImageUrl ?? undefined}
           alt={`${displayNickname} 프로필`}
           className="h-full w-full object-cover"
           onError={() => setImageError(true)}

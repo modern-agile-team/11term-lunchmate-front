@@ -1,84 +1,59 @@
-export interface GetPostsParams {
-  categoryId?: number;
-  page?: number;
-  size?: number;
+export interface PostAuthor {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
 }
 
-export interface PostListUserResponse {
-  id?: number;
-  nickname?: string;
-  name?: string;
-  profileImageUrl?: string;
+export interface PostCategory {
+  id: number;
+  name: string;
 }
 
 export interface PostListItemResponse {
   id: number;
-  categoryId?: number | null;
-  category?: string | null;
   title: string;
-  summary?: string | null;
-  content?: string | null;
-  likeCount?: number | null;
-  commentCount?: number | null;
   createdAt: string;
-  author?: string | null;
-  authorNickname?: string | null;
-  userNickname?: string | null;
-  nickname?: string | null;
-  profileImageUrl?: string | null;
-  user?: PostListUserResponse | null;
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
+  user: PostAuthor | null;
+  category: PostCategory;
+  isMine: boolean;
 }
 
-export interface PostListPaginationResponse {
-  page?: number;
-  size?: number;
-  totalCount?: number;
-  totalPages?: number;
-  hasNext?: boolean;
+export interface PostDetailResponse extends PostListItemResponse {
+  content: string;
+  isAnonymous: boolean;
+  liked: boolean;
+}
+
+export interface GetPostsParams {
+  cursor?: number;
+  limit?: number;
+  categoryId?: number;
 }
 
 export interface GetPostsResponse {
   items: PostListItemResponse[];
-  pagination?: PostListPaginationResponse;
+  nextCursor: number | null;
+  hasNext: boolean;
 }
 
 export interface CreatePostRequest {
+  title: string;
+  content: string;
   categoryId: number;
-  title: string;
-  content: string;
+  isAnonymous: boolean;
 }
 
-export interface CreatePostResponse {
-  id: number;
-  userId?: number;
-  categoryId?: number | null;
-  category?: string | null;
-  title: string;
-  content: string;
-  createdAt: string;
-}
-
-export interface UpdatePostRequest {
-  categoryId?: number;
-  title?: string;
-  content?: string;
-}
-
-export interface PostDetailResponse {
-  id: number;
-  userId: number;
-  categoryId?: number | null;
-  category?: string | null;
-  title: string;
-  content: string;
-  viewCount?: number | null;
-  liked?: boolean | null;
-  likeCount?: number | null;
-  commentCount?: number | null;
-  createdAt: string;
-}
+export type UpdatePostRequest = Partial<CreatePostRequest>;
 
 export interface LikePostResponse {
+  postId: number;
   liked: boolean;
   likeCount: number;
+}
+
+export interface PostViewCountResponse {
+  viewCount: number;
 }

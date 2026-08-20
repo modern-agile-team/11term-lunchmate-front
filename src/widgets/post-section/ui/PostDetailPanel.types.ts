@@ -22,6 +22,7 @@ export interface PostDetailPanelReactionState {
 export interface PostDetailPanelActionState {
   onEditOpen: () => void;
   onDeleteOpen: () => void;
+  onClose: () => void;
 }
 
 export interface PostDetailPanelProps {

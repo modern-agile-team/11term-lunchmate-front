@@ -19,11 +19,17 @@ export const usePostEditorForm = ({
   const [submitError, setSubmitError] = useState('');
   const defaultFormValues = useMemo(
     () => ({
-      category: initialValues?.category ?? INITIAL_POST_EDITOR_FORM_VALUES.category,
+      categoryId: initialValues?.categoryId ?? INITIAL_POST_EDITOR_FORM_VALUES.categoryId,
       title: initialValues?.title ?? INITIAL_POST_EDITOR_FORM_VALUES.title,
       content: initialValues?.content ?? INITIAL_POST_EDITOR_FORM_VALUES.content,
+      isAnonymous: initialValues?.isAnonymous ?? INITIAL_POST_EDITOR_FORM_VALUES.isAnonymous,
     }),
-    [initialValues?.category, initialValues?.content, initialValues?.title],
+    [
+      initialValues?.categoryId,
+      initialValues?.content,
+      initialValues?.isAnonymous,
+      initialValues?.title,
+    ],
   );
   const postEditorForm = useForm({
     defaultValues: defaultFormValues,
@@ -51,13 +57,19 @@ export const usePostEditorForm = ({
       return;
     }
 
+    if (values.categoryId === null) {
+      setSubmitError('카테고리를 선택해주세요.');
+      return;
+    }
+
     setSubmitError('');
 
     try {
       const submitErrorMessage = await submit.submitPost({
-        category: values.category,
+        categoryId: values.categoryId,
         title: trimmedTitle,
         content: trimmedContent,
+        isAnonymous: values.isAnonymous,
       });
 
       if (submitErrorMessage) {

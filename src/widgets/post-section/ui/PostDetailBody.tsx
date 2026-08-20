@@ -7,15 +7,12 @@ interface PostDetailBodyProps {
 
 const PostDetailBody = ({ selectedPostDetail }: PostDetailBodyProps) => (
   <>
-    <h2 className="mt-5 text-[28px] font-bold tracking-[-0.03em] text-slate-900">
-      {selectedPostDetail.title}
-    </h2>
     <div className="mt-3 flex items-center gap-2">
       <PostAuthorAvatar
-        nickname={selectedPostDetail.author}
+        nickname={selectedPostDetail.authorNickname}
         profileImageUrl={selectedPostDetail.authorProfileImageUrl}
       />
-      <p className="text-sm font-medium text-slate-500">{selectedPostDetail.author}</p>
+      <p className="text-sm font-medium text-slate-500">{selectedPostDetail.authorNickname}</p>
       <span className="text-sm text-slate-400">
         {formatPostDetailDate(selectedPostDetail.createdAt)}
       </span>
