@@ -62,6 +62,9 @@ const PostCommentSection = ({ comments }: PostCommentSectionProps) => {
         viewState={viewState}
         itemState={itemState}
         itemActions={itemActions}
+        loadMoreRef={comments.loadMoreRef}
+        hasNextPage={comments.hasNextPage}
+        isFetchingNextPage={comments.isFetchingNextPage}
       />
     </section>
   );

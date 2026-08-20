@@ -3,7 +3,7 @@ import { isAxiosError } from 'axios';
 import { isAuthenticated } from '@/shared/lib/auth/session';
 import { getApiMessage } from '@/shared/lib/api/getApiMessage';
 import type { MainPostComment } from '@/entities/comment';
-import { likeComment } from '../api';
+import { likeComment, unlikeComment } from '../api';
 import { useCommentReactionState } from './useCommentReactionState';
 
 interface UseCommentReactionActionParams {
@@ -17,8 +17,10 @@ export const useCommentReactionAction = ({
 }: UseCommentReactionActionParams) => {
   const reactionState = useCommentReactionState();
   const likeCommentMutation = useMutation({
-    mutationFn: ({ postId, commentId }: { postId: number; commentId: number }) =>
-      likeComment(postId, commentId),
+    mutationFn: (comment: MainPostComment) =>
+      comment.liked
+        ? unlikeComment(comment.postId, comment.id)
+        : likeComment(comment.postId, comment.id),
   });
 
   const handleCommentReaction = async (comment: MainPostComment) => {
@@ -31,7 +33,7 @@ export const useCommentReactionAction = ({
 
     try {
       reactionState.setLikingCommentId(comment.id);
-      await likeCommentMutation.mutateAsync({ postId: comment.postId, commentId: comment.id });
+      await likeCommentMutation.mutateAsync(comment);
       await invalidateCommentCaches(comment.postId);
     } catch (error) {
       reactionState.setCommentLikeTone('error');

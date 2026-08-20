@@ -17,11 +17,19 @@ export const useCreateCommentAction = ({
   invalidateCommentCaches,
 }: UseCreateCommentActionParams) => {
   const [commentInputValue, setCommentInputValue] = useState('');
+  const [isCommentAnonymous, setIsCommentAnonymous] = useState(false);
   const [commentActionMessage, setCommentActionMessage] = useState('');
   const [commentActionTone, setCommentActionTone] = useState<'success' | 'error'>('success');
   const createCommentMutation = useMutation({
-    mutationFn: ({ postId, content }: { postId: number; content: string }) =>
-      createComment(postId, { content }),
+    mutationFn: ({
+      postId,
+      content,
+      isAnonymous,
+    }: {
+      postId: number;
+      content: string;
+      isAnonymous: boolean;
+    }) => createComment(postId, { content, isAnonymous }),
   });
 
   const handleCommentSubmit = async () => {
@@ -41,8 +49,13 @@ export const useCreateCommentAction = ({
     }
 
     try {
-      await createCommentMutation.mutateAsync({ postId: selectedPostId, content: trimmedContent });
+      await createCommentMutation.mutateAsync({
+        postId: selectedPostId,
+        content: trimmedContent,
+        isAnonymous: isCommentAnonymous,
+      });
       setCommentInputValue('');
+      setIsCommentAnonymous(false);
       setCommentActionMessage('댓글을 등록했어요.');
       setCommentActionTone('success');
       await invalidateCommentCaches(selectedPostId);
@@ -60,12 +73,15 @@ export const useCreateCommentAction = ({
   return {
     commentInputValue,
     setCommentInputValue,
+    isCommentAnonymous,
+    setIsCommentAnonymous,
     handleCommentSubmit,
     isCommentSubmitPending: createCommentMutation.isPending,
     commentActionMessage,
     commentActionTone,
     resetCommentComposerState: () => {
       setCommentInputValue('');
+      setIsCommentAnonymous(false);
       setCommentActionMessage('');
       setCommentActionTone('success');
     },

@@ -22,7 +22,7 @@ const CommentItemReactionBar = ({ comment, isLiking, onLike }: CommentItemReacti
       )}
     >
       <Heart className="h-4 w-4" />
-      {isLiking ? '반영 중...' : comment.likedCount}
+      {isLiking ? '반영 중...' : comment.likeCount}
     </button>
   </div>
 );

@@ -1,27 +1,14 @@
-import type { CommentListItemResponse } from './types';
+import type { CommentDetailResponse } from './types';
 import type { MainPostComment } from './mainComment';
 
-export const toMainPostComment = (
-  comment: CommentListItemResponse,
-  postId: number,
-  currentUserId: number | null,
-): MainPostComment => ({
+export const toMainPostComment = (comment: CommentDetailResponse, postId: number): MainPostComment => ({
   id: comment.id,
-  postId: comment.postId ?? postId,
-  author:
-    comment.author?.trim() ||
-    comment.authorNickname?.trim() ||
-    comment.userNickname?.trim() ||
-    comment.nickname?.trim() ||
-    comment.user?.nickname?.trim() ||
-    '익명 사용자',
+  postId,
+  authorNickname: comment.user?.nickname ?? '익명',
+  authorProfileImageUrl: comment.user?.profileImageUrl ?? null,
   content: comment.content,
-  likedCount: comment.likeCount ?? 0,
-  liked: comment.liked ?? false,
+  likeCount: comment.likeCount,
+  liked: comment.liked,
   createdAt: comment.createdAt,
-  isMine:
-    typeof comment.isMine === 'boolean'
-      ? comment.isMine
-      : currentUserId !== null &&
-        (comment.userId === currentUserId || comment.authorId === currentUserId),
+  isMine: comment.isMine,
 });

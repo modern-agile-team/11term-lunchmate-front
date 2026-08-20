@@ -8,3 +8,14 @@ export async function likeComment(postId: number, commentId: number): Promise<Li
 
   return response.data;
 }
+
+export async function unlikeComment(
+  postId: number,
+  commentId: number,
+): Promise<LikeCommentResponse> {
+  const response = await client.delete<LikeCommentResponse>(
+    `/api/v1/posts/${postId}/comments/${commentId}/like`,
+  );
+
+  return response.data;
+}

@@ -11,6 +11,9 @@ interface CommentListProps {
   viewState: CommentListViewState;
   itemState: CommentItemState;
   itemActions: CommentItemActions;
+  loadMoreRef: React.RefObject<HTMLDivElement | null>;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
 const CommentList = ({
@@ -18,6 +21,9 @@ const CommentList = ({
   viewState,
   itemState,
   itemActions,
+  loadMoreRef,
+  hasNextPage,
+  isFetchingNextPage,
 }: CommentListProps) => {
   if (viewState.isLoading) {
     return (
@@ -53,6 +59,12 @@ const CommentList = ({
           actions={itemActions}
         />
       ))}
+      {hasNextPage ? (
+        <div ref={loadMoreRef} className="h-1 w-full" aria-hidden="true" />
+      ) : null}
+      {isFetchingNextPage ? (
+        <p className="text-center text-xs text-slate-400">댓글을 더 불러오는 중...</p>
+      ) : null}
     </>
   );
 };

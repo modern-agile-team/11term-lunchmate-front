@@ -7,8 +7,8 @@ export async function getComments(
 ): Promise<GetCommentsResponse> {
   const response = await client.get<GetCommentsResponse>(`/api/v1/posts/${postId}/comments`, {
     params: {
-      page: params.page,
-      size: params.size,
+      cursor: params.cursor,
+      limit: params.limit,
     },
   });
 

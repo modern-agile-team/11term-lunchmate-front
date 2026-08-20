@@ -1,9 +1,10 @@
 export interface MainPostComment {
   id: number;
   postId: number;
-  author: string;
+  authorNickname: string;
+  authorProfileImageUrl: string | null;
   content: string;
-  likedCount: number;
+  likeCount: number;
   liked: boolean;
   createdAt: string;
   isMine: boolean;
