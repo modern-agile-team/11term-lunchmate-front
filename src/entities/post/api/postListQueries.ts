@@ -1,36 +1,17 @@
-import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions } from '@tanstack/react-query';
 import type { GetPostsParams } from '../model/types';
 import { getPosts } from './postList';
 import { postQueryKeys } from './postQueryKeys';
 
-export const postListQueryOptions = (params: GetPostsParams = {}) =>
-  queryOptions({
-    queryKey: postQueryKeys.list(params),
-    queryFn: () => getPosts(params),
-  });
-
-export const postInfiniteListQueryOptions = (params: GetPostsParams = {}) =>
+export const postInfiniteListQueryOptions = (params: GetPostsParams = {}, limit = 10) =>
   infiniteQueryOptions({
-    queryKey: postQueryKeys.infiniteList(params),
-    initialPageParam: 1,
+    queryKey: postQueryKeys.infiniteList({ ...params, limit }),
+    initialPageParam: undefined as number | undefined,
     queryFn: ({ pageParam }) =>
       getPosts({
         ...params,
-        page: pageParam,
+        cursor: pageParam,
+        limit,
       }),
-    getNextPageParam: (lastPage) => {
-      const currentPage = lastPage.pagination?.page ?? 1;
-      const totalPages = lastPage.pagination?.totalPages;
-      const hasNext = lastPage.pagination?.hasNext;
-
-      if (hasNext === true) {
-        return currentPage + 1;
-      }
-
-      if (typeof totalPages === 'number' && currentPage < totalPages) {
-        return currentPage + 1;
-      }
-
-      return undefined;
-    },
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined),
   });

@@ -1,31 +1,25 @@
 export type {
   GetPostsParams,
   GetPostsResponse,
+  PostAuthor,
+  PostCategory,
   PostDetailResponse,
   PostListItemResponse,
-  PostListPaginationResponse,
-  PostListUserResponse,
   CreatePostRequest,
-  CreatePostResponse,
   LikePostResponse,
+  PostViewCountResponse,
   UpdatePostRequest,
 } from './model/types';
 export { getPostDetail } from './api/postDetail';
 export { postDetailQueryOptions } from './api/postDetailQueries';
 export { getPosts } from './api/postList';
-export { postInfiniteListQueryOptions, postListQueryOptions } from './api/postListQueries';
+export { postInfiniteListQueryOptions } from './api/postListQueries';
+export { getPostCategories } from './api/postCategoryList';
+export { postCategoryListQueryOptions } from './api/postCategoryListQueries';
+export { increasePostViewCount } from './api/postViewCount';
 export { postQueryKeys } from './api/postQueryKeys';
-export type { MainPostCategory, MainPostDetail, MainPostItem, PostSyncRequest } from './model/mainPost';
-export { postCategoryIdLabelMap, postCategoryIdMap, postCategoryOptions } from './model/postCategory';
+export type { MainPostDetail, MainPostItem, PostSyncRequest } from './model/mainPost';
 export { invalidatePostCaches, syncEditedPost } from './model/postCache';
-export { POST_LIST_DEFAULT_PAGE, POST_LIST_DEFAULT_SIZE } from './model/constants';
-export {
-  isInfinitePostListData,
-  toMainPostDetail,
-  toMainPostItem,
-  toPostAuthor,
-  toPostCategory,
-  toPostSummary,
-} from './model/postMappers';
+export { isInfinitePostListData, toMainPostDetail, toMainPostItem } from './model/postMappers';
 export { default as PostCategoryBadge } from './ui/PostCategoryBadge';
 export { default as PostAuthorAvatar } from './ui/PostAuthorAvatar';

@@ -1,33 +1,25 @@
-export type MainPostCategory = 'FREE' | 'REVIEW' | 'INFO' | 'TALK';
+import type { PostCategory } from './types';
 
 export interface MainPostItem {
   id: number;
-  category: MainPostCategory;
   title: string;
-  author: string;
-  authorProfileImageUrl: string;
-  summary: string;
-  content: string;
-  likedCount: number;
-  commentCount: number;
   createdAt: string;
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
+  authorNickname: string;
+  authorProfileImageUrl: string | null;
+  category: PostCategory;
+  isMine: boolean;
 }
 
-export interface MainPostDetail {
-  id: number;
-  category: MainPostCategory;
-  title: string;
-  author: string;
-  authorProfileImageUrl: string;
-  summary: string;
+export interface MainPostDetail extends MainPostItem {
   content: string;
-  likedCount: number;
-  commentCount: number;
-  createdAt: string;
+  isAnonymous: boolean;
   liked: boolean;
 }
 
 export interface PostSyncRequest {
   postId: number;
-  category: MainPostCategory;
+  categoryId: number;
 }

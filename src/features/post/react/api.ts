@@ -6,3 +6,9 @@ export async function likePost(postId: number): Promise<LikePostResponse> {
 
   return response.data;
 }
+
+export async function unlikePost(postId: number): Promise<LikePostResponse> {
+  const response = await client.delete<LikePostResponse>(`/api/v1/posts/${postId}/like`);
+
+  return response.data;
+}

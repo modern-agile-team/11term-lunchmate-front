@@ -1,89 +1,24 @@
 import type { GetPostsResponse, PostDetailResponse, PostListItemResponse } from './types';
 import type { MainPostDetail, MainPostItem } from './mainPost';
 
-export const toPostCategory = (
-  post:
-    | Pick<PostListItemResponse, 'category' | 'categoryId'>
-    | Pick<PostDetailResponse, 'category' | 'categoryId'>,
-): MainPostItem['category'] => {
-  if (
-    post.category === 'FREE' ||
-    post.category === 'REVIEW' ||
-    post.category === 'INFO' ||
-    post.category === 'TALK'
-  ) {
-    return post.category;
-  }
-
-  if (post.categoryId !== undefined && post.categoryId !== null) {
-    switch (post.categoryId) {
-      case 1:
-        return 'FREE';
-      case 2:
-        return 'REVIEW';
-      case 3:
-        return 'INFO';
-      case 4:
-        return 'TALK';
-      default:
-        return 'FREE';
-    }
-  }
-
-  return 'FREE';
-};
-
-export const toPostAuthor = (post: PostListItemResponse) =>
-  post.author?.trim() ||
-  post.authorNickname?.trim() ||
-  post.userNickname?.trim() ||
-  post.nickname?.trim() ||
-  post.user?.nickname?.trim() ||
-  post.user?.name?.trim() ||
-  '익명 사용자';
-
-export const toPostAuthorProfileImageUrl = (post: PostListItemResponse) =>
-  post.profileImageUrl?.trim() || post.user?.profileImageUrl?.trim() || '';
-
-export const toPostSummary = (post: PostListItemResponse) => {
-  const sourceText = post.summary?.trim() || post.content?.trim() || '';
-
-  if (sourceText === '') {
-    return '게시글 요약이 아직 없어요.';
-  }
-
-  return sourceText.length <= 90 ? sourceText : `${sourceText.slice(0, 90).trimEnd()}...`;
-};
-
 export const toMainPostItem = (post: PostListItemResponse): MainPostItem => ({
   id: post.id,
-  category: toPostCategory(post),
   title: post.title,
-  author: toPostAuthor(post),
-  authorProfileImageUrl: toPostAuthorProfileImageUrl(post),
-  summary: toPostSummary(post),
-  content: post.content ?? '',
-  likedCount: post.likeCount ?? 0,
-  commentCount: post.commentCount ?? 0,
   createdAt: post.createdAt,
+  likeCount: post.likeCount,
+  viewCount: post.viewCount,
+  commentCount: post.commentCount,
+  authorNickname: post.user?.nickname ?? '익명',
+  authorProfileImageUrl: post.user?.profileImageUrl ?? null,
+  category: post.category,
+  isMine: post.isMine,
 });
 
-export const toMainPostDetail = (
-  post: PostDetailResponse,
-  author: string,
-  authorProfileImageUrl: string,
-): MainPostDetail => ({
-  id: post.id,
-  category: toPostCategory(post),
-  title: post.title,
-  author,
-  authorProfileImageUrl,
-  summary: post.content,
+export const toMainPostDetail = (post: PostDetailResponse): MainPostDetail => ({
+  ...toMainPostItem(post),
   content: post.content,
-  likedCount: post.likeCount ?? 0,
-  commentCount: post.commentCount ?? 0,
-  createdAt: post.createdAt,
-  liked: post.liked ?? false,
+  isAnonymous: post.isAnonymous,
+  liked: post.liked,
 });
 
 export const isInfinitePostListData = (

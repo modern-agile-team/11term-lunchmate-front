@@ -1,6 +1,6 @@
 import { getPostEditorErrorMessage } from './postEditor.messages';
 import { toPostEditorPayload, toPostSyncRequest } from './postEditor.mappers';
-import type { PostEditorFormValues, PostEditorModalProps } from './postEditor.types';
+import type { PostEditorModalProps } from './postEditor.types';
 import { useCreatePostSubmit } from './useCreatePostSubmit';
 import { useUpdatePostSubmit } from './useUpdatePostSubmit';
 
@@ -10,9 +10,10 @@ type UsePostEditorSubmitParams = Pick<
 >;
 
 interface SubmitPostValues {
-  category: PostEditorFormValues['category'];
+  categoryId: number;
   title: string;
   content: string;
+  isAnonymous: boolean;
 }
 
 export const usePostEditorSubmit = ({
@@ -41,7 +42,7 @@ export const usePostEditorSubmit = ({
             })()
           : await createSubmit.submitCreatePost(payload);
 
-      onSuccess(toPostSyncRequest(syncedPost, values.category));
+      onSuccess(toPostSyncRequest(syncedPost));
 
       return null;
     } catch (error) {

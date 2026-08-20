@@ -29,7 +29,7 @@ const PostReactionBar = ({
         )}
       >
         <Heart className="h-4 w-4" />
-        {selectedPostDetail.likedCount}
+        {selectedPostDetail.likeCount}
       </button>
     </div>
     {reactionErrorMessage ? (

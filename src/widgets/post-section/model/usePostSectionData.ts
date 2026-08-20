@@ -18,12 +18,8 @@ export const usePostSectionData = ({
   const myUserId = myUserData?.id ?? null;
   const infinitePosts = useInfinitePosts();
   const postSelection = usePostSelection({
-    postItems: infinitePosts.postItems,
-    selectedCategory: infinitePosts.selectedCategory,
-    setSelectedCategory: infinitePosts.setSelectedCategory,
     postSyncRequest,
     onPostSyncHandled,
-    myUserId,
   });
   const selectedPostCommentsQuery = useSelectedPostCommentsQuery({
     selectedPostId: postSelection.selectedPostId,

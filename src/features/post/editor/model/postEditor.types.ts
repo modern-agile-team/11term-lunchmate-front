@@ -1,9 +1,10 @@
-import type { MainPostCategory, PostSyncRequest } from '@/entities/post';
+import type { PostSyncRequest } from '@/entities/post';
 
 export interface PostEditorFormValues {
-  category: MainPostCategory;
+  categoryId: number | null;
   title: string;
   content: string;
+  isAnonymous: boolean;
 }
 
 export interface PostEditorModalProps {
@@ -17,7 +18,8 @@ export interface PostEditorModalProps {
 }
 
 export const INITIAL_POST_EDITOR_FORM_VALUES: PostEditorFormValues = {
-  category: 'FREE',
+  categoryId: null,
   title: '',
   content: '',
+  isAnonymous: false,
 };

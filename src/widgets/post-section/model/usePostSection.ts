@@ -22,7 +22,6 @@ export const usePostSection = ({
   });
   const { dialogState, postDetailActions } = usePostSectionControllers({
     postSelection,
-    postItems: infinitePosts.postItems,
     onRequireLogin,
   });
   const commentSection = usePostCommentSectionState({
@@ -38,8 +37,8 @@ export const usePostSection = ({
 
   return {
     filter: {
-      selectedCategory: infinitePosts.selectedCategory,
-      setSelectedCategory: infinitePosts.setSelectedCategory,
+      selectedCategoryId: infinitePosts.selectedCategoryId,
+      setSelectedCategoryId: infinitePosts.setSelectedCategoryId,
     },
     list: {
       loadMoreRef: infinitePosts.loadMoreRef,
@@ -49,13 +48,13 @@ export const usePostSection = ({
       onPostSelect: selectionAction.handlePostSelect,
     },
     detail: {
-      selectedPost: postSelection.selectedPost,
       selectedPostDetail: postSelection.selectedPostDetail,
       postDetailQuery: postSelection.postDetailQuery,
       canEditSelectedPost: postSelection.canEditSelectedPost,
       reactionErrorMessage: postDetailActions.reactionErrorMessage,
       handlePostReaction: postDetailActions.handlePostReaction,
       isLikePostPending: postDetailActions.isLikePostPending,
+      onClose: () => postSelection.setSelectedPostId(null),
     },
     comments: commentSection.sectionState,
     dialogs: {

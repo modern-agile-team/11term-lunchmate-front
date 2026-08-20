@@ -38,6 +38,7 @@ const PostSection = ({ postSyncRequest, onPostSyncHandled, onRequireLogin }: Pos
           actions={{
             onEditOpen: () => dialogs.setIsEditPostModalOpen(true),
             onDeleteOpen: () => dialogs.setIsDeleteConfirmModalOpen(true),
+            onClose: detail.onClose,
           }}
           comments={comments}
         />
